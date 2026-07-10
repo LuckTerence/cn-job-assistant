@@ -43,6 +43,22 @@ jobs:
           python-version: "3.12"
       - run: pip install pyyaml
       - run: python tools/lint_skills.py
+      - run: python tools/lint_zh_refs.py
+
+  domestic-loop:
+    name: Domestic loop (tracker + installer + zh refs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      # No network install of boss-cli/get_jobs: offline smoke + unit tests only
+      - run: python tools/install_domestic_search.py status
+      - run: python tools/install_domestic_search.py smoke
+      - run: python tools/tracker.py --help
+      - run: python tools/lint_zh_refs.py
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
 
   security-guards:
     name: Security guards (permissions, gitignore, manifests)

@@ -45,7 +45,7 @@ files ready    with fit ratings     (LaTeX, tailored)
                -> /apply            -> Revise -> Final output
 ```
 
-**Domestic (中国大陆) variant:** `/setup-zh` → `/apply-zh` → `/da-zhaohu` produces Chinese résumés and 打招呼话术 in `documents/zh/`, with `/outcome` and `/interview` shared across both markets. It reads the Chinese profile in `CLAUDE.zh.md` (not the English `01-candidate-profile.md`). See [`README.zh.md`](./README.zh.md) for the full domestic workflow.
+**Domestic (中国大陆) variant:** minimum runnable loop is `tools/install_domestic_search.py` → `/setup-zh` → `/apply-zh`/`/da-zhaohu` → manual apply → `tools/tracker.py` (CSV tracker + HTML dashboard). Outputs land in `documents/zh/`. Heavy optional integrations (Resume Matcher, Reactive-Resume, mock interview stacks, etc.) live under [`integrations/catalog/`](./integrations/catalog/README.md), not the core skill surface. Profile: `CLAUDE.zh.md`. Full guide: [`README.zh.md`](./README.zh.md).
 
 The framework encodes career guidance best practices, including structured evaluation criteria, forward-looking cover letter framing, and optional salary benchmarking.
 

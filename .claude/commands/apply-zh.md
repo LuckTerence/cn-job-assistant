@@ -34,8 +34,8 @@
   （`templates/zh/resume_<track>.md`：互联网 / 国企央企 / 外企 / 体制内 / 应届）。
 - 写入 Markdown 源文件 `documents/zh/resume_<company>.md`（中文，社招严格一页）。
 - 按 JD 定制要点，遵循 08 的一页纸硬约束与分赛道差异（如国企放证件照、外企中英双语）。
-- **构建与导出由用户通过 `resume-build` 技能（Reactive-Resume，自托管）完成**：
-  导入该 Markdown 后导出 `.docx`（WPS/ATS 优先）或 `.pdf`。本步骤不手写 .docx。
+- 本步骤只产出 **Markdown 草稿**（不手写 .docx）。导出 PDF/DOCX 可用任意编辑器，
+  或可选自托管 Reactive-Resume（见 `integrations/catalog/resume-build/`，非核心依赖）。
 
 ---
 
@@ -61,9 +61,13 @@
 
 向用户说明：
 
-> "中文简历草稿已写入 `documents/zh/resume_<company>.md`，请在 Reactive-Resume
-> （`/resume-build`）导入并导出 .docx；打招呼话术已生成于 `documents/zh/`，请手动粘贴投递。
-> 投递后运行 `/outcome <company>` 记录进度。"
+> "中文简历草稿已写入 `documents/zh/resume_<company>.md`（Markdown 源，可自行导出 PDF/DOCX）；
+> 打招呼话术已生成于 `documents/zh/`，请在对应 App 内**手动**粘贴投递。
+> 投递后：
+> 1. `python tools/tracker.py add --company <公司> --role <岗位> --channel <渠道> --status applied --cv documents/zh/resume_<公司>.md`
+> 2. 或运行 `/outcome <company>` 记录进度并归档。
+> 总览：`python tools/tracker.py list --open-only` / `python tools/tracker.py dashboard`。"
 
-国内链路组合：`bosszhipin-search` / `domestic-jobs-search`（检索）+ `08-resume-zh.md`（简历）
-+ `resume-build`（构建导出）+ `09-da-zhaohu-zh.md` / `/da-zhaohu`（开场）+ 手动投递。
+国内最小闭环：
+`python tools/install_domestic_search.py`（搜岗后端）→ `/setup-zh` → 搜岗 → `/apply-zh` → 手动投递 → `tools/tracker.py`。
+可选重应用（Reactive-Resume / 模拟面试等）见 `integrations/catalog/`，**非**开箱必装。

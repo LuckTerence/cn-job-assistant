@@ -1,85 +1,89 @@
 ---
 name: application-tracker
-version: 1.0.0
+version: 2.0.0
 description: >
-  投递状态追踪与求职看板。本技能复用开源项目 jobsync
-  （Gsync/jobsync，MIT，自托管 Job Application Tracker + AI 职业助手）作为"投递后状态管理"底座，
-  而非自行实现追踪数据库。触发词：投递追踪、申请状态、面试进度、求职看板、track application、offer 管理。
+  本地投递状态追踪与求职看板。以 job_search_tracker.csv 为权威源，通过
+  tools/tracker.py（stdlib：CSV / 可选 SQLite / 单文件 HTML）读写，零 Docker。
+  触发词：投递追踪、申请状态、面试进度、求职看板、track application、offer 管理、tracker。
 context: fork
-allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(docker*), Bash(git*)
+allowed-tools: Bash(python* tools/tracker.py *), Bash(python3 tools/tracker.py *), Read, Glob, Grep, AskUserQuestion
 ---
 
-# 投递追踪技能（复用 jobsync）
+# 投递追踪技能（本地 Tracker）
 
-> **不要重复造轮子**：投递后的状态追踪（已投 / 面试中 / offer / 拒信）、可视化看板、
-> 与 AI 职业助手，已被成熟开源项目
-> [Gsync/jobsync](https://github.com/Gsync/jobsync)（**MIT**，719★，自托管）完整实现。
-> 本技能直接复用它做"状态管理"，不自行实现追踪库；本仓库 `job-application-assistant` 工作流
-> 的"投递后闭环"段指向本技能作为状态追踪落点。
+> **不要指向重型自托管当默认路径**。行业标配是 Tracker，但本仓库已有
+> `job_search_tracker.csv` 作为命令链权威源。本技能用 **`tools/tracker.py`**
+> 把这份 CSV 做成可操作的 CLI + 可选 HTML 看板，而不是默认要求 Docker 部署 jobsync。
 
-## 复用关系
+## 权威源
 
-| 能力 | 由谁实现 | 说明 |
-|------|----------|------|
-| 投递记录 | **jobsync** | 岗位 / 公司 / 渠道 / 状态（已投·面试·offer·拒）结构化存储 |
-| 状态看板 | **jobsync** | 可视化追踪多岗位进度 |
-| AI 职业助手 | **jobsync** | 基于已投数据给下一步建议 |
-| 状态人工记录 | **本仓库** 工作流 | 用户手动维护，或由 job-alert 提醒驱动更新 |
+| 追踪器 | 角色 | 形态 |
+|--------|------|------|
+| **`job_search_tracker.csv`** | **唯一权威源** | 仓库根目录，本地 CSV，`/outcome` 与本 CLI 读写 |
+| `tools/tracker.py dashboard` | 可视化镜像 | 生成 `job_search_tracker.html`（勿提交，已 gitignore） |
+| jobsync 等 | **可选**外挂 | 见 `integrations/catalog/` 思路；不自动同步 |
 
-## 技术要点（来自其 README，便于对接）
+表头（与 `/outcome` 一致）：
 
-- **协议**：MIT（明确声明，可自托管 / 可改）。
-- **形态**：TypeScript 自托管应用（含前端看板）；需本地/私有部署（Docker）。
-- **数据**：投递数据存于自托管实例，优先私有，遵守 PIPL。
-
-## 工作流（本技能如何编排）
-
-1. 用户在 `job-application-assistant` 完成检索 / 简历 / 话术 / 手动投递。
-2. 每完成一次投递，在自托管 **jobsync** 中记录岗位 + 状态（已投）。
-3. 面试 / offer / 拒信等状态变化，由用户更新，或由 `job-alert` 的提醒驱动回填。
-4. 用 jobsync 看板掌握整体进度，决定优先级（先面哪家中、哪家中需催跟进）。
-
-## 安装与运行（摘要，以 jobsync 仓库为准）
-
-```bash
-git clone https://github.com/Gsync/jobsync.git
-cd jobsync
-# 自托管部署（详见其 README / docker 配置）
+```
+date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source
 ```
 
-> 注：jobsync 为需自托管的应用，精确部署步骤以其仓库文档为准；本技能不臆造部署命令。
-> 如不愿自托管，本分支此前多轮仅将其标记为"可选参考"，本轮正式接入为状态追踪落点。
+## 安装
 
-## 与仓库内置 `job_search_tracker.csv` 的关系（定位澄清）
+无第三方依赖（Python 3.10+ 标准库）：
 
-本仓库的命令链（`/scrape`、`/rank`、`/outcome`、`/interview`、`/upskill`）维护一份
-`job_search_tracker.csv`，作为**命令链内部状态机的 source of truth**：去重
-（`/scrape` 的 `seen_jobs.json` + `/rank` 幂等排除）、归档（`/outcome` 写入且永不覆盖）、
-面试匹配与复盘都依赖它。这是轻量、本地、零依赖的进度账本。
+```bash
+python tools/tracker.py init
+python tools/tracker.py --help
+```
 
-**jobsync 是可选的外部看板，不是同一份数据。** 两者定位不同：
+## 常用命令
 
-| 追踪器 | 角色 | 数据形态 | 适用 |
-|--------|------|----------|------|
-| `job_search_tracker.csv` | 命令链内部状态机（**权威源**） | 本地 CSV，由命令自动读写 | 跑通 `/scrape→/rank→/apply→/outcome` 流水线 |
-| jobsync | 可选可视化看板 / AI 助手 | 自托管 Web 应用（Docker） | 想要图形化进度、AI 下一步建议 |
+```bash
+# 投递后记一笔
+python tools/tracker.py add \
+  --company 示例科技 --role 后端工程师 \
+  --channel Boss直聘 --status applied \
+  --source "https://…" \
+  --cv documents/zh/resume_示例科技.md \
+  --cover documents/zh/da-zhaohu_示例科技_后端.md
 
-**如何选 / 互通：**
-- **二选一即可**：只跑命令链就用 CSV，不要两份进度互相打架；想要图形界面再上 jobsync。
-- **CSV → jobsync（手动镜像）**：每完成一次投递 / 状态变化，在 jobsync 中同样记一笔
-  （公司 / 岗位 / 渠道 / 状态），保持两者一致。命令链**不会**自动同步到 jobsync。
-- **避免歧义**：以 `job_search_tracker.csv` 为权威；jobsync 视为其可视化镜像，不双写造成冲突。
+# 列表 / 仅进行中
+python tools/tracker.py list
+python tools/tracker.py list --open-only
+python tools/tracker.py list --status interview
+
+# 状态更新
+python tools/tracker.py update --company 示例科技 --role 后端工程师 --status interview
+
+# 详情
+python tools/tracker.py show --company 示例科技
+
+# 单文件 HTML 看板（浏览器打开）
+python tools/tracker.py dashboard
+
+# 导出 SQLite（可选查询）
+python tools/tracker.py export --format sqlite
+```
+
+## 工作流（agent 编排）
+
+1. 用户完成 `/apply-zh` 或 `/da-zhaohu` 并**手动**在 App 内投递。
+2. 调用 `tracker.py add` 写入公司 / 岗位 / 渠道 / 状态 / 材料路径。
+3. 面试 / offer / 拒信：优先跑 **`/outcome`**（会更新 CSV + 归档 `documents/applications/`）；
+   或直接用 `tracker.py update --status …`。
+4. 需要总览时：`tracker.py list --open-only` 或 `dashboard`。
 
 ## 合规与边界
 
-- 投递含敏感求职数据，优先自托管 / 私有部署，遵守 PIPL。
-- 状态由用户如实维护，不虚构面试 / offer 进度。
-- AI 建议仅供参考，最终决策由用户作出。
+- CSV / HTML / SQLite 含个人求职数据，已在 `.gitignore`（`job_search_tracker.csv` 等），勿提交。
+- 状态如实维护，不虚构面试 / offer。
+- 本工具不连接招聘平台、不自动投递。
 
-## 与其他技能的配合
+## 与其他能力的配合
 
-- 检索 → `bosszhipin-search` / `domestic-jobs-search`
-- 匹配评估 → `resume-match`（Resume Matcher）/ `04-job-evaluation.md`
-- 简历 → `resume-build`（Reactive-Resume）
-- 投递后提醒 → `job-alert`（offercatcher）
-- 谈薪 / 内推 → `salary-negotiate` / `referral-outreach`
+- 检索 → `bosszhipin-search` / `domestic-jobs-search`（先 `install_domestic_search.py`）
+- 中文材料 → `/apply-zh`、`/da-zhaohu`
+- 结果归档 → `/outcome`
+- 重型可选集成 → `integrations/catalog/`（模拟面试 / Reactive-Resume / 谈薪方法论等）

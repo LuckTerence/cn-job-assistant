@@ -73,5 +73,5 @@
 
 - **[dyweb/awesome-resume-for-chinese](https://github.com/dyweb/awesome-resume-for-chinese)** — 中文简历模板合集
   （LaTeX / HTML / **Typst** 多套，含应届、双栏等），本分支 `templates/zh/` 的样式可向其借鉴。
-- 需要 PDF 排版时，仍优先走 **resume-build**（Reactive-Resume）做构建与导出，模板库仅作样式参考。
+- 需要 PDF 排版时，可用任意编辑器导出，或可选自托管 Reactive-Resume（`integrations/catalog/resume-build/`）；`templates/zh` 与 awesome-resume 类库仅作样式参考。
 

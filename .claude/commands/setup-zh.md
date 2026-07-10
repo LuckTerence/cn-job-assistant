@@ -1,7 +1,8 @@
 # /setup-zh - 国内求职中文引导（Onboarding）
 
 你正在为**国内求职工作区**做初始化引导。目标是填充中文画像文件 `CLAUDE.zh.md`，
-并让用户跑通国内链路（`/apply-zh` → 中文简历 + 打招呼话术 → 手动投递）。
+并让用户跑通国内最小闭环：
+`install_domestic_search` → `/apply-zh` → 手动投递 → `tools/tracker.py`。
 本命令是 `/setup` 的中文版入口；若你也要走海外 LaTeX 流程，可另跑英文 `/setup`。
 
 ---
@@ -62,10 +63,15 @@
 
 写入 `CLAUDE.zh.md` 后，告诉用户：
 
-> "中文画像已写入 `CLAUDE.zh.md`。后续用法：
-> - 丢一份中文 JD 给 `/apply-zh` → 自动生成中文简历草稿 + 打招呼话术；
-> - 简历在 `/resume-build`（Reactive-Resume）导入并导出 .docx；
-> - 检索岗位用 `/bosszhipin-search`（Boss直聘）或 `/domestic-jobs-search`（智联/51job/猎聘/拉勾）；
-> - 投递后 `/outcome <company>` 记录进度；谈薪用 `/salary-negotiate`。"
+> "中文画像已写入 `CLAUDE.zh.md`。国内最小闭环：
+> 1. `python tools/install_domestic_search.py install-boss`（或 install-get-jobs）装搜岗后端；
+> 2. 搜岗后把 JD 丢给 `/apply-zh` → 中文简历草稿 + 打招呼话术；
+> 3. 在 App 内**手动**投递；
+> 4. `python tools/tracker.py add --company … --role … --channel … --status applied` 记一笔；
+> 5. 阶段变化用 `/outcome <company>`；总览用 `python tools/tracker.py dashboard`。
+>
+> 可选重应用（Reactive-Resume / 谈薪方法论 / 模拟面试等）见 `integrations/catalog/`，非开箱必装。"
+
+可选：确认用户是否已跑过 `python tools/install_domestic_search.py status` 与 `python tools/tracker.py init`。
 
 中文引导只填 `CLAUDE.zh.md`；海外 LaTeX 流程所需的 `01-candidate-profile.md` 等英文画像由英文 `/setup` 负责，两者各管各的市场，不冲突。

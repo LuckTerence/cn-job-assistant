@@ -1,7 +1,42 @@
 # AI 求职助手 · 国内适配版（China Fork）
 
+> **一句话定位**：这是面向 agent 的**求职工作流框架**（非 SaaS 产品）。  
+> 国内用户开箱要跑的**最小组件**是：  
+> ① `python tools/install_domestic_search.py`（Boss / get_jobs 安装）  
+> ② `/setup-zh` + `/apply-zh` / `/da-zhaohu`（中文简历与话术）  
+> ③ `python tools/tracker.py`（本地投递追踪，CSV 权威源）  
+> 默认**不自动投递**。重型自托管（模拟面试 / Reactive-Resume / jobsync 等）已降级到
+> [`integrations/catalog/`](./integrations/catalog/README.md)，不进核心 skill 面。
+
 > 本仓库是 [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)（MIT）的**国内适配分支**，
 > 在保留原版"岗位匹配评估 + 简历定制 + 面试准备"工作流的基础上，新增面向中国大陆求职市场的改造。
+
+## 国内最小闭环（可跑）
+
+```bash
+# 0. 可选：装 Boss 搜岗 CLI（个人/非商用；上游许可证请自行确认）
+python tools/install_domestic_search.py install-boss
+python tools/install_domestic_search.py status
+
+# 1. 在 agent 里跑 /setup-zh 填中文画像
+
+# 2. 搜岗后复制 JD，生成材料
+#    /apply-zh <JD链接或文本>
+
+# 3. 在 Boss/智联 等 App 内手动投递
+
+# 4. 记入本地 Tracker（零 Docker）
+python tools/tracker.py init
+python tools/tracker.py add --company 示例 --role 后端 --channel Boss直聘 --status applied
+python tools/tracker.py dashboard   # 生成 job_search_tracker.html
+```
+
+| 环节 | 可跑交付 | 说明 |
+|------|----------|------|
+| 搜岗 | `install_domestic_search.py` + boss-cli / get_jobs | 不自研爬虫；get_jobs 禁商用、需 JDK21 |
+| 生成 | `/apply-zh` `/da-zhaohu` + `08`/`09` + `templates/zh` | prompt 工作流，已落地 |
+| 追踪 | `tools/tracker.py` + `job_search_tracker.csv` | 替代默认 jobsync 指针 |
+| 可选 | `integrations/catalog/*` | 匹配/模拟面/谈薪等，自托管成本自担 |
 
 ## 与原版的核心差异
 
@@ -19,32 +54,27 @@
 ## 目录结构（新增部分）
 
 ```
-.agents/skills/
-  bosszhipin-search/    Boss直聘 检索（**复用** jackwener/boss-cli；UI 替代见 Ocyss/boss-helper）
-  domestic-jobs-search/ 智联/前程无忧/猎聘/拉勾 检索（**复用** loks666/get_jobs，浏览器自动化）
-  resume-build/         简历构建与导出（**复用** AmruthPillai/Reactive-Resume，PDF/JSON/DOCX）
-  salary-negotiate/     谈薪策略与话术（**复用** Ssupercoder/Salary-Negotiation-Skill，五阶段引擎 + Qwen2.5-7B）
-  job-alert/            招聘事件→Apple 提醒（**复用** NissonCX/offercatcher，MIT，邮件解析桥接）
-  referral-outreach/    内推 / 冷触达序列（**复用** quionie/outreach-ai，MIT，多通道 + 批量）
-  # 另有 MCP 原生方案 mergedao/mcp-jobs、油猴注入方案 yangfeng20/ai-job（见各技能文件内链接）
-  # 端到端投递可选参考：LeoLaborie/claude-apply、liruihan000/claude-job-auto-apply（见下"对标与复用"）
+tools/
+  install_domestic_search.py   国内搜岗一键安装 / status / smoke
+  tracker.py                   本地 Tracker（CSV 权威源 + HTML/SQLite）
+  lint_zh_refs.py              国内路径与闭环引用检查（CI）
+.agents/skills/                # 核心 skill 面（可被 agent 直接触发）
+  bosszhipin-search/           Boss直聘（复用 boss-cli + 安装器）
+  domestic-jobs-search/        智联/51job/猎聘/拉勾（复用 get_jobs + 安装器）
+  application-tracker/         本地 Tracker（tools/tracker.py）
+  # + 上游 6 个海外 CLI skills
+integrations/catalog/          # 可选/重依赖，不进核心 skill 面
+  resume-build/ resume-match/ interview-mock/
+  salary-negotiate/ referral-outreach/ job-alert/
+  README.md                    搭建成本与选型说明
 .claude/skills/job-application-assistant/
-  08-resume-zh.md       中文简历指南（分赛道，作为 resume-build 的内容规范）
-  09-da-zhaohu-zh.md    打招呼话术 / 求职信指南
+  08-resume-zh.md              中文简历指南（与 09 同级，不在 zh/ 子目录）
+  09-da-zhaohu-zh.md           打招呼话术 / 求职信指南
 .claude/commands/
-  setup-zh.md          /setup-zh 中文画像初始化命令
-  apply-zh.md          /apply-zh 中文岗位定制（评估+中文简历+求职信）命令
-  da-zhaohu.md         /da-zhaohu（/打招呼）中文招呼话术命令
-templates/zh/
-  resume_internet.md    互联网赛道简历模板
-  resume_soe.md         国企央企赛道简历模板
-  resume_foreign.md     外企赛道简历模板
-  resume_civil.md       体制内赛道简历模板
-  resume_freshgrad.md   应届校招简历模板
-  da-zhaohu-examples.md 话术 / 求职信示例
-documents/zh/          国内投递产物（中文简历 + 打招呼话术 / 求职信，统一目录）
-README.zh.md            本文件
-MODELS.zh.md            国产模型接入说明
+  setup-zh.md  apply-zh.md  da-zhaohu.md
+templates/zh/                  分赛道中文简历模板 + 话术示例
+documents/zh/                  国内投递产物目录（.gitkeep；内容 gitignore）
+README.zh.md  MODELS.zh.md
 ```
 
 ## 对标与复用（来自同赛道开源项目）
@@ -162,7 +192,7 @@ MODELS.zh.md            国产模型接入说明
 | 8 | **OmkarPathak/pyresparser** | GPL-3.0 | Python 简历解析（NLP，959★） | resume-match 解析备选 | 可选参考（GPL 仅方法论） |
 | 9 | **donnemartin/system-design-primer** | 无许可声明 | 系统设计面试圣经（356k★） | interview-mock 系统设计知识 | **已接入**（知识源） |
 | 10 | **ByteByteGoHq/system-design-101** | 无许可声明 | 系统设计可视化讲解（85k★） | interview-mock 系统设计图解 | **已接入**（知识源） |
-| 11 | **Gsync/jobsync** | MIT | 自托管投递追踪 + AI 职业助手（719★） | 投递状态追踪落点 | **已接入**（新增 application-tracker 技能） |
+| 11 | **Gsync/jobsync** | MIT | 自托管投递追踪 + AI 职业助手（719★） | 可选外挂看板 | **降级**（默认改用 `tools/tracker.py` + CSV） |
 | 12 | **DaKheera47/job-ops** | 无许可声明 | "DevOps 式求职"自托管流水线（3.6k★） | 工作流 / 流水线方法论 | 可选参考 |
 | 13 | **sunnypatell/ats-screener** | MIT | 企业级 ATS 模拟器（77★） | resume-match ATS 维度 | 可选参考 |
 | 14 | **binoydutt/Resume-Job-Description-Matching** | 无许可证 | 简历↔JD 匹配对抗 ATS（188★） | resume-match 方法论 | 可选参考（无许可） |
@@ -172,12 +202,13 @@ MODELS.zh.md            国产模型接入说明
 
 - **海外岗位聚合——明确不做**：本分支定位为**纯国内求职**，JobSpy / JobFunnel 等海外聚合工具（LinkedIn / Indeed / Glassdoor 等）与定位不符，**不采纳**。国内平台检索由 boss-cli（Boss直聘）+ get_jobs（智联 / 51job / 猎聘 / 拉勾）覆盖已足够。
 - **系统设计面试知识缺失**：`interview-mock`（AuraInterviewer）仅有算法 / 行为 / 语音维度，缺系统设计深度。现接入 **system-design-primer** + **system-design-101**（均未声明许可证，仅作知识引用不复制代码）补系统设计题库与图解（系统设计知识与国内外无关，通用适用）。
-- **投递状态追踪长期空缺**：前多轮仅标记为"可选参考"。本轮正式新增 **`application-tracker`** 技能（复用 **jobsync**，MIT，自托管）作为状态追踪落点，闭环"检索→简历→话术→投递→追踪"。
-  - **双追踪器定位澄清**：命令链的 `job_search_tracker.csv` 是内部状态机**权威源**（`/scrape`/`/rank`/`/outcome` 自动读写）；jobsync 是**可选的外部可视化看板**，二者不自动同步，二选一或手动镜像即可（详见 `application-tracker/SKILL.md`）。
+- **投递状态追踪**：已落地 **`tools/tracker.py`** + **`application-tracker`**（CSV 权威源 + HTML 看板，零 Docker）。
+  此前指向的 jobsync 自托管**不再作为默认路径**（可选外挂，不自动同步）。
 - **技术 / 学术简历构建**：`resume-build`（Reactive-Resume）外，新增 **rendercv**（LaTeX 学术 / 工程）与 **open-resume**（解析 / ATS，AGPL 仅方法论）为可选互补。
 - **ATS 模拟 / 双评分维度**：新增 **ats-screener**（企业级 ATS 模拟）与 **Resume-Builder**（双 ATS/HR 评分）为可选参考，补 `resume-match` 与求职信维度。
 - **自动投递形态 / 技能包架构对标**：**Auto_job_applier_linkedIn**（AGPL）作自动投递形态参考（坚持不自动投递）；**career-ops**（59k★ 全流程）与 **career-ops-plugin**（9 技能 Claude 插件）作同赛道架构对标，不集成代码。
-- **本轮正式接入 3 处**（system-design-primer / system-design-101 系统设计知识、jobsync 投递追踪新增技能），其余作可选参考或架构对标；JobSpy / JobFunnel 因海外定位不符**不采纳**；技能包现含 **18 个 SKILL.md**（含原版海外技能）。
+- **交付优先迭代**：国内搜岗安装器 + 本地 Tracker + `lint_zh_refs` CI；6 个重依赖 skill 移入 `integrations/catalog/`。
+  核心 `.agents/skills` 现为 **9 个**（6 海外 CLI + 3 国内可编排）；可选集成见 catalog。系统设计知识源仍可引用 primer/101。
 
 ## 测试与验证（第四轮验证结论）
 
@@ -228,14 +259,13 @@ MODELS.zh.md            国产模型接入说明
 
 ## 快速开始
 
-1. **填充个人画像**：运行 `/setup`（英文市场）或 `/setup-zh`（中文市场），或手动填写 `CLAUDE.md` / `CLAUDE.zh.md` 中的占位符。
-2. **检索岗位**：用平台技能（复用 **boss-cli** / **get_jobs**）在 Boss直聘、智联、前程无忧、
-   猎聘、拉勾等平台检索目标岗位，复制 JD 链接或文本。
-3. **生成开场**：运行 `/打招呼 <JD>` 生成打招呼话术或中文求职信。
-4. **定制简历**：参考 `08-resume-zh.md` 与 `templates/zh/` 对应赛道模板，生成中文简历。
-5. **准备面试**：沿用原版 `/interview` 命令，可结合中文岗位做针对性准备（国内题型如
-   群面/无领导小组讨论、行测、国企党政面可另行补充）。
-6. **手动投递**：在对应 App 内手动发送话术 / 上传简历。
+1. **（国内）安装搜岗后端**：`python tools/install_domestic_search.py install-boss`（或 `install-get-jobs`）。
+2. **填充个人画像**：运行 `/setup-zh`（中文）或 `/setup`（英文），或手动填写 `CLAUDE.zh.md` / `CLAUDE.md`。
+3. **检索岗位**：`boss search …` 或 get_jobs，复制 JD。
+4. **生成材料**：`/apply-zh <JD>`（简历+话术）或 `/da-zhaohu <JD>`（仅开场）。
+5. **手动投递**：在对应 App 内发送话术 / 上传简历（本仓库不自动投递）。
+6. **追踪**：`python tools/tracker.py add …`；总览用 `list` / `dashboard`；阶段变化用 `/outcome`。
+7. **（可选）** 重型集成见 [`integrations/catalog/`](./integrations/catalog/README.md)。
 
 ## 国产模型接入
 

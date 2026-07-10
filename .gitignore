@@ -64,6 +64,12 @@ documents/applications/**
 
 # Personal job search tracking
 job_search_tracker.csv
+job_search_tracker.db
+job_search_tracker.html
+job_search_tracker_export.csv
+
+# Vendored domestic search backends (cloned by install_domestic_search.py)
+third_party/
 
 # Upskill reports (personal output)
 upskill/*.md

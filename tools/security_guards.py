@@ -53,6 +53,9 @@ REQUIRED_IGNORE_RULES = [
     "documents/references/**",
     "documents/applications/**",
     "job_search_tracker.csv",
+    "job_search_tracker.db",
+    "job_search_tracker.html",
+    "third_party/",
 ]
 
 FORBIDDEN_SCRIPTS = {"preinstall", "install", "postinstall", "prepare", "prepack"}

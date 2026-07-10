@@ -303,7 +303,7 @@ Run the same fit evaluation as Step 1, but source the candidate profile from **`
 
 - Read the structure + per-track rules in `.claude/skills/job-application-assistant/08-resume-zh.md` and pick the right track template (`templates/zh/resume_<track>.md`: 互联网 / 国企央企 / 外企 / 体制内 / 应届).
 - Write a **Markdown source** to `documents/zh/resume_<company>.md` (one page, Chinese). Tailor bullets to the JD; follow the 1-page hard rule for 社招.
-- **Build & export** is done by the user via the `resume-build` skill (Reactive-Resume, self-hosted) — export `.docx` (preferred for WPS/ATS) or `.pdf`. Do not hand-generate `.docx` here.
+- This step writes **Markdown only**. Export to `.docx`/`.pdf` with any editor, or optionally self-host Reactive-Resume (see `integrations/catalog/resume-build/`, not a core skill).
 
 ### Step D2: Generate 打招呼话术 / 中文求职信
 
@@ -321,6 +321,6 @@ Run the same fit evaluation as Step 1, but source the candidate profile from **`
 
 Tell the user:
 
-> "中文简历草稿已写入 `documents/zh/resume_<company>.md`，请在 Reactive-Resume（`/resume-build`）中导入并导出 .docx；打招呼话术已生成于 `documents/zh/`，请手动粘贴到对应 App 投递。投递后运行 `/outcome <company>` 记录进度。"
+> "中文简历草稿已写入 `documents/zh/resume_<company>.md`；打招呼话术已生成于 `documents/zh/`，请手动粘贴到对应 App 投递。投递后：`python tools/tracker.py add …` 或 `/outcome <company>`。"
 
-Domestic flow composes: `bosszhipin-search` / `domestic-jobs-search` (检索) + `08-resume-zh.md` (简历) + `resume-build` (构建导出) + `09-da-zhaohu-zh.md` / `/da-zhaohu` (开场) + manual submit.
+Domestic minimum loop: `install_domestic_search` → `/apply-zh` or this domestic branch → manual submit → `tools/tracker.py`. Optional heavy tools live under `integrations/catalog/`.
