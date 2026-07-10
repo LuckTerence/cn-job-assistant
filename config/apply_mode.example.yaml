@@ -18,7 +18,9 @@ risk_acknowledgement:
   personal_use_only: false
 
 auto:
-  # 单次最多处理条数（防止误操作刷爆）
+  # 单次 auto-greet 最多处理的 security-id 个数（逗号分隔多 ID 时生效，防止误操作刷爆）
   max_batch: 5
   # 为 true 时，auto 子命令若无 --execute 则只打印将要执行的命令
   default_dry_run: true
+  # 说明：主流 boss-cli 的 `boss greet <id>` 通常不支持自定义话术文件；
+  # 传 --text-file 时 apply_assist 会探测上游参数，不支持则拒绝并建议 semi。

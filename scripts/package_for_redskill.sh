@@ -13,7 +13,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(".").resolve()
-SKILL_NAME = "AI求职助理"
+SKILL_NAME = "ai-job-assistant"
 NAME_EXPECTED = "AI求职助理"
 DESC_EXPECTED = (
     "帮你在本地做求职材料：按岗位描述定制中文简历与 Boss 话术，导出可投 PDF，看匹配度，"

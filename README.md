@@ -134,6 +134,10 @@ python tools/apply_assist.py semi \
 
 **全自动**必须同时满足：配置 `mode: auto`、三项风险确认为 true、命令行 `--i-understand-ban-risk`，真正发送再加 `--execute`。默认 dry-run 只打印命令。可能封号，后果自负。
 
+> **能力边界**：主流 `boss greet <id>` 通常只有平台默认招呼；**定制话术请用 semi**。  
+> 若 `auto-greet --text-file …` 探测到 boss-cli 不支持自定义参数，会**直接拒绝**（不再假装已传入）。  
+> 多 ID：`--security-id id1,id2`，数量受配置 `auto.max_batch` 限制。
+
 ```bash
 python tools/apply_assist.py set-mode auto          # 需输入 YES
 # 编辑 config/apply_mode.yaml 把 risk_acknowledgement 全改 true

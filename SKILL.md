@@ -44,6 +44,7 @@ python3 tools/apply_assist.py status
 python3 tools/apply_assist.py set-mode manual   # 默认
 python3 tools/apply_assist.py set-mode semi     # 打开页面 + 复制话术
 # auto 需配置风险确认 + --i-understand-ban-risk + --execute
+# 定制话术请用 semi；auto-greet 的 --text-file 仅在 boss-cli 支持时生效
 ```
 
 记进度：

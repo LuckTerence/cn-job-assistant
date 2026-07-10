@@ -36,6 +36,7 @@ ALLOWED_PERMISSIONS = {
     "Skill(job-application-assistant)",
     "Bash(bun run:*)",
     "Bash(python3 salary_lookup.py:*)",
+    "Bash(python3 integrations/legacy/salary_lookup.py:*)",
     "Bash(pdftotext:*)",
 }
 

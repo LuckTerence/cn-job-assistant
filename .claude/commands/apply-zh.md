@@ -11,7 +11,10 @@
 ## Step 0: 解析输入
 
 - 若 `$ARGUMENTS` 是 URL，用 `WebFetch` 提取 岗位描述 正文；若是文本，直接使用。
-- 抽取：**公司名、岗位名、城市、薪资、经验要求、学历要求、硬性技能、岗位职责**。
+- 抽取以下字段（记在心里，后续 Step 7 传给 tracker）：
+  - **必填**：公司名、岗位名、渠道（Boss直聘/智联/51job/猎聘/拉勾）
+  - **结构化可选**：城市、薪资区间（如 "25-40K"）、学历要求（如 "本科"）、经验要求（如 "3-5年"）
+  - 内容字段：硬性技能、岗位职责
 - 若平台是 Boss直聘，标记为"短话术模式"；否则标记为"正式求职信模式"。
 - **落盘岗位描述**：写入 `documents/zh/jd_<company>_<role>.md`（纯文本即可；文件名里的 `jd_` 表示岗位描述）。
 
@@ -143,17 +146,25 @@ python tools/apply_assist.py semi \
    # 编辑 config/apply_mode.yaml：risk_acknowledgement 三项改为 true
    ```
 2. **禁止**在未完成上述配置时调用 `boss greet` / `batch-greet`。
-3. 真正发送前必须 dry-run，再由用户加 `--execute`：
+3. **自定义话术优先 semi**（主流 `boss greet <id>` 往往不支持自定义文案；
+   `apply_assist` 若探测到不支持会**拒绝** `--text-file`，避免假执行）：
+   ```bash
+   python tools/apply_assist.py semi \
+     --url "<岗位链接>" \
+     --text-file documents/zh/<话术>.md \
+     --company <公司> --role <岗位>
+   ```
+4. 若用户仍要 auto（平台默认招呼），真正发送前必须 dry-run，再由用户加 `--execute`：
    ```bash
    python tools/apply_assist.py auto-greet \
      --security-id <id> \
-     --text-file documents/zh/<话术>.md \
      --company <公司> \
      --i-understand-ban-risk
    # 用户确认后再：
    python tools/apply_assist.py auto-greet … --i-understand-ban-risk --execute
    ```
-4. Agent **不得**静默加 `--execute`。
+   多 ID：`--security-id id1,id2`（受 `auto.max_batch` 限制）。
+5. Agent **不得**静默加 `--execute`。
 
 也可用统一入口（auto 不会在此静默发送）：
 
@@ -164,31 +175,94 @@ python tools/apply_assist.py after-generate \
 
 ---
 
-## Step 7: Tracker
+## Step 7: Tracker（**Agent 主动执行，不是只打印命令**）
 
-生成结束后打印可复制命令：
+### 7A. 先用 suggest-add 预填并展示摘要
+
+**直接运行**以下命令（把占位符替换为 Step 0 抽取的真实值；城市/薪资/学历/经验如果 JD 里有就传，没有就不传）：
 
 ```bash
 python tools/tracker.py suggest-add \
   --company <公司> \
   --role <岗位> \
-  --channel <Boss直聘|智联|猎聘|51job|拉勾> \
+  --channel <渠道> \
   --cv documents/zh/resume_<公司>.md \
-  --cover documents/zh/<话术或求职信文件>.md \
-  --source documents/zh/jd_<公司>_<岗位>.md
+  --cover documents/zh/<da-zhaohu或cover文件>.md \
+  --source documents/zh/jd_<公司>_<岗位>.md \
+  --city <城市，可选> \
+  --salary <薪资区间，可选> \
+  --education <学历要求，可选> \
+  --experience <经验要求，可选>
 ```
 
-说明：投完（无论手动还是自动）都要记一笔；日常用 `tracker.py today` / `dashboard`；阶段变化 `/outcome`。
+向用户展示 suggest-add 输出的**预填摘要**（公司/岗位/渠道/状态/城市薪资等）。
+
+### 7B. 询问用户意图，确认后写入
+
+**必须明确询问**用户以下选择（**禁止静默写入 CSV**）：
+
+> 要把这条记录写入 tracker 吗？
+> - **to_apply**：还没投，先占个位（默认安全选项）
+> - **applied**：已经投了
+> - **跳过**：先不记
+
+根据用户回答执行对应 add 命令（把 suggest-add 输出的命令里 `--status` 改成用户选的值；
+若用户说"已经投了/已投递"才用 `--status applied`；其他情况默认 `to_apply`）：
+
+```bash
+python tools/tracker.py add \
+  --company <公司> --role <岗位> --channel <渠道> \
+  --status <to_apply|applied> \
+  --cv documents/zh/resume_<公司>.md \
+  --cover documents/zh/<话术文件>.md \
+  --source documents/zh/jd_<公司>_<岗位>.md \
+  [--city <城市> --salary <薪资> --education <学历> --experience <经验>]
+```
+
+若用户选"跳过"则不执行 add，仅告知"随时可以让我帮你 tracker add 记一笔"。
+
+**规则**：
+- 用户没明确说"已经投了" → 默认 `to_apply`，不要自作主张标 applied
+- 若发现已有同公司+岗位+渠道的记录，tracker 会提示 duplicate，用 `update` 改状态即可
+- 写入成功后告诉用户：日常用 `python tools/tracker.py today` 或 `dashboard` 看进度
 
 ---
 
-## Step 8: 呈现与交付
+## Step 8: 呈现与交付 + 「然后呢」引导
 
-汇总路径（缺一不可说清楚）：
+### 8A. 交付汇总（缺一不可说清楚）
 
 - `documents/zh/resume_<company>.md`（源）
 - **`documents/zh/resume_<company>.pdf`（投递用，必须生成）**
 - 话术 / 求职信、岗位描述、匹配报告
-- 当前投递模式 + tracker 命令
+- 当前投递模式 + tracker 是否已写入（7B 的结果）
 
-闭环：搜岗 → 生成材料 → **导出 PDF** → 按模式投 → tracker。
+闭环确认：搜岗 → 生成材料 → **导出 PDF** → 按模式投 → tracker 记一笔。
+
+### 8B. 「然后呢」——下一步引导（**固定输出，不要省略**）
+
+交付汇总后，**必须**输出以下引导块（用自然的人话，不要生硬照搬标题）：
+
+```text
+📌 接下来你可以：
+
+  • 投完/等回复阶段
+    - 3–7 天没消息可以回来用 /outcome 记「待跟进」或「无回复」
+    - 拿到面试 / offer / 拒信，都回来 /outcome 更新状态
+    - 日常看进度：python tools/tracker.py today （终端） 或 dashboard （HTML看板，有卡片待办）
+
+  • 想改简历（v2、v3）
+    - 改完 md 后重新跑 match_resume.py report 生成新报告
+    - 用 diff 对比前后版本，看技能覆盖度有没有提升：
+        python tools/match_resume.py diff \
+          --before documents/zh/match_report_<公司>_v1.json \
+          --after documents/zh/match_report_<公司>.json
+
+  • 继续投下一个
+    - 直接 /apply-zh <新岗位链接或JD>，流程同上
+```
+
+**规则**：
+- 引导块是「固定结构 + 人话填充」，不要死板复制格式，但三块内容（跟进/结果、改简历diff、继续投）必须覆盖
+- 如果用户已经说了"已投"，重点提醒"3-7天没消息回来跟进"；如果是 to_apply，重点提醒"投完回来改状态"
+- 不要在交付时丢一堆命令就结束——让用户清楚知道工具不是"生成完PDF就完了"，而是持续用的

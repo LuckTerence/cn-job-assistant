@@ -188,7 +188,12 @@ You can update specific sections later:
 
 The `--section search` option is especially useful as your priorities evolve. It re-runs the search configuration interview and suggests role types you may not have considered based on your full profile.
 
-## 5. Optional: Set up salary benchmarking
+## 5. Optional: Set up salary benchmarking (upstream / not China core path)
+
+> **China fork note:** This is a **legacy upstream** tool (`integrations/legacy/salary_lookup.py`).  
+> Company-name normalization targets Danish suffixes (A/S, ApS) and Nordic characters.  
+> The domestic loop (install_domestic_search → `/apply-zh` → match → tracker) does **not** require it.  
+> For CN salary *methodology* (no scraped DB), see `integrations/catalog/salary-negotiate/`.
 
 If you have salary data (from a union, salary survey, Glassdoor, or personal research):
 

@@ -38,7 +38,7 @@ python tools/install_domestic_search.py smoke
 | 安装 / 状态 | **本仓库** `tools/install_domestic_search.py` | 打包交付层 |
 | 搜索岗位 | **boss-cli** `boss search` | 逆向 API，城市/薪资/经验等筛选 |
 | 查看推荐 | **boss-cli** `boss recommend` | 推荐流 |
-| 打招呼 | **boss-cli** `boss greet` / `batch-greet` | 仅 **auto 模式**且用户完成风险确认后，经 `apply_assist.py` 调用 |
+| 打招呼 | **boss-cli** `boss greet` / `batch-greet` | 仅 **auto 模式**且用户完成风险确认后，经 `apply_assist.py` 调用；自定义话术请用 **semi**（多数 greet 无自定义文案参数） |
 | 导出 岗位描述 | **boss-cli** `boss export` / `boss detail` | CSV/JSON |
 | AI 话术生成 | **本仓库** `09-da-zhaohu-zh.md` + `/da-zhaohu` | 生成文本 |
 | 投递模式开关 | **本仓库** `tools/apply_assist.py` | manual / semi / auto，默认 manual |
@@ -59,10 +59,12 @@ boss search "golang" --city 杭州 --salary 20-30K --exp 3-5年
 boss show 3
 boss detail <securityId> --json
 boss export "Python" -n 50 -o jobs.csv
-# 全自动打招呼请走门禁（不要直接 boss greet，除非用户已选 auto）
+# 自定义话术 → semi（复制到剪贴板，你点发送）
+python tools/apply_assist.py semi --url '…' --text-file documents/zh/da-zhaohu_….md --company …
+# 全自动（平台默认招呼）请走门禁；不要直接 boss greet，除非用户已选 auto
 python tools/apply_assist.py status
 python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-risk
-# 确认后再加 --execute
+# 确认后再加 --execute；--text-file 仅当 boss-cli 支持时才会传入，否则拒绝
 ```
 
 ## 工作流

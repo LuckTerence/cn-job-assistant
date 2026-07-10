@@ -1,14 +1,20 @@
-# Salary Benchmark Tool
+# Salary Benchmark Tool（上游遗留 · 非国内主路径）
+
+> **国内用户请先读这句**：本工具**不是**开箱即用的国内薪资产品。  
+> 实现已迁至 `integrations/legacy/salary_lookup.py`；仓库根 `salary_lookup.py` 仅为兼容 shim。  
+> 公司名匹配逻辑面向**丹麦/北欧**后缀与字符（A/S、ApS、øæå）。  
+> 国内谈薪方法论（无数据爬取）见 `integrations/catalog/salary-negotiate/`。  
+> 国内最小闭环（搜岗 → 简历/话术 → 匹配 → tracker）**不依赖**本工具。
 
 ## What is this?
 
-The salary lookup tool (`salary_lookup.py`) lets you benchmark company salaries against a baseline from your own data. It's used during the `/apply` workflow to show how a company's compensation compares to market rates.
+The salary lookup tool lets you benchmark company salaries against a baseline from **your own** data (optional step in the upstream English `/apply` workflow).
 
-**This tool is optional.** If you don't have salary data, the salary step is simply skipped during `/apply`.
+**This tool is optional.** If you don't have `salary_data.json`, skip salary lookup entirely.
 
 ## How it works
 
-The tool reads a `salary_data.json` file in the repo root containing company salary benchmarks. It uses fuzzy matching to find companies by name, handling Danish/Nordic characters, legal suffixes (A/S, ApS), and common spelling variations.
+The tool reads a `salary_data.json` file in the **repo root** containing company salary benchmarks. It uses fuzzy matching to find companies by name, handling Danish/Nordic characters, legal suffixes (A/S, ApS), and common spelling variations.
 
 The data format supports any index-based or absolute salary data. For example:
 - Index 100 = median salary, higher is better
@@ -109,10 +115,13 @@ Start with an empty template and add companies as you research them:
 ## Usage
 
 ```bash
+# preferred
+python3 integrations/legacy/salary_lookup.py "Novo Nordisk"
+# root shim (emits a deprecation warning)
 python3 salary_lookup.py "Novo Nordisk"
-python3 salary_lookup.py "Ørsted" --city "Fredericia"
-python3 salary_lookup.py "COWI" --json
-python3 salary_lookup.py --list-all
+python3 integrations/legacy/salary_lookup.py "Ørsted" --city "Fredericia"
+python3 integrations/legacy/salary_lookup.py "COWI" --json
+python3 integrations/legacy/salary_lookup.py --list-all
 ```
 
 ## Important notes

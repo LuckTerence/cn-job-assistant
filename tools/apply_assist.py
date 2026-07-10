@@ -10,14 +10,21 @@
   python tools/apply_assist.py init-config
   python tools/apply_assist.py set-mode manual|semi|auto
   python tools/apply_assist.py semi --url URL --text-file path [--company 公司]
-  python tools/apply_assist.py auto-greet --security-id ID --text-file path [--execute]
+  python tools/apply_assist.py auto-greet --security-id ID [--text-file path] [--execute]
   python tools/apply_assist.py explain
+
+说明（诚实能力边界）：
+  - auto-greet 的 --text-file 仅在 boss-cli 实测支持自定义话术参数时才会传入；
+    当前主流 boss-cli 的 `boss greet <id>` 往往不支持自定义话术——此时会明确拒绝，
+    请改用 semi 模式复制话术后手动发送。
+  - auto.max_batch 限制单次 --security-id 的数量（逗号分隔多 ID）。
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -185,13 +192,16 @@ def cmd_explain(_: argparse.Namespace) -> int:
    体验接近自动，封号风险远低于脚本连点。
 
 3) auto  全自动（高风险）
-   调用 boss-cli 等外部工具批量打招呼/投递。
+   调用 boss-cli 等外部工具打招呼（默认平台招呼语）。
    可能违反平台协议、触发验证码甚至封号。
    必须同时满足：
      - config/apply_mode.yaml 里 mode: auto
      - risk_acknowledgement 三项全为 true
      - 命令行加 --i-understand-ban-risk
      - 真正发送还要再加 --execute（否则只 dry-run 打印命令）
+   定制话术：多数 boss-cli 不支持 greet 自定义文案 → 请用 semi。
+   --text-file 仅在探测到上游参数时才会传入，否则拒绝（不假装成功）。
+   多 ID 时受 auto.max_batch 限制。
 
 本仓库不替你承担账号损失；个人求职自负风险。
 """.strip()
@@ -239,6 +249,7 @@ def cmd_set_mode(args: argparse.Namespace) -> int:
 
 
 def copy_to_clipboard(text: str) -> bool:
+    """Copy text to system clipboard. Supports macOS / Linux / Windows."""
     data = text.encode("utf-8")
     # macOS
     if shutil.which("pbcopy"):
@@ -259,7 +270,153 @@ def copy_to_clipboard(text: str) -> bool:
             ["xsel", "--clipboard", "--input"], input=data, check=False
         )
         return p.returncode == 0
+    # Windows: PowerShell first (Unicode / 中文话术), then clip.exe
+    if sys.platform == "win32" or shutil.which("powershell") or shutil.which("pwsh"):
+        for shell in ("pwsh", "powershell"):
+            if not shutil.which(shell):
+                continue
+            try:
+                p = subprocess.run(
+                    [
+                        shell,
+                        "-NoProfile",
+                        "-NonInteractive",
+                        "-Command",
+                        "Set-Clipboard -Value ([Console]::In.ReadToEnd())",
+                    ],
+                    input=text,
+                    text=True,
+                    encoding="utf-8",
+                    check=False,
+                    timeout=15,
+                )
+                if p.returncode == 0:
+                    return True
+            except (OSError, subprocess.TimeoutExpired):
+                continue
+        if shutil.which("clip"):
+            try:
+                # clip.exe expects UTF-16LE on modern Windows consoles
+                p = subprocess.run(
+                    ["clip"],
+                    input=text.encode("utf-16-le"),
+                    check=False,
+                    timeout=10,
+                )
+                return p.returncode == 0
+            except (OSError, subprocess.TimeoutExpired):
+                pass
     return False
+
+
+def parse_security_ids(raw: str) -> list[str]:
+    """Split --security-id value: commas and whitespace."""
+    if not raw or not str(raw).strip():
+        return []
+    parts = re.split(r"[,;\s]+", str(raw).strip())
+    return [p for p in parts if p]
+
+
+def probe_boss_greet_text_argv(text_file: str, message: str) -> tuple[list[str] | None, str]:
+    """Detect whether boss-cli can take a custom greet message.
+
+    Returns (extra_argv or None, human reason).
+    Prefer file-based flags; fall back to inline message flags.
+    """
+    help_text = ""
+    for cmd in (["boss", "greet", "--help"], ["boss", "greet", "-h"], ["boss", "--help"]):
+        try:
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=12,
+                check=False,
+            )
+            chunk = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            if chunk.strip():
+                help_text = chunk
+                break
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+
+    if not help_text.strip():
+        return (
+            None,
+            "无法读取 boss greet --help；无法确认是否支持自定义话术。"
+            "请改用 semi 模式复制话术，或去掉 --text-file 使用平台默认招呼。",
+        )
+
+    lower = help_text.lower()
+    # File-based flags (path passed through)
+    file_flags = (
+        "--message-file",
+        "--text-file",
+        "--greet-file",
+        "--content-file",
+    )
+    for flag in file_flags:
+        if flag in lower or flag.replace("-", "") in lower.replace("-", ""):
+            return [flag, text_file], f"检测到 {flag}，将把话术文件传入 boss"
+
+    # Short -f / --file only if help mentions greet-related file
+    if re.search(r"(?m)^\s*-f\b|--file\b", help_text) and re.search(
+        r"message|text|content|话术|招呼|greet", lower
+    ):
+        return ["--file", text_file], "检测到 --file/-f，将把话术文件传入 boss"
+
+    # Inline message flags (pass file contents)
+    inline_flags = ("--message", "--text", "--content", "-m")
+    for flag in inline_flags:
+        # require word boundary-ish match in help
+        pat = re.escape(flag)
+        if re.search(rf"(?m)\s{pat}\b|{pat}\s", help_text) or flag in lower:
+            if flag == "-m" and not re.search(r"(?m)\s-m\b", help_text):
+                continue
+            return [flag, message], f"检测到 {flag}，将把话术正文传入 boss"
+
+    return (
+        None,
+        "当前 boss-cli 的 greet 未暴露自定义话术参数（常见仅 `boss greet <id> [--json]`）。"
+        "自定义话术请用 semi：python tools/apply_assist.py semi --text-file …",
+    )
+
+
+def build_boss_greet_cmd(
+    security_id: str,
+    text_file: str = "",
+    *,
+    probe: bool = True,
+) -> tuple[list[str] | None, str]:
+    """Build boss greet argv. Returns (cmd or None, note/error)."""
+    cmd: list[str] = ["boss", "greet", security_id]
+    if not text_file:
+        return cmd, "使用 boss-cli / 平台默认招呼语（未传 --text-file）"
+
+    # Resolve path early so dry-run is honest
+    try:
+        path = Path(text_file)
+        if not path.is_file():
+            alt = ROOT / text_file
+            if alt.is_file():
+                path = alt
+            else:
+                return None, f"话术文件不存在: {text_file}"
+        message = path.read_text(encoding="utf-8").strip()
+        resolved = str(path)
+    except OSError as exc:
+        return None, f"无法读取话术文件: {exc}"
+
+    if not message:
+        return None, f"话术文件为空: {resolved}"
+
+    if not probe:
+        return None, "跳过探测"
+
+    extra, reason = probe_boss_greet_text_argv(resolved, message)
+    if extra is None:
+        return None, reason
+    return cmd + extra, reason
 
 
 def read_text_file(path: str) -> str:
@@ -367,42 +524,86 @@ def cmd_auto_greet(args: argparse.Namespace) -> int:
         )
         return 1
 
-    sid = args.security_id
-    text_file = args.text_file
-    # boss-cli 接口因版本而异：这里生成「可审查」命令，默认 dry-run
-    # 常见形态参考：boss greet <id> ；具体以 boss --help 为准
-    cmd = ["boss", "greet", sid]
-    if text_file:
-        # 若上游支持自定义话术文件，用户可改；未知则只提示手动
-        cmd_note = f"(话术文件: {text_file} — 若 boss-cli 版本不支持自定义，请改用 semi 模式粘贴)"
-    else:
-        cmd_note = ""
+    sids = parse_security_ids(args.security_id)
+    if not sids:
+        print("拒绝：--security-id 为空。", file=sys.stderr)
+        return 2
+
+    max_batch = int(cfg["auto"].get("max_batch") or 5)
+    if len(sids) > max_batch:
+        print(
+            f"拒绝：本次 {len(sids)} 个 security-id，超过 auto.max_batch={max_batch}。\n"
+            f"请减少 ID，或编辑 config/apply_mode.yaml 提高 max_batch（仍建议保守）。",
+            file=sys.stderr,
+        )
+        return 2
+
+    text_file = (args.text_file or "").strip()
+    # Build one representative command (message flags same for all IDs)
+    sample_cmd, note = build_boss_greet_cmd(sids[0], text_file)
+    if sample_cmd is None:
+        print("拒绝：自定义话术无法安全传入 boss-cli。", file=sys.stderr)
+        print(note, file=sys.stderr)
+        print(
+            "\n推荐：\n"
+            "  python tools/apply_assist.py semi "
+            f"--text-file {text_file or 'documents/zh/da-zhaohu_….md'} "
+            "--company …\n"
+            "或去掉 --text-file，仅触发平台默认招呼：\n"
+            f"  python tools/apply_assist.py auto-greet --security-id {sids[0]} "
+            "--i-understand-ban-risk [--execute]",
+            file=sys.stderr,
+        )
+        return 2
+
+    cmds: list[list[str]] = []
+    for sid in sids:
+        cmd, _ = build_boss_greet_cmd(sid, text_file)
+        if cmd is None:
+            print(f"拒绝：无法为 {sid} 构建命令。", file=sys.stderr)
+            return 2
+        cmds.append(cmd)
 
     dry = cfg["auto"].get("default_dry_run", True) and not args.execute
     print("=== 全自动路径（boss-cli）===")
+    print(f"条数: {len(cmds)} / max_batch={max_batch}")
+    print(f"话术: {note}")
     print("将执行:" if not dry else "【dry-run】将要执行:")
-    print(" ", " ".join(cmd), cmd_note)
+    for cmd in cmds:
+        print(" ", " ".join(cmd))
     print()
     if dry:
         print("未加 --execute：只预览，不调用 boss。")
         print("确认无误后：")
         print(
             "  python tools/apply_assist.py auto-greet "
-            f"--security-id {sid} "
+            f"--security-id {','.join(sids)} "
             + (f"--text-file {text_file} " if text_file else "")
             + "--i-understand-ban-risk --execute"
         )
+        if text_file:
+            print(
+                "\n注意：若 dry-run 显示的命令不含话术参数，"
+                "说明当前 boss-cli 不支持自定义话术（本工具会在探测失败时已拒绝）。"
+            )
         return 0
 
     print("正在调用 boss-cli（可能产生真实打招呼）…")
-    proc = subprocess.run(cmd, check=False)
-    if proc.returncode != 0:
-        print(
-            "boss 返回非零。请检查登录状态: boss status / boss login --qrcode",
-            file=sys.stderr,
-        )
-        return proc.returncode
-    print("已调用完成。请到 App 核对是否发出；并用 tracker 记一笔。")
+    failed = 0
+    for cmd in cmds:
+        print("→", " ".join(cmd))
+        proc = subprocess.run(cmd, check=False)
+        if proc.returncode != 0:
+            failed += 1
+            print(
+                f"  boss 返回 {proc.returncode}。"
+                "请检查: boss status / boss login --qrcode",
+                file=sys.stderr,
+            )
+    if failed:
+        print(f"完成：{len(cmds) - failed}/{len(cmds)} 成功，{failed} 失败。", file=sys.stderr)
+        return 1
+    print("已全部调用完成。请到 App 核对是否发出；并用 tracker 记一笔。")
     if args.company:
         print(
             "建议: python tools/tracker.py add "
@@ -434,16 +635,16 @@ def cmd_dispatch_by_mode(args: argparse.Namespace) -> int:
         return cmd_semi(args)
     # auto: never silent-send; only remind how to opt in execute
     print("全自动已开启配置，但仍不会在 after-generate 里静默发送。")
-    print("请单独执行 auto-greet，并带上风险参数与 --execute：")
-    print(
-        "  python tools/apply_assist.py auto-greet "
-        "--security-id <id> --text-file <话术> "
-        "--i-understand-ban-risk --execute"
-    )
-    print("更稳妥可用 semi：")
+    print("自定义话术请优先 semi（多数 boss-cli 不支持 greet 自定义文案）：")
     print(
         "  python tools/apply_assist.py semi --url … --text-file … --company …"
     )
+    print("若坚持 auto（平台默认招呼，须风险参数 + --execute）：")
+    print(
+        "  python tools/apply_assist.py auto-greet "
+        "--security-id <id> --i-understand-ban-risk --execute"
+    )
+    print("带 --text-file 时：仅当 boss-cli 探测支持话术参数才会执行，否则拒绝。")
     return 0
 
 
@@ -478,8 +679,16 @@ def build_parser() -> argparse.ArgumentParser:
     semi.set_defaults(func=cmd_semi)
 
     ag = sub.add_parser("auto-greet", help="全自动打招呼（高风险，多重门禁）")
-    ag.add_argument("--security-id", required=True, help="Boss 岗位 securityId")
-    ag.add_argument("--text-file", default="")
+    ag.add_argument(
+        "--security-id",
+        required=True,
+        help="Boss 岗位 securityId；多个用逗号分隔，受 auto.max_batch 限制",
+    )
+    ag.add_argument(
+        "--text-file",
+        default="",
+        help="自定义话术文件；仅当 boss-cli 支持对应参数时才会传入，否则拒绝并建议 semi",
+    )
     ag.add_argument("--company", default="")
     ag.add_argument("--role", default="")
     ag.add_argument(

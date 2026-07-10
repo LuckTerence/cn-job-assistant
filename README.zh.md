@@ -15,6 +15,7 @@
 | 接 DeepSeek / 智谱 / 通义 | [MODELS.zh.md](./MODELS.zh.md) |
 | 可选重应用的真实搭建成本 | [integrations/catalog/README.md](./integrations/catalog/README.md) |
 | 对标调研与历史决策（工程向） | [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) |
+| **闭环优化方案（Phase 0–2，先做透收尾）** | [docs/optimization-plan-close-the-loop.zh.md](./docs/optimization-plan-close-the-loop.zh.md) |
 
 ## 国内最小命令备忘
 

@@ -89,8 +89,8 @@ Does this role advance career goals and contain tasks that energize?
 
 Market-aware — pick the branch that matches the posting's market:
 
-- **International (海外岗):** if configured (`salary_data.json` exists), run `python3 salary_lookup.py "<Company Name>" --json` (add `--city "<City>"` to narrow). Present as the index table below; higher index = above-market.
-- **Domestic (国内中文岗):** do **not** run the 海外 `salary_lookup.py` tool — its indices are Denmark-specific and do not apply to the China market. Use the **期望薪资** recorded in `CLAUDE.zh.md` (求职方向段) as the baseline, and compare it against the salary range stated in the JD. If the 岗位描述 lists no range, skip this subsection.
+- **International (海外岗):** if configured (`salary_data.json` exists), run `python3 integrations/legacy/salary_lookup.py "<Company Name>" --json` (root `salary_lookup.py` is a deprecation shim). Add `--city "<City>"` to narrow. Present as the index table below; higher index = above-market. This tool is **upstream/Denmark-oriented** (A/S, ApS, Nordic chars).
+- **Domestic (国内中文岗):** do **not** run `salary_lookup.py` — no China salary DB ships here. Use the **期望薪资** in `CLAUDE.zh.md` vs the JD range; optional methodology: `integrations/catalog/salary-negotiate/`. If the 岗位描述 lists no range, skip this subsection.
 
 Present findings (international) as:
 ```

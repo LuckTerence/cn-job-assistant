@@ -1,9 +1,21 @@
-# 投递后粘贴执行（或让 Agent 代跑）：
+============================================================
+[Tracker 预填摘要]
+  公司:   星云科技
+  岗位:   高级后端
+  渠道:   Boss直聘
+  状态:   to_apply（默认 to_apply = 还没投；投了请改 applied）
+  简历:   examples/demo/resume_星云科技.md
+  话术:   examples/demo/da-zhaohu_星云科技_后端.md
+============================================================
+
+# 确认后执行（让 Agent 帮你跑，或自己复制到终端）：
 python tools/tracker.py add \
   --company 星云科技 \
   --role 高级后端 \
   --channel Boss直聘 \
-  --status applied \
+  --status to_apply \
   --cv examples/demo/resume_星云科技.md \
   --cover examples/demo/da-zhaohu_星云科技_后端.md \
   --source examples/demo/jd_星云科技_后端.md
+
+# 如果已经投了，把 --status to_apply 改成 --status applied

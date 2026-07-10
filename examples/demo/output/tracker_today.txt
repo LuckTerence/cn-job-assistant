@@ -1,19 +1,21 @@
-=== 今日求职工作台 ===
-总计 3 条 · 进行中 2 · 已结束 1
+投递记录共 3 条，还在跟的 2 条，已结束 1 条
 
-## 面试 / Offer 跟进 (1)
-  · [interview] 青梧数据 / 后端开发 (智联) — demo: 二面中
-  → 准备 /interview 或更新：tracker update --status …
+📅 面试相关（1）
+  [interview] 青梧数据 / 后端开发 · 智联  demo: 二面中
+  （需要准备就跑 /interview，状态变了用 tracker update）
 
-## 已投待回复 (1)
-  · [applied] 星云科技 / 高级后端 (Boss直聘) — demo: 已生成材料，待手动投递
-  → 可跟进或标记 no_response；新投递用 tracker add
+⏰ 建议跟进（0）
+  暂无
+  （投了≥7天没消息；如已被拒/无回复用 /outcome 记一笔）
 
-## 已结束（最近） (1)
-  · [rejected] 北岸出行 / 服务端 (猎聘) — demo: 已结束
-  → 复盘用 /outcome；勿删历史行
+已投/待投、等回复（1）
+  [applied] 星云科技 / 高级后端 · Boss直聘  demo: 已生成材料，待手动投递
+  （新投的用 tracker add）
 
-快捷命令：
+📝 最近结束的（近30天）（1）
+  [rejected] 北岸出行 / 服务端 · 猎聘  demo: 已结束
+  （复盘可以用 /outcome，旧记录别删）
+
+常用：
   python tools/tracker.py list --open-only
-  python tools/tracker.py dashboard
-  /apply-zh <岗位描述>   # 生成材料后再 add 一条
+  python tools/tracker.py dashboard   # 打开 HTML 看板看待办卡片

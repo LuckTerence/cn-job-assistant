@@ -9,7 +9,7 @@ bash scripts/package_for_redskill.sh
 文件：
 
 ```text
-dist/AI求职助理.zip
+dist/ai-job-assistant.zip
 ```
 
 或桌面：
@@ -35,7 +35,7 @@ dist/AI求职助理.zip
 
 ### 硬校验
 
-- zip **根目录只有一层**：`AI求职助理/`
+- zip **根目录只有一层**：`ai-job-assistant/`
 - 根下必须有 `SKILL.md`
 - `SKILL.md` frontmatter **只有** `name`、`description` 两键
 - `name: AI求职助理` 与表单名称一致

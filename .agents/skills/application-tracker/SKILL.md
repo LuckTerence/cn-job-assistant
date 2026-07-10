@@ -23,11 +23,15 @@ allowed-tools: Bash(python* tools/tracker.py *), Bash(python3 tools/tracker.py *
 | `tools/tracker.py dashboard` | 可视化镜像 | 生成 `job_search_tracker.html`（勿提交，已 gitignore） |
 | jobsync 等 | **可选**外挂 | 见 `integrations/catalog/` 思路；不自动同步 |
 
-表头（与 `/outcome` 一致）：
+表头（17 列；后 4 列可选，旧 CSV 缺列可读、写回时补齐）：
 
 ```
-date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source
+date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,
+cv_file,cover_letter_file,source,salary,city,education,experience
 ```
+
+关闭态含 `skipped`（不投，Phase 1 原因字段预留）。`dashboard` / `today` 共用待办规则：
+面试中 · 建议跟进（≥7 天仍 open）· 建议复盘（近 30 天结束）。
 
 ## 安装
 
@@ -41,10 +45,11 @@ python tools/tracker.py --help
 ## 常用命令
 
 ```bash
-# 投递后记一笔
+# 记一笔（已投用 applied；还没投用 to_apply）
 python tools/tracker.py add \
   --company 示例科技 --role 后端工程师 \
   --channel Boss直聘 --status applied \
+  --city 杭州 --salary 25-40K \
   --source "https://…" \
   --cv documents/zh/resume_示例科技.md \
   --cover documents/zh/da-zhaohu_示例科技_后端.md
@@ -54,21 +59,23 @@ python tools/tracker.py list
 python tools/tracker.py list --open-only
 python tools/tracker.py list --status interview
 
-# 每日工作台（今日待跟进 / 面试 / 已结束）
+# 每日工作台（面试 / 跟进≥7天 / 复盘）
 python tools/tracker.py today
 
-# /apply-zh 后打印可复制 add 命令
+# /apply-zh 预填：默认 --status to_apply（安全）；Agent 须问用户确认后再 add
 python tools/tracker.py suggest-add \
   --company 示例科技 --role 后端 --channel Boss直聘 \
-  --cv documents/zh/resume_示例科技.md
+  --cv documents/zh/resume_示例科技.md \
+  --city 杭州 --salary 25-40K
 
-# 状态更新
+# 状态更新（可补结构化字段）
 python tools/tracker.py update --company 示例科技 --role 后端工程师 --status interview
+python tools/tracker.py update --company 示例科技 --role 后端工程师 --city 上海
 
 # 详情
 python tools/tracker.py show --company 示例科技
 
-# 单文件 HTML 看板（浏览器打开）
+# 单文件 HTML 看板（顶部待办卡片 + 深色模式）
 python tools/tracker.py dashboard
 
 # 导出 SQLite（可选查询）
@@ -77,12 +84,11 @@ python tools/tracker.py export --format sqlite
 
 ## 工作流（agent 编排）
 
-1. 用户完成 `/apply-zh` 或 `/da-zhaohu` 并**手动**在 App 内投递。
-2. 调用 `tracker.py add` 写入公司 / 岗位 / 渠道 / 状态 / 材料路径。
-3. 面试 / offer / 拒信：优先跑 **`/outcome`**（会更新 CSV + 归档 `documents/applications/`）；
-   或直接用 `tracker.py update --status …`。
-4. 需要总览时：`tracker.py list --open-only` 或 `dashboard`。
-
+1. `/apply-zh` 结束后：**先跑** `suggest-add` 展示预填摘要（默认 `to_apply`）。
+2. **询问用户**：`to_apply` / `applied` / 跳过；**禁止静默**标 `applied` 后 `add`。
+3. 用户确认后再 `tracker.py add … --status <选择>`（可带 city/salary/education/experience）。
+4. 面试 / offer / 拒信：优先 **`/outcome`**，或 `tracker.py update --status …`。
+5. 总览：`today` 或 `dashboard`（看待办卡片）。
 ## 合规与边界
 
 - CSV / HTML / SQLite 含个人求职数据，已在 `.gitignore`（`job_search_tracker.csv` 等），勿提交。
