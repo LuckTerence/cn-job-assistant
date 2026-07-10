@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/demo-loop.gif" alt="CN Job Assistant demo loop" width="720">
+  <img src="docs/assets/demo-loop.gif" alt="流程示意：生成材料、本地打分、投递看板" width="900">
 </p>
 
 <h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
