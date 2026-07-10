@@ -1,342 +1,233 @@
 <p align="center">
-  <img src="claude_animation.gif" alt="AI Job Search Assistant" width="200">
+  <img src="claude_animation.gif" alt="CN Job Assistant" width="160">
 </p>
 
-# AI Job Search
-
-[![CI](https://github.com/MadsLorentzen/ai-job-search/actions/workflows/ci.yml/badge.svg)](https://github.com/MadsLorentzen/ai-job-search/actions/workflows/ci.yml)
-
-An AI-powered job application framework built on [Claude Code](https://claude.com/claude-code). Fork it, fill in your profile, and let Claude evaluate job postings, tailor your CV, write cover letters, and prepare you for interviews.
-
-> **中文用户 / 中国大陆求职**：本仓库含**国内适配分支**，新增 Boss直聘/智联/前程无忧/猎聘/拉勾 检索指引、
-> 中文简历分赛道模板、打招呼话术生成，并支持国产大模型（DeepSeek/智谱 GLM 等）。详见
-> **[`README.zh.md`](./README.zh.md)**。
-
-> Note: This is an independent open-source project and is not affiliated with, endorsed by, sponsored by, or maintained by Anthropic. Anthropic and Claude Code are referenced only to describe the toolchain this workflow uses.
+<h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
 
 <p align="center">
-  <i>Did this save you a Sunday of cover-letter writing? Consider a coffee.<br>
-  Did it land you the job? Maybe two.</i> ☕
+  <strong>本地优先 · 按 JD 定制 · 可量化 · 不自动投递</strong><br>
+  把你的 AI Agent 变成「搜岗 → 改简历 / 打招呼 → 打分 → 手动投 → 追踪」的求职工作台
 </p>
 
 <p align="center">
-  <a href="https://ko-fi.com/madslorentzen">
-    <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=6" alt="Buy me a coffee at ko-fi.com" height="40">
-  </a>
+  <a href="https://github.com/LuckTerence/cn-job-assistant/actions/workflows/ci.yml"><img src="https://github.com/LuckTerence/cn-job-assistant/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT">
+  <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
+  <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
+  <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
 </p>
 
-## What this is
+<p align="center">
+  <a href="#三分钟上手"><strong>三分钟上手</strong></a> ·
+  <a href="#它解决什么问题"><strong>解决什么问题</strong></a> ·
+  <a href="#和别人有什么不同"><strong>差异点</strong></a> ·
+  <a href="./ARCHITECTURE.zh.md"><strong>架构</strong></a> ·
+  <a href="./MODELS.zh.md"><strong>国产模型</strong></a>
+</p>
 
-A structured workflow that turns Claude Code into a full-stack job application assistant. The core workflow (self-profiling, fit evaluation, and the drafter-reviewer application pipeline) is **language- and country-agnostic**. The job portal search skills are built for the Danish market (Jobindex, Jobnet, Akademikernes Jobbank, etc.), but the pattern is designed to be swapped for your local job boards.
+<p align="center">
+  <em>English:</em> A local-first AI job-search <strong>framework</strong> for the Chinese market
+  (Boss Zhipin / 51job / Liepin …). Not a SaaS, not a mass auto-apply bot.
+  Fork → fill profile → generate tailored materials → you submit manually.
+</p>
 
+---
+
+## 它解决什么问题
+
+国内求职者常见的真实痛点：
+
+| 痛点 | 市面上常见做法 | 本仓库怎么做 |
+|------|----------------|--------------|
+| 一份简历群发 N 家 | 批量自动投 / 同文案 | **按 JD 定制**中文简历 + Boss 打招呼话术 |
+| 不知道改得好不好 | 凭感觉 | **本地打分**：关键词 hit/miss + 匹配分（无模型下载） |
+| 投了就忘 | 表格手记 / 重型 Docker 看板 | **零依赖 Tracker**（CSV + HTML 看板） |
+| 工具要登录云、简历外传 | 各类在线 AI 简历站 | **本地优先**，个人数据 gitignore |
+| 全自动触发风控 | 各种「一键海投」 | **默认不自动投递**，合规立场写进产品 |
+
+> 这不是又一个「帮你海投」的脚本合集，而是 **Agent 可读可跑的求职工作流**。
+
+---
+
+## 30 秒看懂闭环
+
+```text
+  装搜岗工具          填画像            丢一份 JD
+       │                │                  │
+       ▼                ▼                  ▼
+ install_domestic   /setup-zh      /apply-zh <JD>
+       │                │                  │
+       └────────────────┴──────────────────┘
+                           │
+           ┌───────────────┼───────────────┐
+           ▼               ▼               ▼
+     中文简历草稿    打招呼 / 求职信    匹配质量报告
+   documents/zh/     documents/zh/    match_report.json
+           │               │               │
+           └───────────────┴───────────────┘
+                           │
+                           ▼
+              你在 App 里手动投递（关键）
+                           │
+                           ▼
+              tracker.py 记一笔 / /outcome 更新状态
 ```
-/setup          /scrape              /apply <url>
-  |                |                     |
-  v                v                     v
-Fill in        Search job           Evaluate fit
-your profile   portals              Score & recommend
-  |                |                     |
-  v                v                     v
-Profile        Present matches      Draft CV + Cover Letter
-files ready    with fit ratings     (LaTeX, tailored)
-                   |                     |
-                   v                     v
-               Pick a match         Reviewer agent critiques
-               -> /apply            -> Revise -> Final output
-```
 
-**Domestic (中国大陆) variant:** minimum runnable loop is `tools/install_domestic_search.py` → `/setup-zh` → `/apply-zh`/`/da-zhaohu` → `tools/match_resume.py report` → manual apply → `tools/tracker.py`. Core vs optional architecture: [`ARCHITECTURE.zh.md`](./ARCHITECTURE.zh.md). Heavy self-hosted stacks live only under [`integrations/catalog/`](./integrations/catalog/README.md) with explicit setup-cost metadata (enforced by `tools/lint_skill_surface.py`). Profile: `CLAUDE.zh.md`. Guide: [`README.zh.md`](./README.zh.md).
+**开箱可跑的 4 个本地组件**（不装 Docker、不拉百 MB 向量模型）：
 
-The framework encodes career guidance best practices, including structured evaluation criteria, forward-looking cover letter framing, and optional salary benchmarking.
+1. `tools/install_domestic_search.py` — Boss / 多平台搜岗安装  
+2. `/apply-zh` · `/da-zhaohu` — 中文简历与话术（Agent 命令）  
+3. `tools/match_resume.py` — 匹配分 + 关键词命中/缺失  
+4. `tools/tracker.py` — 投递追踪与 HTML 看板  
 
-## Prerequisites
+---
 
-- [Claude Code](https://claude.com/claude-code) (CLI)
-- Python 3.10+
-- [Bun](https://bun.sh) (for Danish job search CLI tools)
-- LaTeX distribution with `lualatex` and `xelatex`: [TeX Live](https://tug.org/texlive/), [MacTeX](https://tug.org/mactex/), [TinyTeX](https://yihui.org/tinytex/), or [MiKTeX](https://miktex.org/). The CV compiles with `lualatex` (pdflatex often fails on modern MiKTeX installs with `fontawesome5` font-expansion errors); the cover letter compiles with `xelatex` because `cover.cls` requires `fontspec`. If using a minimal TeX install such as TinyTeX or BasicTeX, install the extra packages listed in [SETUP.md](SETUP.md#minimal-tex-install-tinytexbasictex).
-- Optional: `pdftotext` from [poppler](https://poppler.freedesktop.org/) (macOS: `brew install poppler`, Debian/Ubuntu: `apt install poppler-utils`, Windows: `choco install poppler`) — used by `/apply`'s ATS parseability check on the compiled CV. If missing, the check degrades gracefully to a visual keyword review.
+## 三分钟上手
 
-## Quick start
+### 0. 前置
 
-### 1. Fork and clone
+- Python **3.10+**
+- 任意能读仓库 skills/commands 的 AI Agent  
+  （Claude Code / Cursor / 支持 OpenAI 兼容 API 的国产模型 Agent 等，见 [MODELS.zh.md](./MODELS.zh.md)）
 
 ```bash
-gh repo fork MadsLorentzen/ai-job-search --clone
-cd ai-job-search
+git clone https://github.com/LuckTerence/cn-job-assistant.git
+cd cn-job-assistant
 ```
 
-### 2. Install job search tools
-
-PowerShell:
-
-```powershell
-$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search")
-foreach ($tool in $tools) {
-  Set-Location ".agents/skills/$tool/cli"
-  bun install
-  Set-Location "..\..\..\.."
-}
-```
-
-Bash / zsh / Git Bash:
+### 1. （可选）装 Boss 搜岗
 
 ```bash
-cd .agents/skills/jobbank-search/cli && bun install && cd ../../../..
-cd .agents/skills/jobdanmark-search/cli && bun install && cd ../../../..
-cd .agents/skills/jobindex-search/cli && bun install && cd ../../../..
-cd .agents/skills/jobnet-search/cli && bun install && cd ../../../..
-cd .agents/skills/linkedin-search/cli && bun install && cd ../../../..
+python tools/install_domestic_search.py install-boss
+python tools/install_domestic_search.py status
 ```
 
-For `linkedin-search` the install is optional: it has zero runtime dependencies and runs with plain `bun`; `bun install` only pulls TypeScript dev types.
+> 个人求职用途；boss-cli 上游许可证请自行确认。智联/猎聘等见 `install-get-jobs`（禁商用协议）。
 
-### 3. Set up your profile
+### 2. 在 Agent 里初始化画像
+
+```text
+/setup-zh
+```
+
+### 3. 丢一份 JD，生成材料 + 打分
+
+```text
+/apply-zh
+（粘贴 Boss/智联 JD 链接或全文）
+```
+
+会写入 `documents/zh/`：简历草稿、话术、JD 原文、**match_report_*.json**。
+
+### 4. 你去 App 里手动投；回来记一笔
 
 ```bash
-claude
-# Then inside Claude Code:
-/setup
+python tools/tracker.py init
+python tools/tracker.py add \
+  --company 示例科技 --role 后端 --channel Boss直聘 --status applied
+python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 ```
 
-`/setup` offers three paths: read your `documents/` folder if you have one populated (CV PDF, LinkedIn export, diplomas, reference letters, past applications), import a single CV pasted in chat, or walk through an interview. It auto-detects what you have and asks. Documents-folder mode is idempotent and safe to re-run as you add more material; see `documents/README.md` for the layout.
-
-### 4. Search for jobs
-
-```bash
-/scrape
-```
-
-This searches multiple job portals for positions matching your profile, deduplicates results, and presents them sorted by fit. Pick a match to run `/apply` on it directly — or, when a scrape returns more jobs than you want to eyeball, run `/rank` to batch-score them all against the fit framework and get a ranked shortlist first.
-
-### 5. Apply to a job
-
-```bash
-/apply https://jobindex.dk/job/1234567
-```
-
-If the URL can't be fetched (some job portals block automated access), you can paste the job description directly instead:
-
-```bash
-/apply <paste the full job description here>
-```
-
-This runs the full workflow: evaluate fit, draft CV + cover letter, review with a second agent, revise, and present the final output.
-
-## Other commands
-
-`/setup`, `/scrape`, and `/apply` form the core workflow. Seven more commands extend it once your profile is in place (the domestic variants `/setup-zh`, `/apply-zh`, and `/da-zhaohu` cover the 中国大陆 workflow and are documented in [`README.zh.md`](./README.zh.md)):
-
-- **`/interview`** preps you for a scheduled interview on a tracked application. It builds a stage-specific prep pack from the application's archive (the exact posting, the CV and cover letter the interviewer actually read, feedback recorded from earlier rounds), researches the company and interviewers with a verify-before-use rule, maps likely questions to your STAR examples, and offers a mock interview following the roleplay protocol in `07-interview-prep.md`. Gaps get honest bridge answers, never invented experience. Market-aware: it reads `.tex` or `.md` archives and the matching profile (`01-candidate-profile.md` / `02-behavioral-profile.md` for international, `CLAUDE.zh.md` for domestic).
-- **`/outcome`** records what happened to an application - interview stages, offers, rejections, silence. It archives the submitted CV, cover letter, and posting text into `documents/applications/<company>_<role>/`, keeps `outcome.md` in the format `/setup` Path A parses, and updates the tracker. Once a few applications resolve, it points you back to `/setup` to calibrate the fit framework from what actually got interviews. Market-aware: archives `cv_draft.tex`/`cover_letter.tex` (international) or `cv_draft.md`/`cover_letter.md` (domestic).
-- **`/rank`** bridges `/scrape` and `/apply`: it batch-scores all newly scraped postings against the fit framework (parallel agents fetch each posting and score the five evaluation dimensions) and returns a ranked shortlist with honest per-job strengths and gaps. Deal-breakers veto, deadlines get urgency flags, dead postings get marked expired. Pick a number and it hands off to the full `/apply` workflow. **International-only:** it reads `job_scraper/seen_jobs.json` (populated by `/scrape`) and the English profile (`01-candidate-profile.md`); domestic applications flow through `/apply-zh` and are not written to `seen_jobs.json`, so `/rank` does not see them.
-- **`/expand`** enriches your profile by scanning public sources you've already linked in it (GitHub repos, portfolio site, Kaggle, Google Scholar) and looking up syllabi for named courses and certifications. Discovered competencies are added to your profile with a source tag. Useful right after `/setup` to surface skills that documents alone don't make explicit.
-- **`/upskill`** analyzes the gap between your profile and your tracked job postings (or a single posting via `/upskill <URL>`). Produces a prioritized heatmap of skill gaps and a learning plan with web-searched study resources and time estimates. Useful for career planning between applications.
-- **`/add-template`** registers your own LaTeX CV or cover letter template in place of the stock ones. It captures the template's instructions (compile engine, fonts, style rules, page limit), runs a mandatory test compile, and wires the template into `/apply`. See [LaTeX templates](#latex-templates) below.
-- **`/add-portal`** generates a job-portal search skill for a job board in your market. It investigates the portal (search URL pattern, result structure, access rules), scaffolds the CLI skill from the same structure as the shipped ones, and test-runs a live query before registering. See [Job search tools](#job-search-tools) below.
-
-**Domestic (中国大陆) commands** — full detail in [`README.zh.md`](./README.zh.md):
-
-- **`/setup-zh`** fills the Chinese profile in `CLAUDE.zh.md` (target 行业 / 岗位 / 赛道 / 薪资 / 城市), the domestic counterpart of `/setup`.
-- **`/apply-zh`** evaluates a Chinese posting and drafts a one-page Chinese résumé (`documents/zh/resume_<company>.md`) plus a cover letter or Boss 打招呼话术, reading the profile from `CLAUDE.zh.md`.
-- **`/da-zhaohu`** generates a Boss直聘 打招呼话术 (`documents/zh/da-zhaohu_<company>_<role>.md`) from `CLAUDE.zh.md` and the posting.
-
-`/reset` is also available, see [Starting over](#starting-over) below.
-
-## File structure
-
-```
-ai-job-search/
-├── CLAUDE.md                          # Main candidate profile + workflow rules (international / English)
-├── CLAUDE.zh.md                       # 中文画像 + 国内工作流规则 (domestic / 中国大陆) — gitignored PII
-├── .claude/
-│   ├── commands/
-│   │   ├── apply.md                   # /apply workflow (drafter-reviewer)
-│   │   ├── setup.md                   # /setup onboarding (documents folder, CV import, or interview)
-│   │   ├── expand.md                  # /expand competency enrichment from documents and online presence
-│   │   ├── add-template.md            # /add-template register custom LaTeX templates
-│   │   ├── add-portal.md              # /add-portal generate a job-portal search skill for your market
-│   │   ├── rank.md                    # /rank triage scraped jobs into a ranked shortlist
-│   │   ├── outcome.md                 # /outcome record application results, archive materials
-│   │   ├── interview.md               # /interview stage-specific prep pack + mock interview
-│   │   ├── reset.md                   # /reset wipe profile data or documents folder
-│   │   ├── apply-zh.md                # /apply-zh 中文简历 + 求职信/打招呼话术 (domestic)
-│   │   ├── setup-zh.md                # /setup-zh 填充中文画像 CLAUDE.zh.md (domestic)
-│   │   └── da-zhaohu.md               # /da-zhaohu Boss直聘 打招呼话术 (domestic)
-│   ├── skills/
-│   │   ├── job-application-assistant/  # Core application skill
-│   │   │   ├── SKILL.md               # Skill definition
-│   │   │   ├── 01-candidate-profile.md # Your education, experience, skills
-│   │   │   ├── 02-behavioral-profile.md# PI/DISC/personality assessment
-│   │   │   ├── 03-writing-style.md    # Tone, structure, do's and don'ts
-│   │   │   ├── 04-job-evaluation.md   # Scoring framework for job fit
-│   │   │   ├── 05-cv-templates.md     # LaTeX CV structure + tailoring rules
-│   │   │   ├── 06-cover-letter-templates.md # LaTeX cover letter templates
-│   │   │   └── 07-interview-prep.md   # STAR examples + interview framework
-│   │   ├── job-scraper/               # Job search orchestration
-│   │   └── upskill/                   # /upskill skill gap analysis and learning plan
-│   └── settings.json                  # Claude Code permissions (shared, scoped)
-├── .agents/skills/                    # Job portal CLI tools
-│   ├── jobbank-search/                # Akademikernes Jobbank (Denmark)
-│   ├── jobdanmark-search/             # Jobdanmark.dk (Denmark)
-│   ├── jobindex-search/               # Jobindex.dk (Denmark)
-│   ├── jobnet-search/                 # Jobnet.dk (Denmark, government portal)
-│   └── linkedin-search/               # LinkedIn public job listings (country-agnostic)
-├── cv/
-│   └── main_example.tex               # moderncv LaTeX template
-├── cover_letters/
-│   ├── cover.cls                      # Custom cover letter LaTeX class
-│   ├── cover_example.tex              # Example cover letter (structural reference + CI smoke test)
-│   └── OpenFonts/                     # Lato + Raleway fonts
-├── templates/                         # Custom templates registered via /add-template
-│   └── README.md                      # Folder layout instructions
-├── documents/                         # Career source materials for /setup Path A and /expand
-│   ├── README.md                      # Folder layout instructions
-│   ├── cv/                            # Master CV (PDF or .tex)
-│   ├── linkedin/                      # LinkedIn profile export (PDF)
-│   ├── diplomas/                      # Degree certificates and transcripts
-│   ├── references/                    # Reference letters
-│   └── applications/                  # Past application records (<company>_<role>/)
-├── .github/workflows/ci.yml           # CI: LaTeX smoke compiles, skill lint, CLI typechecks
-├── salary_lookup.py                   # Salary benchmarking tool (BYO data)
-├── tools/
-│   ├── convert_salary_excel.py        # Convert salary Excel to JSON
-│   ├── lint_skills.py                 # CI lint for skills, commands, settings.json
-│   ├── security_guards.py             # CI guards: permission allowlist, gitignore rules, manifests
-│   └── README_SALARY_TOOL.md          # Salary tool setup instructions
-├── job_scraper/                       # Scraper state (seen jobs, results)
-├── upskill/                           # /upskill report output (markdown reports per run)
-├── job_search_tracker.csv             # Application tracking spreadsheet
-└── SETUP.md                           # Detailed setup guide
-```
+---
 
-## How `/apply` works
+## 你得到什么（诚实清单）
 
-The `/apply` command runs a **drafter-reviewer workflow** with mandatory PDF compilation:
+| ✅ 已落地 | 说明 |
+|----------|------|
+| 中文简历分赛道模板 | 互联网 / 国企 / 外企 / 体制内 / 应届 |
+| Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
+| 本地匹配与生成质检 | TF–IDF 余弦 + 关键词，**无 embedding 下载** |
+| 本地投递 Tracker | CSV 权威源 + SQLite/HTML 导出 |
+| 国产模型友好 | 框架不绑死某一家 API |
+| 海外 LaTeX 流程 | 保留上游英文 CV / Cover Letter 能力 |
+| CI 覆盖国内工具 | tracker / match / 路径 lint / skill 面 allowlist |
 
-1. **Parse** the job posting (URL or text)
-2. **Evaluate fit** against your profile (skills, experience, culture, location, career alignment)
-3. **Draft** a tailored CV and cover letter in LaTeX
-4. **Spawn a reviewer agent** that researches the company and critiques the drafts
-5. **Revise** based on the reviewer's feedback
-6. **Compile and inspect** both PDFs: lualatex for the CV, xelatex for the cover letter. Claude reads the rendered pages and iterates on the LaTeX until the CV is exactly 2 pages with no orphaned entry titles, and the cover letter is exactly 1 page with the signature visible and fonts consistent.
-7. **ATS-check the CV**: extract the PDF's text layer (`pdftotext`, optional dependency) and verify it the way an ATS parser sees it — contact details present as literal text, no garbled glyphs, sane reading order — then score the posting's keyword coverage against the extraction. Keywords the profile genuinely supports get added; genuine gaps stay visible, never stuffed.
-8. **Present** the final output with a verification checklist
+| ⚠️ 明确不做 / 降级 | 说明 |
+|-------------------|------|
+| 默认自动投递 | 产品原则；第三方自动化需你自担风险 |
+| 假装「18 个技能都可跑」 | 重依赖已进 [integrations/catalog](./integrations/catalog/README.md)，带**真实搭建成本** |
+| 替你保证拿到 offer | 分数是启发式，不是录用预测 |
 
-All claims in the CV and cover letter are verified against your actual profile. The system never fabricates skills or experience.
+---
 
-### What makes this workflow different
+## 和别人有什么不同
 
-- **PDF verification loop.** Most LaTeX-resume templates produce "looks fine in the .tex" output that breaks in the PDF: job titles orphan to the next page, cover letters spill onto page 2, bullet fonts silently fall back to the body font. The `/apply` command compiles and visually inspects every PDF and applies targeted fixes (`\needspace`, `\enlargethispage`, font-matching wrappers for list items) until the layout is clean. This runs automatically on every application.
-- **ATS verification on the PDF text layer.** An ATS reads the PDF's embedded text, not the rendered page — and LaTeX can silently produce PDFs whose text extracts as garbage (icon glyphs where the email should be, interleaved lines from multi-column layouts). `/apply` extracts the compiled CV's text layer with `pdftotext` and verifies contact details, reading order, and the posting's keyword coverage against what a parser actually sees. Honesty rule enforced: a keyword the profile doesn't support is acknowledged as a gap, never stuffed in.
-- **Relevance-weighted CV cutting.** When a CV overflows 2 pages, the workflow does not cut mechanically from the "oldest" section. It scores each candidate line by (a) relevance to the target posting, (b) uniqueness in the document, and (c) whether the cover letter depends on it, and cuts the lowest-total-score line first. An older-role bullet that hits posting keywords survives ahead of a recent-role bullet that does not.
-- **Drafter-reviewer separation.** The drafter writes; a second Claude agent, spawned with a fresh context, researches the company and critiques the drafts. The drafter then revises. This catches missed keywords, weak framing, and generic language that a single pass often leaves in.
-- **Token-efficient reviewer dispatch.** The reviewer agent receives drafts inline rather than re-reading them, and the verification checklist runs once at the end of the workflow rather than being duplicated by both agents. Note: the new compile-and-inspect step in Step 5 spends some of those savings on PDF rendering and layout iteration — the workflow trades some end-to-end token cost for a real reduction in broken PDFs reaching the user.
+| | 在线 AI 简历 / 海投工具 | 本仓库 |
+|--|------------------------|--------|
+| 数据 | 多在云端 | **本地仓库**，敏感文件 gitignore |
+| 投递 | 常主打自动/批量 | **人审后手动投** |
+| 中国市场 | 大多不做或很浅 | **主战场**（Boss 话术、分赛道简历） |
+| 可扩展 | 封闭产品 | Agent **skill + 命令**，可改可 fork |
+| 重功能 | 一股脑塞进主路径 | 核心闭环短；可选栈标成本 |
 
-## Customization
+对标调研与许可证笔记（工程向，非入门必读）：[docs/competitive-research.zh.md](./docs/competitive-research.zh.md)
 
-### Which files to edit manually
+---
 
-If you prefer editing files directly instead of using `/setup`:
+## 适合谁 · 不适合谁
 
-| File | What to change |
-|------|---------------|
-| `CLAUDE.md` | Your full profile (name, education, experience, skills, goals) |
-| `01-candidate-profile.md` | Structured version of your CV data |
-| `02-behavioral-profile.md` | Your behavioral assessment or self-assessment |
-| `04-job-evaluation.md` | Skill match areas, career goals, motivation filters |
-| `05-cv-templates.md` | Profile statement templates for different role types |
-| `07-interview-prep.md` | Your STAR examples from actual experience |
-| `search-queries.md` | Job search queries for your skills and location |
+**适合**
 
-### Updating your search queries
+- 正在用 AI 写代码的 Agent 用户，希望求职也同一套工作流  
+- 要投 **Boss / 智联 / 猎聘** 等，需要**按 JD 改中文材料**  
+- 在意隐私、不想简历默认上传 SaaS  
+- 接受「工具辅助 + 自己投递」而不是全自动黑盒  
 
-As your priorities evolve, you can reconfigure just the job search without re-running the full profile setup:
+**不适合**
 
-```
-/setup --section search
-```
+- 想一键海投、完全不管内容质量  
+- 不想装 Python / 不用任何 AI Agent  
+- 需要 HR 级 ATS 商业服务（请用 Jobscan 等商业产品）  
 
-This re-runs the search configuration interview: which roles to target, which skills to search for, which locations, and which portals. It also suggests role types you may not have considered based on your profile.
+---
 
-### LaTeX templates
+## 文档地图
 
-The CV uses [moderncv](https://ctan.org/pkg/moderncv) (banking style). The cover letter uses a custom `cover.cls` with Lato/Raleway fonts.
+| 文档 | 什么时候看 |
+|------|------------|
+| **本页** | 了解产品、上手 |
+| [ARCHITECTURE.zh.md](./ARCHITECTURE.zh.md) | 核心 skill 面 vs 可选 catalog |
+| [MODELS.zh.md](./MODELS.zh.md) | DeepSeek / 智谱 / 通义 … 怎么接 |
+| [integrations/catalog/README.md](./integrations/catalog/README.md) | 模拟面试 / Reactive-Resume 等真实成本 |
+| [SETUP.md](./SETUP.md) | 上游英文 / LaTeX 环境 |
+| [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) | 多轮对标与决策记录 |
 
-To use your own template instead, run:
+---
 
-```
-/add-template
-```
+## 产品路线（公开）
 
-Point it at your `.tex` file (plus any `.cls`/`.sty` files or bundled fonts). The command interviews you for the template's instructions — compile engine, fonts and where they live, style rules to preserve, hard page limit — stores everything under `templates/`, runs a mandatory test compile, and activates the template so `/apply` drafts from it. Templates are stored with `[PLACEHOLDER]` tokens instead of personal data, so they're safe to commit and share.
+| 阶段 | 状态 | 内容 |
+|------|------|------|
+| Phase 1 | ✅ | 搜岗安装器 + 本地 Tracker + skill 面诚实化 |
+| Phase 2 | ✅ | 本地匹配引擎 + `/apply-zh` 强制质量报告 |
+| Phase 3 | ✅ | Catalog 成本卡 + skill allowlist 治理 |
+| **Next** | 规划中 | 见下方「PM 建议」——优先 **样例库 / 一键 demo / 分享资产**，而不是再堆 skill |
 
-- `/add-template --list` shows registered templates
-- `/add-template --use <name>` switches between them
-- `/add-template --use default` reverts to the stock moderncv / cover.cls templates
+---
 
-If you prefer doing it by hand, the manual route still works: update the guidance in `05-cv-templates.md` and `06-cover-letter-templates.md`.
+## 合规（写进产品，不是附录）
 
-### Job search tools
+- **不自动投递**为默认策略，降低平台风控与协议风险  
+- 简历与投递记录含个人信息 → 本地处理，遵守 **PIPL**  
+- **禁止为刷匹配分虚构经历**；`match_resume` 的 miss 列表只作对齐提示  
+- 第三方工具（boss-cli / get_jobs 等）许可证与 ToS 以各自仓库为准；本仓库面向**个人求职**  
 
-The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, Jobnet) demonstrate the pattern for building a job-portal integration for a specific market. If you're in a different country, run:
+---
 
-```
-/add-portal
-```
+## 致谢与许可
 
-Give it your local job board's URL. The command investigates the portal (search-URL pattern, result-page structure, robots.txt/access rules), scaffolds a CLI skill with the same structure, commands, and output contract as the shipped ones, and test-runs a live query before registering anything. Auth-walled portals are declined, and portals with restrictive terms get a prominent personal-use-only warning in the generated skill. The generated skill is market-specific and lives in your fork; the generator itself is the universal part.
+基于 [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)（MIT）的国内适配分支。  
+保留上游版权声明；本分支新增中文适配与本地工具同样以 **MIT** 发布。详见 [NOTICE](./NOTICE)、[LICENSE](./LICENSE)。
 
-> **Overseas reference (this fork):** The four Danish portals (Jobbank, Jobdanmark, Jobindex, Jobnet) are kept from upstream as a working reference implementation, but the domestic (China) flow does not invoke them. Domestic search runs through `bosszhipin-search` / `domestic-jobs-search`; `freehire-search` (multi-market aggregator) and `linkedin-search` (country-agnostic) remain generally usable. CI keeps type-checking and testing the Danish CLIs so they don't rot — the intent is "keep, isolate," not delete.
+上游英文/丹麦门户能力仍可用；国际流程见历史英文文档结构与 `SETUP.md`。
 
-Maintaining a fork adapted to your market or language? Add it to the [Community forks & adaptations](https://github.com/MadsLorentzen/ai-job-search/discussions/78) thread so others can find it.
+---
 
-For a **country-agnostic** starting point, the repo also includes **`linkedin-search`** — a job-search skill built on LinkedIn's public, unauthenticated `jobs-guest` endpoints. It is field-agnostic, has **zero runtime dependencies** (runs with just `bun`), and takes the search location as an explicit flag, so it works for any market out of the box (`-l "Berlin, Germany"`, `-l "Mumbai, Maharashtra, India"`, `-l "Remote"`, …). It is intended for **personal use only** — automated access is against LinkedIn's Terms of Service, so keep volume low. See `.agents/skills/linkedin-search/SKILL.md`.
+<p align="center">
+  如果这个仓库帮你少改一个周末的简历 / 少漏一次面试跟进，<br>
+  请点一个 <strong>⭐ Star</strong> —— 这是开源推广里最便宜、也最有效的一票。
+</p>
 
-### Salary benchmarking
-
-The salary tool works with any salary data you provide (union statistics, Glassdoor exports, personal research, etc.). See `tools/README_SALARY_TOOL.md` for the expected format and setup. If you don't have salary data, the salary step is simply skipped.
-
-### Starting over
-
-To wipe your profile data and start fresh:
-
-```
-/reset profile    # clears skill files, preserves framework rules
-/reset documents  # deletes files from documents/ folder
-/reset all        # both
-```
-
-`/reset` shows exactly what will be deleted and requires you to type `RESET` to confirm. Nothing is deleted until you do.
-
-## Tips for better results
-
-### Profile depth matters
-
-The single biggest factor in output quality is how much detail you put into your profile. A thin profile produces generic applications; a detailed one enables genuinely tailored results.
-
-- **Role descriptions:** Don't just list job titles. Describe what you actually did in each position: specific projects, tools used, responsibilities, and measurable achievements. The more material you provide, the more precisely the system can reframe your experience for different roles.
-- **Skills in context:** Instead of listing "Python" or "project management," describe how and where you applied them. "Built ML pipelines for customer churn prediction in Python using scikit-learn" gives the system far more to work with than "Python, machine learning."
-- **All onboarding paths work:** Whether you point `/setup` at your `documents/` folder, paste a single CV, or walk through the interview, the principle is the same: richer input produces sharper output.
-
-### Career path discovery
-
-The framework supports two distinct modes of job searching:
-
-- **Explicit targeting:** You know which roles or sectors you want. The system helps refine and prioritize based on fit.
-- **Latent opportunity discovery:** By analyzing your full history (not just job titles, but the actual work you did), the system can surface career paths you haven't considered. Transferable skills that map to unexpected industries, patterns in what you enjoyed or excelled at, or emerging roles that combine your domain expertise with new technology.
-
-To get the most from this, invest time during `/setup` in describing not just your experience, but what energized you, what drained you, and what you'd want more of. This context directly shapes how the system evaluates fit and which roles it surfaces during `/scrape`.
-
-## Contributing
-
-Thinking about a PR? Read [CONTRIBUTING.md](CONTRIBUTING.md) first - it explains what gets merged, what lives in forks, and why.
-
-## Acknowledgements
-
-- [Mikkel Krogholm](https://github.com/mikkelkrogsholm) ([skills repo](https://github.com/mikkelkrogsholm/skills)) for the job search CLI skills
-- Built with [Claude Code](https://claude.com/claude-code) by [Anthropic](https://anthropic.com)
-
-## License
-
-MIT
+<p align="center">
+  <a href="https://github.com/LuckTerence/cn-job-assistant">github.com/LuckTerence/cn-job-assistant</a>
+</p>
