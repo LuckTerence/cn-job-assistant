@@ -1,0 +1,43 @@
+=== Generation quality report ===
+Résumé score:       56.3/100
+Combined score:     54.9/100  (moderate_match)
+Combined coverage:  81.0%  (17 hit / 4 still missing)
+
+=== Résumé vs JD ===
+Score:              56.3/100  (moderate_match)
+Cosine (TF–IDF):    0.3604
+Keyword coverage:   81.0%  (17/21 JD keywords)
+Tokens:             résumé=80  jd=49
+
+HIT (17):
+  高并发, 微服务, 后端, 高可用, 数据结构, 消息队列, ci/cd, docker, go, java, kafka, kubernetes, mysql, redis, spring boot, 中间件, 算法
+
+MISS (4):
+  大模型, llm, 架构, 英语
+
+EXTRA on résumé (signal, not in JD top):
+  落地, python, linux, git, qps, p99, tob, 设计, 主导
+
+=== Cover / 打招呼 vs JD ===
+Score:              20.8/100  (weak_match)
+Cosine (TF–IDF):    0.1825
+Keyword coverage:   23.8%  (5/21 JD keywords)
+Tokens:             résumé=23  jd=49
+
+HIT (5):
+  高并发, 微服务, 后端, kafka, spring boot
+
+MISS (16):
+  高可用, 大模型, 数据结构, 消息队列, ci/cd, docker, go, java, kubernetes, llm, mysql, redis, 中间件, 架构, 算法, 英语
+
+EXTRA on résumé (signal, not in JD top):
+  java/go, k8s
+
+Still missing after combining materials:
+  大模型, llm, 架构, 英语
+
+Suggestions:
+  1. 合并材料后仍缺失 4 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。
+  2. 打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。
+
+Note: scores are local TF–IDF + keyword overlap (no neural embedding). Do not fabricate missing skills.

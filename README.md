@@ -82,7 +82,35 @@
 
 ---
 
-## 三分钟上手
+## 先看一眼产出（无需填简历 / 无需登录）
+
+clone 后一条命令，本地生成**匹配报告 + 投递看板**（虚构数据，离线可跑）：
+
+```bash
+git clone https://github.com/LuckTerence/cn-job-assistant.git
+cd cn-job-assistant
+bash scripts/demo.sh
+# 或: make demo
+```
+
+然后浏览器打开：
+
+```bash
+open examples/demo/output/job_search_tracker.html   # macOS
+```
+
+| 演示产物 | 路径 |
+|----------|------|
+| 匹配质量报告 | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
+| 文本摘要 | [`examples/demo/output/match_report.txt`](./examples/demo/output/match_report.txt) |
+| HTML 投递看板 | [`examples/demo/output/job_search_tracker.html`](./examples/demo/output/job_search_tracker.html) |
+| 样例 JD / 简历 / 话术 | [`examples/demo/`](./examples/demo/) |
+
+样例说明见 [examples/demo/README.md](./examples/demo/README.md)。
+
+---
+
+## 三分钟上手（真实求职）
 
 ### 0. 前置
 
@@ -93,6 +121,7 @@
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
 cd cn-job-assistant
+# 建议先: bash scripts/demo.sh
 ```
 
 ### 1. （可选）装 Boss 搜岗
@@ -201,7 +230,8 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | Phase 1 | ✅ | 搜岗安装器 + 本地 Tracker + skill 面诚实化 |
 | Phase 2 | ✅ | 本地匹配引擎 + `/apply-zh` 强制质量报告 |
 | Phase 3 | ✅ | Catalog 成本卡 + skill allowlist 治理 |
-| **Next** | 规划中 | 见下方「PM 建议」——优先 **样例库 / 一键 demo / 分享资产**，而不是再堆 skill |
+| **Demo 包** | ✅ | `examples/demo` + `bash scripts/demo.sh` / `make demo` |
+| **Next** | 规划中 | Tracker 日更入口、setup 粘贴旧简历减负、report 中文一页摘要 |
 
 ---
 

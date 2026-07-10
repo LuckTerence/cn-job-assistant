@@ -94,6 +94,7 @@ KEYWORD_BLOCKLIST: frozenset[str] = frozenset(
     经验 学历 以上 以下 能够 可以 需要 希望 良好 基础 者 等 及
     设计 开发 落地 优化 重构 能力 系统 服务 业务 代码 接口 性能
     year years experience preferred plus strong good etc
+    demo sample placeholder TODO
     """.split()
 )
 

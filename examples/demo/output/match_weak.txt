@@ -1,0 +1,14 @@
+=== Match report ===
+Score:              0.0/100  (weak_match)
+Cosine (TF–IDF):    0.0000
+Keyword coverage:   0.0%  (0/21 JD keywords)
+Tokens:             résumé=11  jd=49
+
+HIT (0):
+  (none)
+
+MISS (21):
+  高并发, 微服务, 后端, 高可用, 大模型, 数据结构, 消息队列, ci/cd, docker, go, java, kafka, kubernetes, llm, mysql, redis, spring boot, 中间件, 架构, 算法, 英语
+
+EXTRA on résumé (signal, not in JD top):
+  excel, 运营

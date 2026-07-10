@@ -1,0 +1,157 @@
+{
+  "resume": {
+    "score": 56.3,
+    "cosine": 0.3604,
+    "keyword_coverage": 81.0,
+    "keywords": {
+      "hit": [
+        "高并发",
+        "微服务",
+        "后端",
+        "高可用",
+        "数据结构",
+        "消息队列",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "kafka",
+        "kubernetes",
+        "mysql",
+        "redis",
+        "spring boot",
+        "中间件",
+        "算法"
+      ],
+      "miss": [
+        "大模型",
+        "llm",
+        "架构",
+        "英语"
+      ],
+      "extra": [
+        "落地",
+        "python",
+        "linux",
+        "git",
+        "qps",
+        "p99",
+        "tob",
+        "设计",
+        "主导"
+      ]
+    },
+    "jd_keyword_count": 21,
+    "resume_token_count": 80,
+    "jd_token_count": 49,
+    "verdict": "moderate_match"
+  },
+  "cover": {
+    "score": 20.8,
+    "cosine": 0.1825,
+    "keyword_coverage": 23.8,
+    "keywords": {
+      "hit": [
+        "高并发",
+        "微服务",
+        "后端",
+        "kafka",
+        "spring boot"
+      ],
+      "miss": [
+        "高可用",
+        "大模型",
+        "数据结构",
+        "消息队列",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "kubernetes",
+        "llm",
+        "mysql",
+        "redis",
+        "中间件",
+        "架构",
+        "算法",
+        "英语"
+      ],
+      "extra": [
+        "java/go",
+        "k8s"
+      ]
+    },
+    "jd_keyword_count": 21,
+    "resume_token_count": 23,
+    "jd_token_count": 49,
+    "verdict": "weak_match"
+  },
+  "combined": {
+    "score": 54.9,
+    "cosine": 0.3351,
+    "keyword_coverage": 81.0,
+    "keywords": {
+      "hit": [
+        "高并发",
+        "微服务",
+        "后端",
+        "高可用",
+        "数据结构",
+        "消息队列",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "kafka",
+        "kubernetes",
+        "mysql",
+        "redis",
+        "spring boot",
+        "中间件",
+        "算法"
+      ],
+      "miss": [
+        "大模型",
+        "llm",
+        "架构",
+        "英语"
+      ],
+      "extra": [
+        "落地",
+        "python",
+        "linux",
+        "git",
+        "qps",
+        "p99",
+        "tob",
+        "java/go",
+        "k8s",
+        "设计",
+        "主导"
+      ]
+    },
+    "jd_keyword_count": 21,
+    "resume_token_count": 100,
+    "jd_token_count": 49,
+    "verdict": "moderate_match"
+  },
+  "still_missing": [
+    "大模型",
+    "llm",
+    "架构",
+    "英语"
+  ],
+  "cover_only_hits": [],
+  "suggestions": [
+    "合并材料后仍缺失 4 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。",
+    "打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。"
+  ],
+  "summary": {
+    "resume_score": 56.3,
+    "combined_score": 54.9,
+    "keyword_coverage_combined": 81.0,
+    "verdict": "moderate_match",
+    "missing_count": 4,
+    "hit_count": 17
+  }
+}

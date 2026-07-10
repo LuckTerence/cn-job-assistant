@@ -8,6 +8,7 @@
 | 你想… | 去这里 |
 |--------|--------|
 | 了解产品、立刻上手 | [README.md](./README.md) |
+| **先看演示产出（一条命令）** | `bash scripts/demo.sh` → [examples/demo/](./examples/demo/) |
 | 看架构分层（核心 vs catalog） | [ARCHITECTURE.zh.md](./ARCHITECTURE.zh.md) |
 | 接 DeepSeek / 智谱 / 通义 | [MODELS.zh.md](./MODELS.zh.md) |
 | 可选重应用的真实搭建成本 | [integrations/catalog/README.md](./integrations/catalog/README.md) |
@@ -16,6 +17,7 @@
 ## 国内最小命令备忘
 
 ```bash
+bash scripts/demo.sh   # 离线演示：匹配报告 + HTML 看板
 python tools/install_domestic_search.py status
 # Agent: /setup-zh  →  /apply-zh <JD>
 python tools/match_resume.py report --resume … --jd … --cover …
