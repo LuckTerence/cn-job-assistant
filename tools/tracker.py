@@ -401,34 +401,32 @@ def cmd_today(args: argparse.Namespace) -> int:
     ]
     closed = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
 
-    print("=== 今日求职工作台 ===")
-    print(f"总计 {len(rows)} 条 · 进行中 {len(open_rows)} · 已结束 {len(closed)}")
+    print(f"投递记录共 {len(rows)} 条，还在跟的 {len(open_rows)} 条，已结束 {len(closed)} 条")
     print()
 
     def dump(title: str, subset: list[dict[str, str]], hint: str) -> None:
-        print(f"## {title} ({len(subset)})")
+        print(f"{title}（{len(subset)}）")
         if not subset:
-            print("  （空）")
+            print("  暂无")
         else:
             for r in subset:
-                note = f" — {r['notes'][:40]}" if r.get("notes") else ""
+                note = f"  {r['notes'][:40]}" if r.get("notes") else ""
                 print(
-                    f"  · [{r['status']}] {r['company']} / {r['role']} "
-                    f"({r['channel'] or '—'}){note}"
+                    f"  [{r['status']}] {r['company']} / {r['role']} "
+                    f"· {r['channel'] or '渠道未填'}{note}"
                 )
-        print(f"  → {hint}")
+        print(f"  （{hint}）")
         print()
 
-    dump("面试 / Offer 跟进", interviews, "准备 /interview 或更新：tracker update --status …")
-    dump("已投待回复", follow, "可跟进或标记 no_response；新投递用 tracker add")
+    dump("面试相关", interviews, "需要准备就跑 /interview，状态变了用 tracker update")
+    dump("已投、等回复", follow, "新投的用 tracker add")
     if other_open:
-        dump("其他进行中", other_open, "核对状态是否写对")
-    dump("已结束（最近）", closed[-5:], "复盘用 /outcome；勿删历史行")
+        dump("其它未结束", other_open, "看一下状态是不是写错了")
+    dump("最近结束的", closed[-5:], "复盘可以用 /outcome，旧记录别删")
 
-    print("快捷命令：")
+    print("常用：")
     print("  python tools/tracker.py list --open-only")
     print("  python tools/tracker.py dashboard")
-    print("  /apply-zh <岗位描述>   # 生成材料后再 add 一条")
     return 0
 
 
@@ -453,7 +451,7 @@ def cmd_suggest_add(args: argparse.Namespace) -> int:
     if source:
         parts.append(f"--source {source}")
     cmd = " \\\n  ".join(p for p in parts if p)
-    print("# 投递后粘贴执行（或让 Agent 代跑）：")
+    print("# 投完以后在终端执行（也可以让 Agent 帮你跑）：")
     print(cmd)
     return 0
 

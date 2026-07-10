@@ -371,21 +371,21 @@ def quality_report(
     suggestions: list[str] = []
     if base.keyword_coverage < 50:
         suggestions.append(
-            "简历关键词覆盖偏低：在真实具备的前提下，把 miss 列表中的 岗位关键词自然写入经历要点。"
+            "简历里岗位关键词偏少；会的话写进经历里，不会的别硬凑。"
         )
     if still_miss:
         suggestions.append(
-            f"合并材料后仍缺失 {len(still_miss)} 个 岗位关键词（见 still_missing）；"
-            "勿虚构技能，可在「不匹配说明」中诚实处理。"
+            f"还有 {len(still_miss)} 个岗位里的词材料里没出现；"
+            "会的就补，不会的就当差距，别编。"
         )
     if cover_part and cover_part.score < 40:
-        suggestions.append("打招呼/求职信与岗位描述 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。")
+        suggestions.append("打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。")
     if cover_only:
         suggestions.append(
-            "部分关键词只出现在话术中、未进简历：ATS/HR 更看简历正文，建议同步到经历要点。"
+            "有些词只写在打招呼里、简历正文没有；一般还是简历更重要，能写进去就写。"
         )
     if base.verdict in ("strong_match", "moderate_match") and not suggestions:
-        suggestions.append("量化匹配可接受；人工仍需核对经历真实性与赛道模板（08-resume-zh）。")
+        suggestions.append("分数还行，自己再核对一下经历是不是都属实。")
 
     brief = build_zh_brief(
         combined_result=combined_result,
@@ -439,12 +439,12 @@ def build_zh_brief(
             break
     if len(edit_tips) < 3 and top_miss:
         edit_tips.append(
-            f"若真实具备，优先把这几个 岗位关键词写进经历要点：{'、'.join(top_miss[:3])}。"
+            f"如果确实会，可以优先补这几个词：{'、'.join(top_miss[:3])}。"
         )
     if len(edit_tips) < 3:
-        edit_tips.append("通读简历，确保公司名与岗位名出现，避免群发感。")
+        edit_tips.append("简历和话术里写上公司名、岗位名，别写成万能模板。")
     if len(edit_tips) < 3:
-        edit_tips.append("每条经历尽量带数字（规模 / 耗时 / 收益），国内 HR 更爱量化。")
+        edit_tips.append("经历里尽量带数字，比空泛形容词好用。")
 
     return {
         "headline": (
@@ -455,36 +455,36 @@ def build_zh_brief(
         "already_hit": top_hit,
         "cover_only": cover_only[:5],
         "edit_top3": edit_tips[:3],
-        "compliance": "禁止为刷分虚构技能或业绩；不具备的 miss 项应诚实标注为缺口。",
-        "score_note": "分数为本地 TF–IDF + 关键词启发式，不是录用预测。",
+        "compliance": "不会的技能别硬写上去刷分。",
+        "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。",
     }
 
 
 def format_zh_brief(brief: dict) -> str:
     lines = [
-        "【一页摘要 · 人话版】",
+        "匹配摘要",
         brief.get("headline", ""),
         "",
-        "✓ 已对齐（部分）：",
-        "  " + ("、".join(brief.get("already_hit") or []) or "（无）"),
+        "已经对上的词：",
+        "  " + ("、".join(brief.get("already_hit") or []) or "（没有）"),
         "",
-        "✗ 还缺什么（岗位描述里有、材料里没有）：",
-        "  " + ("、".join(brief.get("still_missing") or []) or "（无，很好）"),
+        "岗位里有、你材料里还没有的：",
+        "  " + ("、".join(brief.get("still_missing") or []) or "（没有，挺好）"),
         "",
     ]
     if brief.get("cover_only"):
         lines += [
-            "⚠ 只出现在话术、未进简历：",
+            "只写在打招呼里、简历正文没有的：",
             "  " + "、".join(brief["cover_only"]),
             "",
         ]
-    lines.append("✎ 建议改哪 3 条（真实具备再写）：")
+    lines.append("如果属实，可以改的方向：")
     for i, tip in enumerate(brief.get("edit_top3") or [], 1):
         lines.append(f"  {i}. {tip}")
     lines += [
         "",
-        "⛔ " + brief.get("compliance", ""),
-        "ℹ " + brief.get("score_note", ""),
+        brief.get("compliance", ""),
+        brief.get("score_note", ""),
     ]
     return "\n".join(lines)
 

@@ -55,8 +55,8 @@ class MatchResumeTests(unittest.TestCase):
         self.assertIn("brief_zh", report)
         self.assertEqual(len(report["brief_zh"]["edit_top3"]), 3)
         brief = m.format_zh_brief(report["brief_zh"])
-        self.assertIn("一页摘要", brief)
-        self.assertIn("禁止", brief)
+        self.assertIn("匹配摘要", brief)
+        self.assertIn("别硬写", brief)
 
     def test_diff_reports_flywheel(self) -> None:
         weak = m.quality_report(self.weak, self.jd)
