@@ -206,16 +206,17 @@ def cmd_smoke(args: argparse.Namespace) -> int:
     else:
         print("smoke: get_jobs not cloned (skip; run install-get-jobs locally)")
 
-    # Always verify tracker companion exists (core domestic loop dependency)
-    tracker = ROOT / "tools" / "tracker.py"
-    if not tracker.is_file():
-        failures.append("tools/tracker.py missing")
-    else:
-        proc = run([sys.executable, str(tracker), "--help"])
+    # Always verify tracker + matcher companions (core domestic loop)
+    for name in ("tracker.py", "match_resume.py"):
+        tool = ROOT / "tools" / name
+        if not tool.is_file():
+            failures.append(f"tools/{name} missing")
+            continue
+        proc = run([sys.executable, str(tool), "--help"])
         if proc.returncode != 0:
-            failures.append("tools/tracker.py --help failed")
+            failures.append(f"tools/{name} --help failed")
         else:
-            print("smoke: tools/tracker.py --help OK")
+            print(f"smoke: tools/{name} --help OK")
 
     if failures:
         print("smoke FAILED:")

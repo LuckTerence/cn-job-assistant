@@ -9,7 +9,9 @@ description: >
 context: fork
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(python*), Bash(uv*), Bash(pip*)
 ---
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
+> ⚠️ **可选重型集成**：默认请用核心 skill **`resume-match`** → `python tools/match_resume.py`
+> （本地 TF–IDF，无模型下载）。本目录描述的是上游 **Resume Matcher** 全量应用
+> （sentence-transformers + UI，首次需下 embedding 权重），仅在需要神经语义匹配时自托管。
 
 
 # 简历匹配与优化技能（复用 Resume Matcher）

@@ -46,7 +46,7 @@ jobs:
       - run: python tools/lint_zh_refs.py
 
   domestic-loop:
-    name: Domestic loop (tracker + installer + zh refs)
+    name: Domestic loop (tracker + match + installer + zh refs)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -57,6 +57,24 @@ jobs:
       - run: python tools/install_domestic_search.py status
       - run: python tools/install_domestic_search.py smoke
       - run: python tools/tracker.py --help
+      - run: python tools/match_resume.py --help
+      - name: Fixture match smoke (good ≫ weak)
+        run: |
+          python tools/match_resume.py score --json \
+            --resume tests/fixtures/resume_backend_good.md \
+            --jd tests/fixtures/jd_backend_sample.md > /tmp/good.json
+          python tools/match_resume.py score --json \
+            --resume tests/fixtures/resume_backend_weak.md \
+            --jd tests/fixtures/jd_backend_sample.md > /tmp/weak.json
+          python - <<'PY'
+          import json
+          g = json.load(open("/tmp/good.json"))
+          w = json.load(open("/tmp/weak.json"))
+          assert g["score"] > w["score"], (g["score"], w["score"])
+          assert g["score"] >= 45, g["score"]
+          assert w["score"] < 40, w["score"]
+          print("fixture smoke OK", g["score"], ">", w["score"])
+          PY
       - run: python tools/lint_zh_refs.py
       - run: python -m unittest discover -s tests -p 'test_*.py' -v
 

@@ -58,8 +58,9 @@ When the user provides a job posting (URL or text), follow this workflow:
 | `08-resume-zh.md` | **中文简历**结构、分赛道模板与一页纸规则（国内岗） |
 | `09-da-zhaohu-zh.md` | **打招呼话术 / 中文求职信**生成指南（国内岗，替代 Cover Letter） |
 | `application-tracker`（`.agents/skills/`） | **本地投递追踪**（`tools/tracker.py` + `job_search_tracker.csv`） |
+| `resume-match`（`.agents/skills/`） | **本地匹配/质检**（`tools/match_resume.py`，TF–IDF + 关键词） |
 | `bosszhipin-search` / `domestic-jobs-search` | 国内搜岗（安装器：`tools/install_domestic_search.py`） |
-| `integrations/catalog/*` | **可选**重依赖（Reactive-Resume / Resume Matcher / 模拟面试 / 谈薪方法论等） |
+| `integrations/catalog/*` | **可选**重依赖（Reactive-Resume / 全量 Resume Matcher / 模拟面试等） |
 
 ---
 
@@ -85,9 +86,11 @@ The user may also ask for individual steps without the full workflow:
 2. **简历**：`08-resume-zh.md` + `templates/zh/resume_<track>.md` → Markdown 草稿
    `documents/zh/resume_<company>.md`（不手写 .docx；可选导出见 `integrations/catalog/resume-build/`）。
 3. **开场**：`/da-zhaohu` 或 `/apply-zh` → 打招呼话术 / 中文求职信（`09-da-zhaohu-zh.md`）。
-4. **不自动投递**：用户在 App 内手动投递。
-5. **追踪**：`python tools/tracker.py add/list/update/dashboard`（CSV 权威源）；阶段变化 `/outcome`。
-6. **可选重应用**（非核心）：`integrations/catalog/`（匹配 / 模拟面试 / 谈薪方法论 / 内推 / macOS 提醒等）。
+4. **量化质检**：`python tools/match_resume.py report --resume … --jd … --cover …`
+   （`/apply-zh` Step 4 强制；禁止为刷分虚构技能）。
+5. **不自动投递**：用户在 App 内手动投递。
+6. **追踪**：`python tools/tracker.py add/list/update/dashboard`（CSV 权威源）；阶段变化 `/outcome`。
+7. **可选重应用**（非核心）：`integrations/catalog/`（神经匹配 UI / 模拟面试 / 谈薪方法论等）。
 
 > 海外 / 英文岗仍走原 `05`/`06` LaTeX 流程。中文 JD 由 `/apply` 在 Step 0 自动识别市场并转入本流程
 > （或显式调用 `/apply-zh`）。详见 `README.zh.md` 与 `MODELS.zh.md`。

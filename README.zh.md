@@ -4,9 +4,10 @@
 > 国内用户开箱要跑的**最小组件**是：  
 > ① `python tools/install_domestic_search.py`（Boss / get_jobs 安装）  
 > ② `/setup-zh` + `/apply-zh` / `/da-zhaohu`（中文简历与话术）  
-> ③ `python tools/tracker.py`（本地投递追踪，CSV 权威源）  
-> 默认**不自动投递**。重型自托管（模拟面试 / Reactive-Resume / jobsync 等）已降级到
-> [`integrations/catalog/`](./integrations/catalog/README.md)，不进核心 skill 面。
+> ③ `python tools/match_resume.py`（本地匹配分 + 关键词 hit/miss，无模型下载）  
+> ④ `python tools/tracker.py`（本地投递追踪，CSV 权威源）  
+> 默认**不自动投递**。重型自托管（模拟面试 / Reactive-Resume / 全量 Resume Matcher 等）在
+> [`integrations/catalog/`](./integrations/catalog/README.md)，不进核心默认路径。
 
 > 本仓库是 [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)（MIT）的**国内适配分支**，
 > 在保留原版"岗位匹配评估 + 简历定制 + 面试准备"工作流的基础上，新增面向中国大陆求职市场的改造。
@@ -25,7 +26,13 @@ python tools/install_domestic_search.py status
 
 # 3. 在 Boss/智联 等 App 内手动投递
 
-# 4. 记入本地 Tracker（零 Docker）
+# 4. 量化匹配 / 生成质量（零模型下载）
+python tools/match_resume.py report \
+  --resume documents/zh/resume_示例.md \
+  --jd documents/zh/jd_示例.md \
+  --cover documents/zh/da-zhaohu_示例.md
+
+# 5. 记入本地 Tracker（零 Docker）
 python tools/tracker.py init
 python tools/tracker.py add --company 示例 --role 后端 --channel Boss直聘 --status applied
 python tools/tracker.py dashboard   # 生成 job_search_tracker.html
@@ -35,8 +42,9 @@ python tools/tracker.py dashboard   # 生成 job_search_tracker.html
 |------|----------|------|
 | 搜岗 | `install_domestic_search.py` + boss-cli / get_jobs | 不自研爬虫；get_jobs 禁商用、需 JDK21 |
 | 生成 | `/apply-zh` `/da-zhaohu` + `08`/`09` + `templates/zh` | prompt 工作流，已落地 |
+| 匹配/质检 | `tools/match_resume.py` + `resume-match` skill | TF–IDF 余弦 + 关键词；`/apply-zh` 强制 report |
 | 追踪 | `tools/tracker.py` + `job_search_tracker.csv` | 替代默认 jobsync 指针 |
-| 可选 | `integrations/catalog/*` | 匹配/模拟面/谈薪等，自托管成本自担 |
+| 可选 | `integrations/catalog/*` | 神经匹配 UI / 模拟面 / 谈薪等，自托管成本自担 |
 
 ## 与原版的核心差异
 
@@ -57,11 +65,13 @@ python tools/tracker.py dashboard   # 生成 job_search_tracker.html
 tools/
   install_domestic_search.py   国内搜岗一键安装 / status / smoke
   tracker.py                   本地 Tracker（CSV 权威源 + HTML/SQLite）
+  match_resume.py              本地匹配 + 生成质量报告（TF–IDF / 关键词）
   lint_zh_refs.py              国内路径与闭环引用检查（CI）
 .agents/skills/                # 核心 skill 面（可被 agent 直接触发）
   bosszhipin-search/           Boss直聘（复用 boss-cli + 安装器）
   domestic-jobs-search/        智联/51job/猎聘/拉勾（复用 get_jobs + 安装器）
   application-tracker/         本地 Tracker（tools/tracker.py）
+  resume-match/                本地匹配 CLI（tools/match_resume.py）
   # + 上游 6 个海外 CLI skills
 integrations/catalog/          # 可选/重依赖，不进核心 skill 面
   resume-build/ resume-match/ interview-mock/
@@ -207,8 +217,8 @@ README.zh.md  MODELS.zh.md
 - **技术 / 学术简历构建**：`resume-build`（Reactive-Resume）外，新增 **rendercv**（LaTeX 学术 / 工程）与 **open-resume**（解析 / ATS，AGPL 仅方法论）为可选互补。
 - **ATS 模拟 / 双评分维度**：新增 **ats-screener**（企业级 ATS 模拟）与 **Resume-Builder**（双 ATS/HR 评分）为可选参考，补 `resume-match` 与求职信维度。
 - **自动投递形态 / 技能包架构对标**：**Auto_job_applier_linkedIn**（AGPL）作自动投递形态参考（坚持不自动投递）；**career-ops**（59k★ 全流程）与 **career-ops-plugin**（9 技能 Claude 插件）作同赛道架构对标，不集成代码。
-- **交付优先迭代**：国内搜岗安装器 + 本地 Tracker + `lint_zh_refs` CI；6 个重依赖 skill 移入 `integrations/catalog/`。
-  核心 `.agents/skills` 现为 **9 个**（6 海外 CLI + 3 国内可编排）；可选集成见 catalog。系统设计知识源仍可引用 primer/101。
+- **交付优先迭代**：Phase 1 搜岗安装器 + Tracker + skill 重整；Phase 2 本地 `match_resume.py` 匹配/质检。
+  核心 `.agents/skills`：**10 个**（6 海外 CLI + 4 国内：搜岗×2 / tracker / resume-match）；重依赖见 catalog。
 
 ## 测试与验证（第四轮验证结论）
 
@@ -262,10 +272,11 @@ README.zh.md  MODELS.zh.md
 1. **（国内）安装搜岗后端**：`python tools/install_domestic_search.py install-boss`（或 `install-get-jobs`）。
 2. **填充个人画像**：运行 `/setup-zh`（中文）或 `/setup`（英文），或手动填写 `CLAUDE.zh.md` / `CLAUDE.md`。
 3. **检索岗位**：`boss search …` 或 get_jobs，复制 JD。
-4. **生成材料**：`/apply-zh <JD>`（简历+话术）或 `/da-zhaohu <JD>`（仅开场）。
-5. **手动投递**：在对应 App 内发送话术 / 上传简历（本仓库不自动投递）。
-6. **追踪**：`python tools/tracker.py add …`；总览用 `list` / `dashboard`；阶段变化用 `/outcome`。
-7. **（可选）** 重型集成见 [`integrations/catalog/`](./integrations/catalog/README.md)。
+4. **生成材料**：`/apply-zh <JD>`（简历+话术+**match 质量报告**）或 `/da-zhaohu <JD>`（仅开场）。
+5. **核对分数**：阅读 `documents/zh/match_report_*.json` 的 hit/miss；真实技能才补写。
+6. **手动投递**：在对应 App 内发送话术 / 上传简历（本仓库不自动投递）。
+7. **追踪**：`python tools/tracker.py add …`；总览用 `list` / `dashboard`；阶段变化用 `/outcome`。
+8. **（可选）** 重型集成见 [`integrations/catalog/`](./integrations/catalog/README.md)。
 
 ## 国产模型接入
 

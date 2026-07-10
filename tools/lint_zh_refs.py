@@ -38,9 +38,13 @@ REQUIRED_PATHS = [
     "documents/zh/.gitkeep",
     "tools/tracker.py",
     "tools/install_domestic_search.py",
+    "tools/match_resume.py",
     ".agents/skills/bosszhipin-search/SKILL.md",
     ".agents/skills/domestic-jobs-search/SKILL.md",
     ".agents/skills/application-tracker/SKILL.md",
+    ".agents/skills/resume-match/SKILL.md",
+    "tests/fixtures/jd_backend_sample.md",
+    "tests/fixtures/resume_backend_good.md",
 ]
 
 # Paths that commands / guides commonly mention as relative repo paths.
@@ -113,7 +117,12 @@ def check_no_misleading_empty_zh() -> None:
 def check_catalog_optional_moved() -> None:
     """Heavy optional skills should not pretend to be runnable core skills."""
     # Core domestic skills that must remain in .agents/skills
-    for name in ("bosszhipin-search", "domestic-jobs-search", "application-tracker"):
+    for name in (
+        "bosszhipin-search",
+        "domestic-jobs-search",
+        "application-tracker",
+        "resume-match",
+    ):
         if not (ROOT / ".agents/skills" / name / "SKILL.md").is_file():
             errors.append(f"core skill missing from .agents/skills: {name}")
     # Catalog should exist after Phase-1 reorg

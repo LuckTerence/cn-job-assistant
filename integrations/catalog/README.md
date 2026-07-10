@@ -13,7 +13,7 @@
 
 | 条目 | 上游 | 协议 | 真实成本 | 建议 |
 |------|------|------|----------|------|
-| `resume-match/` | srbhr/Resume-Matcher | Apache-2.0 | 本地下载 embedding 权重（百 MB 级）+ Streamlit/服务 | 可选；Phase 2 计划做本地轻量 CLI |
+| `resume-match/` | srbhr/Resume-Matcher | Apache-2.0 | embedding 权重（百 MB）+ Streamlit | 可选重型；**默认**用核心 `tools/match_resume.py` |
 | `resume-build/` | AmruthPillai/Reactive-Resume | MIT | Docker 自托管 或 官方 SaaS | 可选；`/apply-zh` 已产出 Markdown 草稿 |
 | `interview-mock/` | GodLeaveMe/AuraInterviewer | MIT | **Java 18 + MySQL + Redis** 微服务 | 可选；日常用 `/interview` + `07-interview-prep.md` |
 | `salary-negotiate/` | Ssupercoder/Salary-Negotiation-Skill | 未声明 | LLM Agent + 可选本地模型 | **仅方法论**；勿复制未授权源码 |
@@ -26,7 +26,8 @@
 1. python tools/install_domestic_search.py install-boss   # 或 install-get-jobs
 2. /setup-zh
 3. 搜岗（boss search / get_jobs）→ 复制 JD
-4. /apply-zh <JD>   或   /da-zhaohu <JD>
+4. /apply-zh <JD>   # 内含 match_resume 质量报告
+   # 或手动：python tools/match_resume.py report --resume … --jd … --cover …
 5. 手动在 App 内投递
 6. python tools/tracker.py add --company … --role … --channel Boss直聘
 7. python tools/tracker.py dashboard   # 本地 HTML 看板

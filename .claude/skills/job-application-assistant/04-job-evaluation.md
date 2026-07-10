@@ -2,9 +2,13 @@
 
 <!-- SETUP: Skill match areas and career goals are personalized by running /setup -->
 
-> **量化匹配请复用 `resume-match` 技能**（底层 Resume Matcher，Apache-2.0）：它自动产出
-> 匹配/缺失/额外技能三分类、JD 关键词密度与 ATS 友好性检查，比手写打分更可复现。
-> 本文件保留为**人工评估框架**——用于判断"何时投、风险几何"，而非重复实现评分脚本。
+> **量化匹配（默认）**：跑本地 CLI，零模型下载——
+> `python tools/match_resume.py score --resume <简历> --jd <JD>`  
+> 或生成后质量报告：  
+> `python tools/match_resume.py report --resume … --jd … --cover …`  
+> 产出 TF–IDF 余弦分、关键词 hit/miss、verdict（见 `resume-match` skill）。  
+> 可选重型语义 UI：`integrations/catalog/resume-match/`（Resume Matcher + embedding 权重）。  
+> **本文件保留为人工评估框架**——动机、文化、deal-breaker、是否投递；不重复实现评分脚本。
 
 ## Scoring Dimensions
 
