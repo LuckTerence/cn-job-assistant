@@ -32,7 +32,7 @@ python tools/install_domestic_search.py install-get-jobs
 |----|------|
 | 运行时 | **JDK 21 + Gradle** + chromedriver（上游自动下载） |
 | 配置 | 上游 GUI / `.env`（`BASE_URL` / `API_KEY` / `MODEL`） |
-| 自动投递 | get_jobs 支持自动化；**本仓库默认不自动投递**，仅用其检索/导出能力时更安全 |
+| 自动投递 | get_jobs 自带自动化；本仓库默认 manual，semi/auto 见 `tools/apply_assist.py` |
 
 轻量路径：Boss 岗优先 `bosszhipin-search`（boss-cli），不必上 get_jobs。
 
@@ -49,14 +49,14 @@ cd third_party/get_jobs
 
 1. `install-get-jobs` 克隆上游。
 2. 在 get_jobs 中配置筛选；导出或复制目标岗位描述。
-3. 本仓库 `/apply-zh` / `/da-zhaohu` 生成中文简历与话术。
-4. **用户在 App 内手动投递**。
+3. `/apply-zh` / `/da-zhaohu` 生成中文简历与话术。
+4. 按 `python tools/apply_assist.py status` 当前模式投递（默认 manual；semi 复制话术；auto 高风险门禁）。
 5. `python tools/tracker.py add … --channel 智联|猎聘|51job|拉勾`。
 
 ## 合规与边界
 
 - 遵守各平台用户协议与 get_jobs 禁商用协议。
-- 启用 get_jobs 自动投递前须知悉风控风险；默认推荐手动投递。
+- 在 get_jobs 里开全自动前，建议先读 `python tools/apply_assist.py explain`。
 - API Key 本地保存，勿提交仓库。
 
 ## 与其他技能的配合
