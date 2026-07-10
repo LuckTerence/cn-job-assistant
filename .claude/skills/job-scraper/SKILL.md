@@ -14,6 +14,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(bun --version), Bash(bun run 
 
 This skill searches multiple Danish job sites using targeted queries based on your profile, deduplicates against previously seen jobs and the application tracker, and presents new matches with a quick fit assessment.
 
+> **Domestic (中国大陆) users:** this skill is the international/Danish scraper — it feeds `job_scraper/seen_jobs.json` and partners with `/rank` and the English `/apply` pipeline, which read the English profile (`01-candidate-profile.md`). The domestic chain does **not** go through `/scrape` → `/rank`: domestic applications are discovered via `bosszhipin-search` / `domestic-jobs-search` (boss-cli / get_jobs) and evaluated with `/apply-zh`, which reads `CLAUDE.zh.md` directly. If you are job-searching in the 中国大陆 market, either use those domestic CLI skills directly, or follow the note in Step 1b to restrict this scrape to domestic portals only.
+
 ## Invocation
 
 The user triggers this skill by saying things like:
@@ -42,6 +44,8 @@ Read `search-queries.md` (this directory) for the search strategy. By default, r
 
 **Use the installed CLI tools as the primary search mechanism.** Fall back to `WebSearch` only for portals that do not have a CLI skill, or if `bun` is unavailable on the system.
 
+**Market scope.** By default this skill runs the Danish/overseas portals (`jobbank-search`, `jobdanmark-search`, `jobindex-search`, `jobnet-search`, `linkedin-search`) plus any multi-market aggregator (`freehire-search`). **If the user is job-searching in the 中国大陆 market, skip the four overseas Danish portals entirely — `jobbank-search`, `jobindex-search`, `jobnet-search`, `jobdanmark-search`** (do not knock on Danish sites in a domestic run) — and route domestic search through `bosszhipin-search` / `domestic-jobs-search`; `freehire-search` (multi-market aggregator) and `linkedin-search` (country-agnostic) remain usable. Domestic applications are evaluated with `/apply-zh` (which reads `CLAUDE.zh.md`), not the international `/rank` → `/apply` pipeline.
+
 #### 1a. Check bun availability
 
 ```bash
@@ -52,7 +56,7 @@ If this fails (bun not installed), skip to **1c (WebSearch fallback)** for all p
 
 #### 1b. Run CLI tools (primary — run these in parallel where possible)
 
-Discover all installed portal CLI skills by reading every `SKILL.md` found under `.agents/skills/*/SKILL.md`. Each file documents that portal's exact CLI flags and usage examples. **Use each portal's own documented interface — do not guess flags.** This approach automatically includes any new portals added via `/add-portal` without requiring changes to this file.
+Discover installed portal CLI skills by scanning for `.agents/skills/*/cli/src/cli.ts` — only skills that ship a CLI are job portals. For each such portal, read its `SKILL.md` for the exact `bun run …` invocation and supported flags. **Use each portal's own documented interface — do not guess flags.** Scanning for a `cli/src/cli.ts` entry (instead of every `SKILL.md`) keeps non-portal wheels (resume-build, resume-match, interview-mock, salary-negotiate, etc.) out of the scrape path. This approach automatically includes any new portal added via `/add-portal`.
 
 For each installed portal skill:
 

@@ -11,10 +11,10 @@ from your own salary data. See tools/README_SALARY_TOOL.md for
 instructions on the expected format and how to convert from Excel.
 
 Usage:
-    python salary_lookup.py "Company Name"
-    python salary_lookup.py "Company Name" --city "København"
-    python salary_lookup.py "Company Name" --json
-    python salary_lookup.py --list-all
+    python3 salary_lookup.py "Company Name"
+    python3 salary_lookup.py "Company Name" --city "København"
+    python3 salary_lookup.py "Company Name" --json
+    python3 salary_lookup.py --list-all
 """
 
 import json
@@ -94,23 +94,19 @@ def match_score(query, entry_name):
     if q_norm == n_norm:
         return 100
 
-    if q_norm in n_norm:
-        ratio = len(q_norm) / len(n_norm)
-        if len(q_norm) <= 4 and ratio < 0.5:
+    # Substring match (either direction). For very short queries that are only
+    # a fragment of a longer name, require real word overlap to avoid false
+    # positives (e.g. "sas" must not match "saxo bank").
+    if q_norm in n_norm or n_norm in q_norm:
+        shorter = min(len(q_norm), len(n_norm))
+        longer = max(len(q_norm), len(n_norm))
+        ratio = shorter / longer
+        if shorter <= 4 and ratio < 0.5:
             q_words = set(extract_core_words(query))
             n_words = set(extract_core_words(entry_name))
-            if not q_words & n_words:
-                pass
-            else:
-                return 80 + int(ratio * 10)
-        else:
-            return 80 + int(ratio * 10)
-    if n_norm in q_norm:
-        ratio = len(n_norm) / len(q_norm)
-        if len(n_norm) <= 4 and ratio < 0.5:
-            pass
-        else:
-            return 80 + int(ratio * 10)
+            if not (q_words & n_words):
+                return 0
+        return 80 + int(ratio * 10)
 
     q_ang = anglicize(q_norm)
     n_ang = anglicize(n_norm)

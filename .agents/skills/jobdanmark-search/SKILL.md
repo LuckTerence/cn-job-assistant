@@ -25,6 +25,17 @@ allowed-tools: Bash(bun run .agents/skills/jobdanmark-search/cli/src/cli.ts *)
 Access live Danish job listings from the Jobdanmark.dk public API. No authentication needed.
 Covers ~15,000+ active job listings across 10 categories and all Danish municipalities.
 
+## ⚠️ Prerequisites
+
+This skill runs its CLI with **[bun](https://bun.sh)** — `bun` must be installed, or every `bun run ...` command fails immediately.
+
+```bash
+# Install bun if missing (macOS / Linux)
+curl -fsSL https://bun.sh/install | bash
+```
+
+Verify with `bun --version`. (The `/scrape` command has a bun-detection fallback; this skill called directly does not — install bun first.)
+
 ## When to use this skill
 
 Invoke this skill when the user wants to:

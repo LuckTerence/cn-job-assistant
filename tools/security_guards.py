@@ -35,7 +35,6 @@ errors: list[str] = []
 ALLOWED_PERMISSIONS = {
     "Skill(job-application-assistant)",
     "Bash(bun run:*)",
-    "Bash(python salary_lookup.py:*)",
     "Bash(python3 salary_lookup.py:*)",
     "Bash(pdftotext:*)",
 }
@@ -48,6 +47,7 @@ REQUIRED_IGNORE_RULES = [
     "!cv/main_example.tex",
     "cover_letters/cover_*.tex",
     "documents/cv/**",
+    "documents/zh/**",
     "documents/linkedin/**",
     "documents/diplomas/**",
     "documents/references/**",
