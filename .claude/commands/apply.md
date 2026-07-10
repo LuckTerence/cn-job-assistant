@@ -314,7 +314,7 @@ Run the same fit evaluation as Step 1, but source the candidate profile from **`
 
 - [ ] All experience/data real — no fabricated skills or results.
 - [ ] Resume + 话术 both name the company and role.
-- [ ] Keywords aligned to JD only where genuinely possessed.
+- [ ] Keywords aligned to 岗位描述 only where genuinely possessed.
 - [ ] No auto-submit — user pastes into the app manually (platform risk control).
 
 ### Step D4: Present & Hand Off

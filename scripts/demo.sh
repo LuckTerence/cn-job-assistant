@@ -22,7 +22,7 @@ fi
 
 mkdir -p "$OUT"
 
-echo "▶ [1/7] 匹配质量报告（强匹配简历 vs JD）"
+echo "▶ [1/7] 匹配质量报告（强匹配简历 vs 岗位描述）"
 "$PY" tools/match_resume.py report \
   --resume "$DEMO/resume_星云科技.md" \
   --jd "$DEMO/jd_星云科技_后端.md" \

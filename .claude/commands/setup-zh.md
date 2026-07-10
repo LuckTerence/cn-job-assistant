@@ -93,7 +93,7 @@ Demo 跑完后，回到 Path B 填真实画像。
 
 > 中文画像已写入 `CLAUDE.zh.md`。下一步：
 > 1. （可选）`python tools/install_domestic_search.py install-boss`
-> 2. `/apply-zh <JD>` → 简历 + 话术 + 匹配摘要
+> 2. `/apply-zh <岗位描述>` → 简历 + 话术 + 匹配摘要
 > 3. App 内手动投递
 > 4. 使用 `/apply-zh` 给出的 `tracker suggest-add` 命令记一笔
 > 5. 每日：`python tools/tracker.py today`

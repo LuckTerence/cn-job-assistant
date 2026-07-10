@@ -30,7 +30,7 @@ python tools/install_domestic_search.py status
 
 # 1. 在 agent 里跑 /setup-zh 填中文画像
 
-# 2. 搜岗后复制 JD，生成材料
+# 2. 搜岗后复制岗位描述，生成材料
 #    /apply-zh <JD链接或文本>
 
 # 3. 在 Boss/智联 等 App 内手动投递
@@ -105,9 +105,9 @@ README.zh.md  MODELS.zh.md
 |------|------|--------|---------------|
 | **Ocyss/boss-helper** | 非商用 | Boss直聘 浏览器扩展（UI/批量投递/GPT 招呼/多账号） | boss-cli 的 **UI 替代** |
 | **Reactive-Resume** | MIT | 简历构建器（16+ 模板、PDF/JSON/DOCX 导出、AI、可自托管） | **catalog 可选** `resume-build/`；默认 Markdown |
-| **AitoResume** | — | 按 JD 生成/优化简历，支持本地 Ollama | JD→简历初稿补充 |
+| **AitoResume** | — | 按岗位描述生成/优化简历，支持本地 Ollama | 岗位描述→简历初稿补充 |
 | **claude-apply** | MIT | 端到端投递管线（扫描 ATS→评分→CDP 真实浏览器填写→追踪） | **可选**端到端参考（海外 ATS，见下） |
-| **claude-job-auto-apply** | MIT | 全自动代理（搜岗→按 JD 改简历→写信→填表→自动注册/过验证码） | **可选**全自动极端形态参考 |
+| **claude-job-auto-apply** | MIT | 全自动代理（搜岗→按岗位描述改简历→写信→填表→自动注册/过验证码） | **可选**全自动极端形态参考 |
 
 > **端到端投递（可选）**：本分支默认"生成辅助内容、用户手动在 App 内投递"以规避风控与合规。
 > 若需端到端自动化，可参考 **claude-apply**（CDP 真实浏览器填写、不 stealth/不撒谎、带追踪看板，
@@ -123,14 +123,14 @@ README.zh.md  MODELS.zh.md
 |---|------|------|---------|-------------------|
 | 1 | **rebecha1227-a11y/CareerForge** | — | AI 求职全链路（搜岗/改简历/写求职信/模拟面试），中文 | 全链路形态**参考**（对标自身架构） |
 | 2 | **GodLeaveMe/AuraInterviewer** | MIT | AI 模拟面试（GPT/DeepSeek/SiliconFlow，多维评分+结构化报告） | **catalog 可选**；默认 `/interview` + `07` |
-| 3 | **wzx11223344/resume-customizer** | NOASSERTION（实测无代码） | JD 解析+技能匹配+ATS 优化（仅 README 描述；实测仓库仅 SKILL.md/README/LICENSE，无 `scripts/`，属空壳） | 原拟作 **resume-match** 底层，测试发现无可运行代码，**已弃用**，改由 Resume Matcher 取代 |
+| 3 | **wzx11223344/resume-customizer** | NOASSERTION（实测无代码） | 岗位解析+技能匹配+ATS 优化（仅 README 描述；实测仓库仅 SKILL.md/README/LICENSE，无 `scripts/`，属空壳） | 原拟作 **resume-match** 底层，测试发现无可运行代码，**已弃用**，改由 Resume Matcher 取代 |
 | 4 | **spencergg/resume-parser** | — | ResumeSDK 简历解析（中英，170+ 字段，40+ 格式） | 解析层可补 resume-match |
 | 5 | **siddhesh3008/Job-Application-Tracker** | — | Personal ATS（追踪投递/状态/可视化） | **可选**投递追踪参考（本分支暂无追踪） |
 | 6 | **JayLyu/salary-compare** | — | 跳槽薪资对比（五险一金/福利/加班/通勤/实际时薪，Next.js） | **可选** offer 对比参考（国内特有维度） |
 | 7 | **madingess/EasyApplyBot** | — | LinkedIn Easy Apply 自动（回答申请问题） | 海外自动投递补充（同 claude-apply 类） |
 | 8 | **gokul2000/job-board-aggregator** | — | Python CLI 多平台聚合（RemoteOK/Indeed/LinkedIn/Glassdoor，过滤） | **可选**招聘聚合参考（海外板） |
-| 9 | **33-ctrl/resume-copilot** | — | 多角色协作简历助手（智谱 OpenAI 兼容，岗位分析/优化/面试） | JD→简历生成补充（同 AitoResume 类） |
-| 10 | **srbhr/Resume-Matcher** | Apache-2.0 | 简历↔JD 语义匹配（embedding 余弦相似度）+ 关键词抽取 + 排名 + 定制内容/求职信（27k+★） | **resume-match** 技能底层（已集成，取代非功能性的 resume-customizer） |
+| 9 | **33-ctrl/resume-copilot** | — | 多角色协作简历助手（智谱 OpenAI 兼容，岗位分析/优化/面试） | 岗位描述→简历生成补充（同 AitoResume 类） |
+| 10 | **srbhr/Resume-Matcher** | Apache-2.0 | 简历↔岗位描述 语义匹配（embedding 余弦相似度）+ 关键词抽取 + 排名 + 定制内容/求职信（27k+★） | **resume-match** 技能底层（已集成，取代非功能性的 resume-customizer） |
 
 #### 本轮识别出的新差距与处置
 
@@ -212,7 +212,7 @@ README.zh.md  MODELS.zh.md
 | 11 | **Gsync/jobsync** | MIT | 自托管投递追踪 + AI 职业助手（719★） | 可选外挂看板 | **降级**（默认改用 `tools/tracker.py` + CSV） |
 | 12 | **DaKheera47/job-ops** | 无许可声明 | "DevOps 式求职"自托管流水线（3.6k★） | 工作流 / 流水线方法论 | 可选参考 |
 | 13 | **sunnypatell/ats-screener** | MIT | 企业级 ATS 模拟器（77★） | resume-match ATS 维度 | 可选参考 |
-| 14 | **binoydutt/Resume-Job-Description-Matching** | 无许可证 | 简历↔JD 匹配对抗 ATS（188★） | resume-match 方法论 | 可选参考（无许可） |
+| 14 | **binoydutt/Resume-Job-Description-Matching** | 无许可证 | 简历↔岗位描述 匹配对抗 ATS（188★） | resume-match 方法论 | 可选参考（无许可） |
 | 15 | **jananthan30/Resume-Builder** | MIT | AI 简历 + 求职信 + 双 ATS/HR 评分（56★） | 求职信 + 双评分维度 | 可选参考 |
 
 #### 本轮识别出的新差距与处置
@@ -278,8 +278,8 @@ README.zh.md  MODELS.zh.md
 
 1. **（国内）安装搜岗后端**：`python tools/install_domestic_search.py install-boss`（或 `install-get-jobs`）。
 2. **填充个人画像**：运行 `/setup-zh`（中文）或 `/setup`（英文），或手动填写 `CLAUDE.zh.md` / `CLAUDE.md`。
-3. **检索岗位**：`boss search …` 或 get_jobs，复制 JD。
-4. **生成材料**：`/apply-zh <JD>`（简历+话术+**match 质量报告**）或 `/da-zhaohu <JD>`（仅开场）。
+3. **检索岗位**：`boss search …` 或 get_jobs，复制岗位描述。
+4. **生成材料**：`/apply-zh <岗位描述>`（简历+话术+**match 质量报告**）或 `/da-zhaohu <岗位描述>`（仅开场）。
 5. **核对分数**：阅读 `documents/zh/match_report_*.json` 的 hit/miss；真实技能才补写。
 6. **手动投递**：在对应 App 内发送话术 / 上传简历（本仓库不自动投递）。
 7. **追踪**：`python tools/tracker.py add …`；总览用 `list` / `dashboard`；阶段变化用 `/outcome`。

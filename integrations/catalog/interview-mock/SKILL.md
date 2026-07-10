@@ -68,7 +68,7 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 ## 工作流（本技能如何编排）
 
 1. 用户选定目标岗位，本仓库 `07-interview-prep.md` 提供**题型与方法论**（如群面、行测、国企党政面）。
-2. 在自托管的 **AuraInterviewer** 中创建面试会话（选模板 + 模型），用简历与 JD 作为上下文。
+2. 在自托管的 **AuraInterviewer** 中创建面试会话（选模板 + 模型），用简历与岗位描述 作为上下文。
 3. 进行多轮实时对话，结束后获取**结构化评估报告**（分数 + 反馈 + 改进建议）。
 4. 将报告中的薄弱点回到 `07-interview-prep.md` 做针对性补强；岗位匹配度评估回到 `resume-match` / `04-job-evaluation.md`。
 

@@ -48,7 +48,7 @@ cd third_party/get_jobs
 ## 工作流
 
 1. `install-get-jobs` 克隆上游。
-2. 在 get_jobs 中配置筛选；导出或复制目标 JD。
+2. 在 get_jobs 中配置筛选；导出或复制目标岗位描述。
 3. 本仓库 `/apply-zh` / `/da-zhaohu` 生成中文简历与话术。
 4. **用户在 App 内手动投递**。
 5. `python tools/tracker.py add … --channel 智联|猎聘|51job|拉勾`。

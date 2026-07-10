@@ -44,7 +44,7 @@
 ```text
 python tools/install_domestic_search.py install-boss   # 或 install-get-jobs
 /setup-zh
-搜岗 → /apply-zh <JD>     # 含 match_resume 质量报告
+搜岗 → /apply-zh <岗位描述>     # 含 match_resume 质量报告
 手动投递
 python tools/tracker.py add|list|dashboard
 /outcome <company>

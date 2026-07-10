@@ -72,7 +72,7 @@ The user may also ask for individual steps without the full workflow:
 - "Write a cover letter for [role] at [company]" - Step 3 only
 - "Help me prepare for an interview at [company]" - Step 4 only
 - "What jobs should I look for?" - Career strategy discussion using profile + evaluation framework
-- "把这份中文 JD 走国内流程" - `/apply-zh <JD>`（或 `/apply` 自动识别中文市场）：中文简历 + 打招呼话术，不生成 LaTeX
+- "把这份中文 岗位描述 走国内流程" - `/apply-zh <岗位描述>`（或 `/apply` 自动识别中文市场）：中文简历 + 打招呼话术，不生成 LaTeX
 
 ---
 
@@ -92,5 +92,5 @@ The user may also ask for individual steps without the full workflow:
 6. **追踪**：`python tools/tracker.py add/list/update/dashboard`（CSV 权威源）；阶段变化 `/outcome`。
 7. **可选重应用**（非核心）：`integrations/catalog/`（神经匹配 UI / 模拟面试 / 谈薪方法论等）。
 
-> 海外 / 英文岗仍走原 `05`/`06` LaTeX 流程。中文 JD 由 `/apply` 在 Step 0 自动识别市场并转入本流程
+> 海外 / 英文岗仍走原 `05`/`06` LaTeX 流程。中文 岗位描述 由 `/apply` 在 Step 0 自动识别市场并转入本流程
 > （或显式调用 `/apply-zh`）。详见 `README.zh.md` 与 `MODELS.zh.md`。

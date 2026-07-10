@@ -50,7 +50,7 @@ python tools/match_resume.py report --zh-only --resume … --jd …
 python tools/tracker.py today
 ```
 
-Cursor 不自动注册 `/apply-zh` 斜杠时：在对话里引用 `.claude/commands/apply-zh.md` 并粘贴 JD。
+Cursor 不自动注册 `/apply-zh` 斜杠时：在对话里引用 `.claude/commands/apply-zh.md` 并粘贴岗位描述。
 
 ---
 

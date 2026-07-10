@@ -2,7 +2,7 @@
 name: resume-build
 version: 1.0.0
 description: '中文简历的构建与导出。本技能复用成熟开源简历构建器 Reactive-Resume （MIT，可 Docker 自托管，隐私优先，16+
-  模板，导出 PDF/JSON/DOCX，内置 AI）， 而非自行实现 .docx/PDF 生成。JD→简历的智能生成另见 AitoResume。 触发词：做简历、生成简历、导出简历、简历模板、简历
+  模板，导出 PDF/JSON/DOCX，内置 AI）， 而非自行实现 .docx/PDF 生成。岗位描述→简历的智能生成另见 AitoResume。 触发词：做简历、生成简历、导出简历、简历模板、简历
   PDF、简历 DOCX、Reactive Resume。
 
   '
@@ -51,7 +51,7 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 | 导出 | **Reactive-Resume** | **PDF / JSON / DOCX** 一键导出（国内 HR 用 WPS，优先 DOCX） |
 | AI 润色 | **Reactive-Resume** 内置 AI（OpenAI / Gemini / Claude）或 v5.2+ Application Copilot | 可在自托管实例内启用 |
 | 自托管 | **Reactive-Resume** Docker（`docker compose up -d`） | 数据本地化，符合 PIPL |
-| JD→简历生成 | **AitoResume**（[buynonsense/AitoResume](https://github.com/buynonsense/AitoResume)） | 按岗位描述自动生成/优化简历，支持本地 Ollama |
+| 岗位描述→简历生成 | **AitoResume**（[buynonsense/AitoResume](https://github.com/buynonsense/AitoResume)） | 按岗位描述自动生成/优化简历，支持本地 Ollama |
 
 > 本仓库 `08-resume-zh.md` 的**分赛道结构规则**（互联网/国企/外企/体制内/应届）与**一页纸约束**
 > 仍作为"内容规范"使用：先用它定结构，再粘贴进 Reactive-Resume 做样式与导出。
@@ -68,7 +68,7 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 
 1. 用本仓库 `08-resume-zh.md` + `templates/zh/resume_<track>.md` 确定**内容与结构**（赛道、板块顺序、一页纸预算）。
 2. 将内容录入/导入 **Reactive-Resume**（自托管实例），选模板、调样式、实时预览。
-3. 可选：启用其 AI 助手做润色，或先用 **AitoResume** 按 JD 生成初稿再导入。
+3. 可选：启用其 AI 助手做润色，或先用 **AitoResume** 按岗位描述生成初稿再导入。
 4. 导出 **DOCX**（投递用）与 **PDF**（留档）到 `documents/cv-zh/`。
 5. 占位/匹配度评估回到本仓库 `04-job-evaluation.md`；开场话术回到 `09-da-zhaohu-zh.md` + `/打招呼`。
 

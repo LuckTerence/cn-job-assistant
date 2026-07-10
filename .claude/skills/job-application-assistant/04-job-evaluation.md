@@ -3,7 +3,7 @@
 <!-- SETUP: Skill match areas and career goals are personalized by running /setup -->
 
 > **量化匹配（默认）**：跑本地 CLI，零模型下载——
-> `python tools/match_resume.py score --resume <简历> --jd <JD>`  
+> `python tools/match_resume.py score --resume <简历> --jd <岗位描述>`  
 > 或生成后质量报告：  
 > `python tools/match_resume.py report --resume … --jd … --cover …`  
 > 产出 TF–IDF 余弦分、关键词 hit/miss、verdict（见 `resume-match` skill）。  
@@ -90,7 +90,7 @@ Does this role advance career goals and contain tasks that energize?
 Market-aware — pick the branch that matches the posting's market:
 
 - **International (海外岗):** if configured (`salary_data.json` exists), run `python3 salary_lookup.py "<Company Name>" --json` (add `--city "<City>"` to narrow). Present as the index table below; higher index = above-market.
-- **Domestic (国内中文岗):** do **not** run the 海外 `salary_lookup.py` tool — its indices are Denmark-specific and do not apply to the China market. Use the **期望薪资** recorded in `CLAUDE.zh.md` (求职方向段) as the baseline, and compare it against the salary range stated in the JD. If the JD lists no range, skip this subsection.
+- **Domestic (国内中文岗):** do **not** run the 海外 `salary_lookup.py` tool — its indices are Denmark-specific and do not apply to the China market. Use the **期望薪资** recorded in `CLAUDE.zh.md` (求职方向段) as the baseline, and compare it against the salary range stated in the JD. If the 岗位描述 lists no range, skip this subsection.
 
 Present findings (international) as:
 ```

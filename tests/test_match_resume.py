@@ -103,7 +103,7 @@ class MatchResumeTests(unittest.TestCase):
         ranked = m.extract_jd_keywords(self.jd, top_k=15)
         self.assertTrue(len(ranked) >= 5)
         terms = [t for t, _ in ranked]
-        # JD should surface backend-ish terms
+        # 岗位描述 should surface backend-ish terms
         self.assertTrue(
             any(t in terms for t in ("java", "kafka", "redis", "mysql", "docker", "微服务")),
             msg=terms,

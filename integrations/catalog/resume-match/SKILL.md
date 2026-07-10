@@ -1,8 +1,8 @@
 ---
 name: resume-match
 version: 1.1.0
-description: '简历与 JD 的匹配度分析、关键词提取与定制建议。本技能复用开源项目 Resume Matcher （srbhr/Resume-Matcher，Apache-2.0，27k+★
-  的简历↔JD 匹配器，基于 embedding 的语义匹配 + 关键词抽取 + 排名 + 定制内容/求职信生成），而非自行实现评分脚本。触发词：匹配度、JD 匹配、关键词、
+description: '简历与岗位描述 的匹配度分析、关键词提取与定制建议。本技能复用开源项目 Resume Matcher （srbhr/Resume-Matcher，Apache-2.0，27k+★
+  的简历↔岗位描述 匹配器，基于 embedding 的语义匹配 + 关键词抽取 + 排名 + 定制内容/求职信生成），而非自行实现评分脚本。触发词：匹配度、岗位匹配、关键词、
   简历诊断、skills gap、简历定制、简历优化。
 
   '
@@ -28,9 +28,9 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 
 # 简历匹配与优化技能（复用 Resume Matcher）
 
-> **不要重复造轮子**：JD↔简历的语义匹配、关键词抽取、匹配度排名、按 JD 定制内容，已由成熟开源项目
+> **不要重复造轮子**：岗位描述↔简历的语义匹配、关键词抽取、匹配度排名、按岗位描述定制内容，已由成熟开源项目
 > [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)（**Apache-2.0**，27k+★，4.9k forks）
-> 完整实现——它基于句向量（sentence-transformers）做简历与 JD 的余弦相似度匹配，抽取关键词并排序，
+> 完整实现——它基于句向量（sentence-transformers）做简历与岗位描述 的余弦相似度匹配，抽取关键词并排序，
 > 还能生成定制内容与求职信。本技能直接复用它，不再手写 `04-job-evaluation.md` 里的评分脚本逻辑；
 > 本仓库 `04-job-evaluation.md` 降为**人工评估框架**指引（何时打分、看哪些维度）。
 
@@ -64,9 +64,9 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 
 | 能力 | 由谁实现 | 说明 |
 |------|----------|------|
-| 简历↔JD 语义匹配 | **Resume Matcher**（embedding 余弦相似度） | 简历与 JD 向量化后计算匹配度，输出排名 |
-| 关键词抽取与排名 | **Resume Matcher** | 从 JD 抽取关键词并与简历比对，给出缺失/命中关键词 |
-| 定制内容生成 | **Resume Matcher**（上传母版简历 + 粘贴 JD） | AI 生成针对性改进建议与定制内容 |
+| 简历↔岗位描述 语义匹配 | **Resume Matcher**（embedding 余弦相似度） | 简历与岗位描述 向量化后计算匹配度，输出排名 |
+| 关键词抽取与排名 | **Resume Matcher** | 从 岗位描述 抽取关键词并与简历比对，给出缺失/命中关键词 |
+| 定制内容生成 | **Resume Matcher**（上传母版简历 + 粘贴岗位描述） | AI 生成针对性改进建议与定制内容 |
 | 求职信 / 面试准备 | **Resume Matcher**（可选） | 针对该岗位生成 cover letter 与面试题准备 |
 | 导出 | **Resume Matcher** | 导出为专业 PDF（多模板） |
 | 人工评估框架 | **本仓库** `04-job-evaluation.md` | 何时评估、看哪些维度（保留为方法论） |
@@ -75,15 +75,15 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 
 - **协议**：Apache-2.0（明确声明，非 NOASSERTION）。
 - **形态**：本地运行的 Python 应用（基于 sentence-transformers + Streamlit/FastAPI），数据不出本地。
-- **输入**：母版简历 PDF / DOCX；目标 JD 以文本粘贴。
+- **输入**：母版简历 PDF / DOCX；目标岗位描述 以文本粘贴。
 - **输出**：匹配度排名、关键词清单、定制内容、求职信、可导出 PDF。
 - **依赖**：需本地 Python 环境与向量模型（首次运行会下载 embedding 模型权重）。
 
 ## 工作流（本技能如何编排）
 
-1. 用户提供母版简历（PDF/DOCX）与目标 JD（文本）。
+1. 用户提供母版简历（PDF/DOCX）与目标岗位描述（文本）。
 2. 用 **Resume Matcher** 得到**匹配度排名**与**关键词命中/缺失清单**（即"匹配度"的量化依据）。
-3. 依据排名与缺失关键词，给出**定制建议**（哪些经历要突出、补哪些 JD 关键词）。
+3. 依据排名与缺失关键词，给出**定制建议**（哪些经历要突出、补哪些 岗位关键词）。
 4. 定制后的内容交给 `integrations/catalog/resume-build/`（可选）做样式与导出；人工侧评估回到
    `04-job-evaluation.md`（何时投、风险判断）。
 
@@ -94,7 +94,7 @@ git clone https://github.com/srbhr/Resume-Matcher.git
 cd Resume-Matcher
 # 官方推荐用 uv 启动其应用（Streamlit UI）
 uv run app
-# 详见仓库 README / SETUP.md（含 data/ 目录放简历、粘贴 JD 等步骤）
+# 详见仓库 README / SETUP.md（含 data/ 目录放简历、粘贴岗位描述 等步骤）
 ```
 
 > 注：Resume Matcher 为带 UI 的本地应用，首次运行需下载 embedding 模型权重（联网一次）。

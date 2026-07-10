@@ -33,8 +33,8 @@ make demo
 | 文件 | 含义 |
 |------|------|
 | `examples/demo/profile_snippet.md` | 虚构候选人画像摘要（对应真实流程里的 `CLAUDE.zh.md`） |
-| `examples/demo/jd_星云科技_后端.md` | 虚构 JD |
-| `examples/demo/resume_星云科技.md` | 按 JD 定制后的中文简历草稿（`/apply-zh` 类产出） |
+| `examples/demo/jd_星云科技_后端.md` | 虚构岗位描述 |
+| `examples/demo/resume_星云科技.md` | 按岗位描述定制后的中文简历草稿（`/apply-zh` 类产出） |
 | `examples/demo/da-zhaohu_星云科技_后端.md` | Boss 风格打招呼话术 |
 | `examples/demo/resume_弱匹配.md` | 对照用：弱匹配简历（分数应明显更低） |
 
@@ -55,7 +55,7 @@ tracker csv/html  →  tools/tracker.py
 
 1. `/setup-zh` 填自己的画像  
 2. `python tools/install_domestic_search.py install-boss`（可选）  
-3. `/apply-zh <你的 JD>`  
+3. `/apply-zh <你的岗位描述>`  
 4. App 内手动投递 → `python tools/tracker.py add …`  
 
 详见仓库根目录 [README.md](../../README.md)。

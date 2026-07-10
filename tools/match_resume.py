@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Lightweight local résumé↔JD matcher (stdlib only).
+"""Lightweight local 简历↔岗位描述 matcher (stdlib only).
 
 Design (inspired by Resume Matcher / classic IR, not a reimplementation of
 sentence-transformers):
 
   1. Tokenize bilingual text (English tech tokens + CJK bigrams/terms)
-  2. Build TF–IDF vectors for résumé and JD
+  2. Build TF–IDF vectors for résumé and 岗位描述
   3. Cosine similarity → overall score 0–100
-  4. Keyword hit / miss / extra classification (JD-weighted)
-  5. Optional generation-quality report (résumé + 打招呼/求职信 vs JD)
+  4. Keyword hit / miss / extra classification (weighted by posting text)
+  5. Optional generation-quality report (résumé + 打招呼/求职信 vs 岗位描述)
 
 No embedding model download, no Streamlit, no network.
 
@@ -86,7 +86,7 @@ STOPWORDS: frozenset[str] = frozenset(
     """.split()
 )
 
-# Verbs / glue never promoted to "JD keywords" even if frequent
+# Verbs / glue never promoted to "岗位关键词" even if frequent
 KEYWORD_BLOCKLIST: frozenset[str] = frozenset(
     """
     熟悉 精通 掌握 了解 具备 具有 优先 加分 要求 职责 描述 任职 资格
@@ -106,7 +106,7 @@ WS_RE = re.compile(r"\s+")
 
 
 def read_text(source: str) -> str:
-    """Read file path if it exists; otherwise treat as literal JD text."""
+    """Read file path if it exists; otherwise treat as literal 岗位描述 text."""
     path = Path(source)
     if path.is_file():
         return path.read_text(encoding="utf-8", errors="replace")
@@ -222,7 +222,7 @@ def _is_latin_tech(term: str) -> bool:
 
 
 def extract_jd_keywords(jd_text: str, top_k: int = 40) -> list[tuple[str, float]]:
-    """Rank JD tokens; prefer tech/skill terms over requirement glue words."""
+    """Rank 岗位描述 tokens; prefer tech/skill terms over requirement glue words."""
     tokens = tokenize(jd_text)
     tf = term_frequency(tokens)
     if not tf:
@@ -247,7 +247,7 @@ def extract_jd_keywords(jd_text: str, top_k: int = 40) -> list[tuple[str, float]
         if term in SKILL_TERMS or term in phrase_set:
             boost += 2.5
         if _is_latin_tech(term):
-            boost += 2.0  # stack names in JD are high signal even once
+            boost += 2.0  # stack names in 岗位描述 are high signal even once
         if req_boost[term]:
             boost += 0.5 * min(req_boost[term], 3)
         is_cjk = bool(CJK_RE.fullmatch(term))
@@ -276,14 +276,14 @@ def extract_jd_keywords(jd_text: str, top_k: int = 40) -> list[tuple[str, float]
 class KeywordBreakdown:
     hit: list[str] = field(default_factory=list)
     miss: list[str] = field(default_factory=list)
-    extra: list[str] = field(default_factory=list)  # in résumé but not JD (top signal)
+    extra: list[str] = field(default_factory=list)  # in résumé but not 岗位描述 (top signal)
 
 
 @dataclass
 class MatchResult:
     score: float  # 0–100
     cosine: float  # 0–1
-    keyword_coverage: float  # 0–100, % of top JD keywords present in résumé
+    keyword_coverage: float  # 0–100, % of top 岗位描述 keywords present in résumé
     keywords: KeywordBreakdown = field(default_factory=KeywordBreakdown)
     jd_keyword_count: int = 0
     resume_token_count: int = 0
@@ -320,7 +320,7 @@ def match_texts(resume_text: str, jd_text: str, top_k: int = 30) -> MatchResult:
     r_set = set(r_tokens)
     hit = [t for t in jd_terms if t in r_set]
     miss = [t for t in jd_terms if t not in r_set]
-    # extra: high-freq résumé skill-like tokens not in JD
+    # extra: high-freq résumé skill-like tokens not in 岗位描述
     extra_candidates = [
         t
         for t, _ in r_tf.most_common(50)
@@ -351,7 +351,7 @@ def quality_report(
     cover_text: str | None = None,
     top_k: int = 30,
 ) -> dict:
-    """Generation quality: résumé (+ optional cover) vs JD."""
+    """Generation quality: résumé (+ optional cover) vs 岗位描述."""
     base = match_texts(resume_text, jd_text, top_k=top_k)
     combined = resume_text
     cover_part: MatchResult | None = None
@@ -371,15 +371,15 @@ def quality_report(
     suggestions: list[str] = []
     if base.keyword_coverage < 50:
         suggestions.append(
-            "简历关键词覆盖偏低：在真实具备的前提下，把 miss 列表中的 JD 词自然写入经历要点。"
+            "简历关键词覆盖偏低：在真实具备的前提下，把 miss 列表中的 岗位关键词自然写入经历要点。"
         )
     if still_miss:
         suggestions.append(
-            f"合并材料后仍缺失 {len(still_miss)} 个 JD 关键词（见 still_missing）；"
+            f"合并材料后仍缺失 {len(still_miss)} 个 岗位关键词（见 still_missing）；"
             "勿虚构技能，可在「不匹配说明」中诚实处理。"
         )
     if cover_part and cover_part.score < 40:
-        suggestions.append("打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。")
+        suggestions.append("打招呼/求职信与岗位描述 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。")
     if cover_only:
         suggestions.append(
             "部分关键词只出现在话术中、未进简历：ATS/HR 更看简历正文，建议同步到经历要点。"
@@ -439,7 +439,7 @@ def build_zh_brief(
             break
     if len(edit_tips) < 3 and top_miss:
         edit_tips.append(
-            f"若真实具备，优先把这几个 JD 词写进经历要点：{'、'.join(top_miss[:3])}。"
+            f"若真实具备，优先把这几个 岗位关键词写进经历要点：{'、'.join(top_miss[:3])}。"
         )
     if len(edit_tips) < 3:
         edit_tips.append("通读简历，确保公司名与岗位名出现，避免群发感。")
@@ -468,7 +468,7 @@ def format_zh_brief(brief: dict) -> str:
         "✓ 已对齐（部分）：",
         "  " + ("、".join(brief.get("already_hit") or []) or "（无）"),
         "",
-        "✗ 还缺什么（JD 有、材料里没有）：",
+        "✗ 还缺什么（岗位描述里有、材料里没有）：",
         "  " + ("、".join(brief.get("still_missing") or []) or "（无，很好）"),
         "",
     ]
@@ -541,7 +541,7 @@ def format_score_human(result: MatchResult, title: str = "Match report") -> str:
         f"Score:              {result.score}/100  ({result.verdict})",
         f"Cosine (TF–IDF):    {result.cosine:.4f}",
         f"Keyword coverage:   {result.keyword_coverage}%  "
-        f"({len(result.keywords.hit)}/{result.jd_keyword_count} JD keywords)",
+        f"({len(result.keywords.hit)}/{result.jd_keyword_count} 岗位描述 keywords)",
         f"Tokens:             résumé={result.resume_token_count}  jd={result.jd_token_count}",
         "",
         f"HIT ({len(result.keywords.hit)}):",
@@ -550,7 +550,7 @@ def format_score_human(result: MatchResult, title: str = "Match report") -> str:
         f"MISS ({len(result.keywords.miss)}):",
         "  " + (", ".join(result.keywords.miss) if result.keywords.miss else "(none)"),
         "",
-        f"EXTRA on résumé (signal, not in JD top):",
+        f"EXTRA on résumé (signal, not in 岗位描述 top):",
         "  " + (", ".join(result.keywords.extra) if result.keywords.extra else "(none)"),
     ]
     return "\n".join(lines)
@@ -573,7 +573,7 @@ def format_report_human(report: dict, *, zh_first: bool = True) -> str:
         "",
         format_score_human(
             MatchResult(**{**report["resume"], "keywords": KeywordBreakdown(**report["resume"]["keywords"])}),
-            title="Résumé vs JD",
+            title="Résumé vs 岗位描述",
         ),
     ]
     if report.get("cover"):
@@ -586,7 +586,7 @@ def format_report_human(report: dict, *, zh_first: bool = True) -> str:
                         "keywords": KeywordBreakdown(**report["cover"]["keywords"]),
                     }
                 ),
-                title="Cover / 打招呼 vs JD",
+                title="Cover / 打招呼 vs 岗位描述",
             )
         )
     lines.append("")
@@ -626,7 +626,7 @@ def cmd_keywords(args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps([{"term": t, "weight": round(w, 4)} for t, w in ranked], ensure_ascii=False, indent=2))
     else:
-        print(f"Top {len(ranked)} JD keywords:")
+        print(f"Top {len(ranked)} 岗位描述 keywords:")
         for i, (t, w) in enumerate(ranked, 1):
             print(f"  {i:2}. {t:20}  {w:.3f}")
     return 0
@@ -679,21 +679,21 @@ def cmd_diff(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="match_resume",
-        description="Lightweight local résumé↔JD matcher (TF–IDF cosine + keywords).",
+        description="Lightweight local 简历↔岗位描述 matcher (TF–IDF cosine + keywords).",
     )
     sub = p.add_subparsers(dest="command", required=True)
 
     def add_common(sp: argparse.ArgumentParser) -> None:
-        sp.add_argument("--top-k", type=int, default=30, help="JD keyword list size")
+        sp.add_argument("--top-k", type=int, default=30, help="岗位关键词列表长度")
         sp.add_argument("--json", action="store_true", help="machine-readable output")
 
-    sc = sub.add_parser("score", help="score résumé against JD")
+    sc = sub.add_parser("score", help="score résumé against 岗位描述 (job posting)")
     add_common(sc)
     sc.add_argument("--resume", required=True, help="path to résumé file")
-    sc.add_argument("--jd", required=True, help="path to JD file or literal text")
+    sc.add_argument("--jd", required=True, help="path to 岗位描述 file or literal text")
     sc.set_defaults(func=cmd_score)
 
-    kw = sub.add_parser("keywords", help="extract ranked JD keywords")
+    kw = sub.add_parser("keywords", help="extract ranked 岗位描述 keywords")
     add_common(kw)
     kw.add_argument("--jd", required=True)
     kw.set_defaults(func=cmd_keywords)

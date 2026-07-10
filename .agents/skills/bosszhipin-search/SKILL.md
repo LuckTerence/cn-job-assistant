@@ -39,7 +39,7 @@ python tools/install_domestic_search.py smoke
 | 搜索岗位 | **boss-cli** `boss search` | 逆向 API，城市/薪资/经验等筛选 |
 | 查看推荐 | **boss-cli** `boss recommend` | 推荐流 |
 | 打招呼 | **boss-cli** `boss greet` / `batch-greet` | 单发或批量；本仓库默认**用户确认后**再发 |
-| 导出 JD | **boss-cli** `boss export` / `boss detail` | CSV/JSON |
+| 导出 岗位描述 | **boss-cli** `boss export` / `boss detail` | CSV/JSON |
 | AI 话术生成 | **本仓库** `09-da-zhaohu-zh.md` + `/da-zhaohu` | 生成文本后由用户粘贴 |
 
 ## 认证
@@ -66,7 +66,7 @@ boss batch-greet "golang" --city 杭州 -n 5 --dry-run
 
 1. 确认已安装：`python tools/install_domestic_search.py status`
 2. 用户给出目标 → `boss search` / `boss export`
-3. JD 交给 `/apply-zh` 或 `/da-zhaohu` 生成中文简历/话术
+3. 岗位描述 交给 `/apply-zh` 或 `/da-zhaohu` 生成中文简历/话术
 4. **用户在 App 内手动投递**（或自行确认后使用 `boss greet`）
 5. `python tools/tracker.py add --company … --role … --channel Boss直聘 --status applied`
 

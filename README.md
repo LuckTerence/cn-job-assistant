@@ -5,7 +5,7 @@
 <h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
 
 <p align="center">
-  <strong>本地优先 · 按 JD 定制 · 可量化 · 不自动投递</strong><br>
+  <strong>本地优先 · 按岗位描述定制 · 可量化 · 不自动投递</strong><br>
   把你的 AI Agent 变成「搜岗 → 改简历 / 打招呼 → 打分 → 手动投 → 追踪」的求职工作台
 </p>
 
@@ -39,7 +39,7 @@
 
 | 痛点 | 市面上常见做法 | 本仓库怎么做 |
 |------|----------------|--------------|
-| 一份简历群发 N 家 | 批量自动投 / 同文案 | **按 JD 定制**中文简历 + Boss 打招呼话术 |
+| 一份简历群发 N 家 | 批量自动投 / 同文案 | **按岗位描述定制**中文简历 + Boss 打招呼话术 |
 | 不知道改得好不好 | 凭感觉 | **本地打分**：关键词 hit/miss + 匹配分（无模型下载） |
 | 投了就忘 | 表格手记 / 重型 Docker 看板 | **零依赖 Tracker**（CSV + HTML 看板） |
 | 工具要登录云、简历外传 | 各类在线 AI 简历站 | **本地优先**，个人数据 gitignore |
@@ -52,10 +52,10 @@
 ## 30 秒看懂闭环
 
 ```text
-  装搜岗工具          填画像            丢一份 JD
+  装搜岗工具          填画像            丢一份岗位描述
        │                │                  │
        ▼                ▼                  ▼
- install_domestic   /setup-zh      /apply-zh <JD>
+ install_domestic   /setup-zh      /apply-zh <岗位描述>
        │                │                  │
        └────────────────┴──────────────────┘
                            │
@@ -84,7 +84,7 @@
 
 ## 先看一眼产出（无需填简历 / 无需登录）
 
-上方 GIF：**JD → 生成材料 → 打分 → Tracker**（约 30 秒循环）。  
+上方 GIF：**岗位描述 → 生成材料 → 打分 → Tracker**（约 30 秒循环）。  
 clone 后一条命令，离线生成同样产物（虚构数据）：
 
 ```bash
@@ -142,14 +142,14 @@ python tools/install_domestic_search.py status
 /setup-zh
 ```
 
-### 3. 丢一份 JD，生成材料 + 打分
+### 3. 丢一份岗位描述，生成材料 + 打分
 
 ```text
 /apply-zh
-（粘贴 Boss/智联 JD 链接或全文）
+（粘贴 Boss/智联 岗位链接或全文）
 ```
 
-会写入 `documents/zh/`：简历草稿、话术、JD 原文、**match_report_*.json**。
+会写入 `documents/zh/`：简历草稿、话术、岗位描述原文、**match_report_*.json**。
 
 ### 4. 你去 App 里手动投；回来记一笔
 
@@ -204,7 +204,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 **适合**
 
 - 正在用 AI 写代码的 Agent 用户，希望求职也同一套工作流  
-- 要投 **Boss / 智联 / 猎聘** 等，需要**按 JD 改中文材料**  
+- 要投 **Boss / 智联 / 猎聘** 等，需要**按岗位描述改中文材料**  
 - 在意隐私、不想简历默认上传 SaaS  
 - 接受「工具辅助 + 自己投递」而不是全自动黑盒  
 

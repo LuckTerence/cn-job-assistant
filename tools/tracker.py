@@ -428,7 +428,7 @@ def cmd_today(args: argparse.Namespace) -> int:
     print("快捷命令：")
     print("  python tools/tracker.py list --open-only")
     print("  python tools/tracker.py dashboard")
-    print("  /apply-zh <JD>   # 生成材料后再 add 一条")
+    print("  /apply-zh <岗位描述>   # 生成材料后再 add 一条")
     return 0
 
 

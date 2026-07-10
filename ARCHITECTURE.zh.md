@@ -55,7 +55,7 @@
 ## 国内默认数据流
 
 ```text
-JD ──► documents/zh/jd_*.md
+岗位描述 ──► documents/zh/jd_*.md
          │
          ▼
      /apply-zh ──► resume_*.md + da-zhaohu|cover_*.md

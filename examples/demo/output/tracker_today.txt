@@ -16,4 +16,4 @@
 快捷命令：
   python tools/tracker.py list --open-only
   python tools/tracker.py dashboard
-  /apply-zh <JD>   # 生成材料后再 add 一条
+  /apply-zh <岗位描述>   # 生成材料后再 add 一条

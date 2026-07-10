@@ -22,7 +22,7 @@
 ```bash
 bash scripts/demo.sh   # 离线演示：匹配报告 + 人话摘要 + 看板 + 赛道对比
 python tools/install_domestic_search.py status
-# Agent: /setup-zh（可粘贴旧简历）→ /apply-zh <JD>
+# Agent: /setup-zh（可粘贴旧简历）→ /apply-zh <岗位描述>
 python tools/match_resume.py report --zh-only --resume … --jd … --cover …
 python tools/tracker.py suggest-add --company … --role … --channel Boss直聘
 python tools/tracker.py today
