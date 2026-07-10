@@ -27,7 +27,7 @@ Follow these steps **in order**.
 4. If no candidates remain, say so ("Nothing new to rank - run /scrape to find fresh postings") and stop.
 5. Read the scoring framework and profile **once**:
    - `.claude/skills/job-application-assistant/04-job-evaluation.md`
-   - `.claude/skills/job-application-assistant/01-candidate-profile.md`
+   - Candidate profile — market-aware: `.claude/skills/job-application-assistant/01-candidate-profile.md` for international, `CLAUDE.zh.md` for domestic (中文岗). Use whichever is populated.
 
 State how many jobs will be ranked before proceeding.
 
@@ -125,3 +125,4 @@ Rules for the presentation:
 3. **Deal-breakers veto scores.** A 90-point job that fails a location deal-breaker is excluded, not ranked first.
 4. **Honest scoring.** Gaps are reported per job; a low-scoring posting is presented as such. The score bands and weights come from `04-job-evaluation.md` - if the user disagrees with a ranking, the fix is updating their profile or the framework, not bending scores.
 5. **State stays consistent.** `seen_jobs.json` fields are only added, never restructured, so `/scrape`'s dedup keeps working; the tracker is read-only for this command.
+6. **International pipeline only.** `/rank` reads `job_scraper/seen_jobs.json` (populated by `/scrape`) and the English profile. Domestic (中国大陆) applications are evaluated with `/apply-zh` and never written to `seen_jobs.json`, so they do not appear here — don't run `/rank` expecting to see them. If a domestic user runs `/rank` anyway, the market-aware profile read (Step 1.5) keeps the scoring from operating on an empty profile.

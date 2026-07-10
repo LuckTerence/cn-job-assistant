@@ -58,7 +58,14 @@ Also collect, without interrogating - one or two open questions are enough:
 
 Create or update `documents/applications/<company>_<role>/`. All content here is personal data - the folder is already gitignored (`documents/applications/**`), so nothing needs redacting.
 
-1. **`cv_draft.tex` and `cover_letter.tex`** - copy (never move) the submitted files. Locate them via the tracker row's `cv_file`/`cover_letter_file` columns; if those are empty, look for `cv/main_<company>.tex` and `cover_letters/cover_<company>_*.tex`. If a file already exists in the archive, leave it - the archived version is what was actually submitted. If no draft files exist (application made outside `/apply`), skip with a note.
+1. **Submitted drafts** - copy (never move) the submitted files into the archive. The lookup is market-aware: domestic (`/apply-zh`) produces Markdown in `documents/zh/`; international (`/apply`) produces LaTeX in `cv/` and `cover_letters/`.
+
+   Locate the files in this order:
+   1. **Tracker columns** `cv_file` / `cover_letter_file` - if populated. When you add a new row in Step 1 for a domestic application, record the `documents/zh/...` paths here so future `/outcome` runs find them directly.
+   2. **Domestic (中文岗):** `documents/zh/resume_<company>.md` (resume) and, for the cover letter, `documents/zh/cover_<company>_*.md` (正式求职信) or `documents/zh/da-zhaohu_<company>_*.md` (Boss 打招呼话术). Archive copies as `cv_draft.md` and `cover_letter.md`. If only a Boss 短话术 exists, archive it as `cover_letter.md` and note in `outcome.md` that it is a 短话术, not a formal letter.
+   3. **International:** `cv/main_<company>.tex` and `cover_letters/cover_<company>_*.tex`. Archive copies as `cv_draft.tex` and `cover_letter.tex`.
+
+   If a file already exists in the archive, leave it - the archived version is what was actually submitted. If no draft files exist in either location (application made outside the workflow), skip with a note.
 2. **`job_posting.md`** - if it already exists, leave it. Otherwise try WebFetch on the tracker row's `source` URL and save the posting text. If the URL is dead (postings expire fast - this is exactly why the archive matters), ask the user to paste the posting, or write a stub noting the posting is unavailable. **Never reconstruct a posting from memory.**
 3. **`outcome.md`** - write or update it in exactly the format documented in `documents/README.md`, so `/setup` Path A parses it without special cases:
 
@@ -108,7 +115,7 @@ Summarize what was recorded:
 > **Outcome recorded for <Role> at <Company>.**
 >
 > - `documents/applications/<company>_<role>/outcome.md` - status: <status>, <what changed>
-> - Archived: <which of cv_draft.tex / cover_letter.tex / job_posting.md were copied or fetched, and which were skipped and why>
+> - Archived: <which of cv_draft.tex|cv_draft.md / cover_letter.tex|cover_letter.md / job_posting.md were copied or fetched, and which were skipped and why>
 > - Tracker: status → <new status>
 >
 > [Calibration suggestion from Step 5, if triggered]

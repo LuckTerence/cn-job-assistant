@@ -67,6 +67,7 @@ Use Glob with `documents/**/*` to scan the full tree. Print:
 **linkedin/**: [list files, or "(empty)"]
 **diplomas/**: [list files, or "(empty)"]
 **references/**: [list files, or "(empty)"]
+**zh/**: [list domestic working drafts, or "(empty)"]
 **applications/**: [list subfolders with their files, or "(empty)"]
 
 I will read these and cross-reference before proposing any changes.
@@ -90,7 +91,7 @@ Hold this content in context throughout Path A. Do not re-read.
 
 ### Step A3: Parse Documents
 
-Read each document found in Step A1. Process subfolders in this order: `cv/`, `linkedin/`, `diplomas/`, `references/`, `applications/`.
+Read each document found in Step A1. Process subfolders in this order: `cv/`, `linkedin/`, `diplomas/`, `references/`, `zh/`, `applications/`.
 
 **`cv/` documents:** name, contact (email, phone, LinkedIn, GitHub), education (degree, institution, dates, thesis), work experience (title, company, dates, location, bullets), skills, publications, awards, profile/summary.
 
@@ -100,10 +101,12 @@ Read each document found in Step A1. Process subfolders in this order: `cv/`, `l
 
 **`references/` documents:** referee name, title, organization; full text of the letter (extract specific quotes); competency language used.
 
+**`zh/` documents (domestic `/apply-zh` working drafts):** `resume_<company>.md` (求职意向段, 经历要点, section ordering) and `cover_<company>_*.md` / `da-zhaohu_<company>_*.md` (话术开场, 主体结构). Parse as Markdown - the same fields as the `cv/` and `cover_letter.tex` bullets above. Treat these as the latest domestic drafts; the submitted version is archived in `applications/<company>_<role>/` as `cv_draft.md` / `cover_letter.md`.
+
 **`applications/<company>_<role>/` subfolders:**
 - `job_posting.md`: role title, company, required skills, experience level, sector, role type
-- `cover_letter.tex`: opening structure, body structure, bullet style, closing, recurring phrases
-- `cv_draft.tex`: profile statement, section ordering, framing for this role type
+- `cover_letter.tex` (international) **or** `cover_letter.md` (domestic `/apply-zh`): opening structure, body structure, bullet style, closing, recurring phrases. For a domestic `cover_letter.md` that holds a Boss 短话术, extract the 开场 (identity + strongest match + quantified evidence + contact intent) as the opening/closing pattern.
+- `cv_draft.tex` (international) **or** `cv_draft.md` (domestic `/apply-zh`): profile statement, section ordering, framing for this role type, and (for `.md`) the 求职意向段 and 经历要点.
 - `outcome.md`: status (in_progress/hired/offer_declined/rejected/no_response/interview_only), interview stages, notes. Skip `in_progress` applications for calibration — they have no final signal yet.
 
 After reading, proceed to Step A4 without intermediate output. The user sees a complete picture in Step A6.
@@ -145,10 +148,10 @@ For each skill file, compare extracted document content against the current file
 **Inference rules** (apply when populating from inferred sources):
 
 - **`02-behavioral-profile.md`:** Source is LinkedIn About + recommendation letters. Extract recurring themes, adjectives, phrases about how the candidate works. Add only to "Strongest Behavioral Traits", "How [Candidate] Works Best", or "Management Style Preferences" sections. Do not overwrite existing scored assessments. Always label inferred additions: *[Inferred from LinkedIn About / Reference letter - review before relying on this]*
-- **`03-writing-style.md`:** Source is `cover_letter.tex` files. Extract recurring patterns. Add as observations under "## Patterns Observed in Past Applications". Do not modify existing rules. Only add if 2+ cover letters show a genuine pattern.
+- **`03-writing-style.md`:** Source is `cover_letter.tex` (or `cover_letter.md` for domestic) files. Extract recurring patterns. Add as observations under "## Patterns Observed in Past Applications". Do not modify existing rules. Only add if 2+ cover letters show a genuine pattern.
 - **`04-job-evaluation.md`:** Source is `job_posting.md` + `outcome.md` pairs. If an application reached interview or offer: note role type and sector as a confirmed strong-fit signal. If 2+ applications repeat a no-response or rejection pattern: note it. Add findings under "## Calibration from Past Applications". Do not modify the existing scoring framework.
-- **`05-cv-templates.md`:** Source is `cv_draft.tex` files. Extract any profile statement that does not already appear in templates. Label with: *[Used for: <company>_<role>]*
-- **`06-cover-letter-templates.md`:** Source is `cover_letter.tex` files. Extract opening patterns, bullet structures, closing formulations. Add only what is structurally distinct from existing templates.
+- **`05-cv-templates.md`:** Source is `cv_draft.tex` (or `cv_draft.md` for domestic) files. Extract any profile statement that does not already appear in templates. Label with: *[Used for: <company>_<role>]*
+- **`06-cover-letter-templates.md`:** Source is `cover_letter.tex` (or `cover_letter.md` for domestic) files. Extract opening patterns, bullet structures, closing formulations. Add only what is structurally distinct from existing templates.
 - **`07-interview-prep.md`:** Source is CV bullets, LinkedIn descriptions, reference letter quotes. Identify achievements not yet covered by an existing STAR example. Do NOT draft full STAR examples. Add stubs under "## STAR Candidates (Complete Manually)":
 
 ```markdown
@@ -223,6 +226,16 @@ Documents cover skills, experience, education, references, and behavioral signal
 - Job search configuration (use the questions from Path C Section 9 below)
 
 Then proceed to Step 3 to populate the non-skill files (`CLAUDE.md`, `cv/main_example.tex`, `.claude/skills/job-scraper/search-queries.md`). Step 3 will detect that the seven skill files are already populated and skip those substeps.
+
+### Step 2.5: Salary benchmark data (optional but recommended)
+
+`/apply` can show a salary benchmark for the target company via `salary_lookup.py`, but **only if `salary_data.json` exists in the repo root**. This command does not create it.
+
+- To create it: write `salary_data.json` manually (format in `tools/README_SALARY_TOOL.md`), or convert an Excel sheet with `tools/convert_salary_excel.py`.
+- If the file is missing, `/apply` **gracefully skips** the salary benchmark — no error blocks the workflow.
+- Full walkthrough: `SETUP.md` → "Salary Benchmarking".
+
+> Note: `salary_lookup.py` is overseas-oriented (Danish/Nordic baselines). For a **domestic (Chinese)** profile, capture the candidate's 期望薪资 during `/setup-zh` instead — it surfaces in `/apply-zh` as the benchmark.
 
 ---
 

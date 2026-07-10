@@ -2,7 +2,7 @@
 
 ## Critical Rules
 
-1. **NO em-dashes (--).**  Use commas, periods, or restructure the sentence instead.
+1. **NO em-dashes (—, U+2014).** Use commas, periods, or restructure the sentence instead. (Note: a LaTeX en-dash `--` or double-hyphen is also not an em-dash; avoid both in prose.)
 2. **NO cliches or filler phrases.** Cut: "I am passionate about", "I believe I would be a great fit", "leverage my skills", "hit the ground running", "drive results", "synergies".
 3. **NO generic buzzwords** without concrete backing. Every claim must be supported by a specific example or fact.
 4. **NO apologetic or overly humble language.** Not "I think I could contribute" but "I bring X, demonstrated by Y."

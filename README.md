@@ -8,6 +8,10 @@
 
 An AI-powered job application framework built on [Claude Code](https://claude.com/claude-code). Fork it, fill in your profile, and let Claude evaluate job postings, tailor your CV, write cover letters, and prepare you for interviews.
 
+> **中文用户 / 中国大陆求职**：本仓库含**国内适配分支**，新增 Boss直聘/智联/前程无忧/猎聘/拉勾 检索指引、
+> 中文简历分赛道模板、打招呼话术生成，并支持国产大模型（DeepSeek/智谱 GLM 等）。详见
+> **[`README.zh.md`](./README.zh.md)**。
+
 > Note: This is an independent open-source project and is not affiliated with, endorsed by, sponsored by, or maintained by Anthropic. Anthropic and Claude Code are referenced only to describe the toolchain this workflow uses.
 
 <p align="center">
@@ -40,6 +44,8 @@ files ready    with fit ratings     (LaTeX, tailored)
                Pick a match         Reviewer agent critiques
                -> /apply            -> Revise -> Final output
 ```
+
+**Domestic (中国大陆) variant:** `/setup-zh` → `/apply-zh` → `/da-zhaohu` produces Chinese résumés and 打招呼话术 in `documents/zh/`, with `/outcome` and `/interview` shared across both markets. It reads the Chinese profile in `CLAUDE.zh.md` (not the English `01-candidate-profile.md`). See [`README.zh.md`](./README.zh.md) for the full domestic workflow.
 
 The framework encodes career guidance best practices, including structured evaluation criteria, forward-looking cover letter framing, and optional salary benchmarking.
 
@@ -119,15 +125,21 @@ This runs the full workflow: evaluate fit, draft CV + cover letter, review with 
 
 ## Other commands
 
-`/setup`, `/scrape`, and `/apply` form the core workflow. Seven more commands extend it once your profile is in place:
+`/setup`, `/scrape`, and `/apply` form the core workflow. Seven more commands extend it once your profile is in place (the domestic variants `/setup-zh`, `/apply-zh`, and `/da-zhaohu` cover the 中国大陆 workflow and are documented in [`README.zh.md`](./README.zh.md)):
 
-- **`/interview`** preps you for a scheduled interview on a tracked application. It builds a stage-specific prep pack from the application's archive (the exact posting, the CV and cover letter the interviewer actually read, feedback recorded from earlier rounds), researches the company and interviewers with a verify-before-use rule, maps likely questions to your STAR examples, and offers a mock interview following the roleplay protocol in `07-interview-prep.md`. Gaps get honest bridge answers, never invented experience.
-- **`/outcome`** records what happened to an application - interview stages, offers, rejections, silence. It archives the submitted CV, cover letter, and posting text into `documents/applications/<company>_<role>/`, keeps `outcome.md` in the format `/setup` Path A parses, and updates the tracker. Once a few applications resolve, it points you back to `/setup` to calibrate the fit framework from what actually got interviews.
-- **`/rank`** bridges `/scrape` and `/apply`: it batch-scores all newly scraped postings against the fit framework (parallel agents fetch each posting and score the five evaluation dimensions) and returns a ranked shortlist with honest per-job strengths and gaps. Deal-breakers veto, deadlines get urgency flags, dead postings get marked expired. Pick a number and it hands off to the full `/apply` workflow.
+- **`/interview`** preps you for a scheduled interview on a tracked application. It builds a stage-specific prep pack from the application's archive (the exact posting, the CV and cover letter the interviewer actually read, feedback recorded from earlier rounds), researches the company and interviewers with a verify-before-use rule, maps likely questions to your STAR examples, and offers a mock interview following the roleplay protocol in `07-interview-prep.md`. Gaps get honest bridge answers, never invented experience. Market-aware: it reads `.tex` or `.md` archives and the matching profile (`01-candidate-profile.md` / `02-behavioral-profile.md` for international, `CLAUDE.zh.md` for domestic).
+- **`/outcome`** records what happened to an application - interview stages, offers, rejections, silence. It archives the submitted CV, cover letter, and posting text into `documents/applications/<company>_<role>/`, keeps `outcome.md` in the format `/setup` Path A parses, and updates the tracker. Once a few applications resolve, it points you back to `/setup` to calibrate the fit framework from what actually got interviews. Market-aware: archives `cv_draft.tex`/`cover_letter.tex` (international) or `cv_draft.md`/`cover_letter.md` (domestic).
+- **`/rank`** bridges `/scrape` and `/apply`: it batch-scores all newly scraped postings against the fit framework (parallel agents fetch each posting and score the five evaluation dimensions) and returns a ranked shortlist with honest per-job strengths and gaps. Deal-breakers veto, deadlines get urgency flags, dead postings get marked expired. Pick a number and it hands off to the full `/apply` workflow. **International-only:** it reads `job_scraper/seen_jobs.json` (populated by `/scrape`) and the English profile (`01-candidate-profile.md`); domestic applications flow through `/apply-zh` and are not written to `seen_jobs.json`, so `/rank` does not see them.
 - **`/expand`** enriches your profile by scanning public sources you've already linked in it (GitHub repos, portfolio site, Kaggle, Google Scholar) and looking up syllabi for named courses and certifications. Discovered competencies are added to your profile with a source tag. Useful right after `/setup` to surface skills that documents alone don't make explicit.
 - **`/upskill`** analyzes the gap between your profile and your tracked job postings (or a single posting via `/upskill <URL>`). Produces a prioritized heatmap of skill gaps and a learning plan with web-searched study resources and time estimates. Useful for career planning between applications.
 - **`/add-template`** registers your own LaTeX CV or cover letter template in place of the stock ones. It captures the template's instructions (compile engine, fonts, style rules, page limit), runs a mandatory test compile, and wires the template into `/apply`. See [LaTeX templates](#latex-templates) below.
 - **`/add-portal`** generates a job-portal search skill for a job board in your market. It investigates the portal (search URL pattern, result structure, access rules), scaffolds the CLI skill from the same structure as the shipped ones, and test-runs a live query before registering. See [Job search tools](#job-search-tools) below.
+
+**Domestic (中国大陆) commands** — full detail in [`README.zh.md`](./README.zh.md):
+
+- **`/setup-zh`** fills the Chinese profile in `CLAUDE.zh.md` (target 行业 / 岗位 / 赛道 / 薪资 / 城市), the domestic counterpart of `/setup`.
+- **`/apply-zh`** evaluates a Chinese posting and drafts a one-page Chinese résumé (`documents/zh/resume_<company>.md`) plus a cover letter or Boss 打招呼话术, reading the profile from `CLAUDE.zh.md`.
+- **`/da-zhaohu`** generates a Boss直聘 打招呼话术 (`documents/zh/da-zhaohu_<company>_<role>.md`) from `CLAUDE.zh.md` and the posting.
 
 `/reset` is also available, see [Starting over](#starting-over) below.
 
@@ -135,7 +147,8 @@ This runs the full workflow: evaluate fit, draft CV + cover letter, review with 
 
 ```
 ai-job-search/
-├── CLAUDE.md                          # Main candidate profile + workflow rules
+├── CLAUDE.md                          # Main candidate profile + workflow rules (international / English)
+├── CLAUDE.zh.md                       # 中文画像 + 国内工作流规则 (domestic / 中国大陆) — gitignored PII
 ├── .claude/
 │   ├── commands/
 │   │   ├── apply.md                   # /apply workflow (drafter-reviewer)
@@ -146,7 +159,10 @@ ai-job-search/
 │   │   ├── rank.md                    # /rank triage scraped jobs into a ranked shortlist
 │   │   ├── outcome.md                 # /outcome record application results, archive materials
 │   │   ├── interview.md               # /interview stage-specific prep pack + mock interview
-│   │   └── reset.md                   # /reset wipe profile data or documents folder
+│   │   ├── reset.md                   # /reset wipe profile data or documents folder
+│   │   ├── apply-zh.md                # /apply-zh 中文简历 + 求职信/打招呼话术 (domestic)
+│   │   ├── setup-zh.md                # /setup-zh 填充中文画像 CLAUDE.zh.md (domestic)
+│   │   └── da-zhaohu.md               # /da-zhaohu Boss直聘 打招呼话术 (domestic)
 │   ├── skills/
 │   │   ├── job-application-assistant/  # Core application skill
 │   │   │   ├── SKILL.md               # Skill definition
@@ -270,6 +286,8 @@ The four Danish CLI tools in `.agents/skills/` (Jobbank, Jobdanmark, Jobindex, J
 ```
 
 Give it your local job board's URL. The command investigates the portal (search-URL pattern, result-page structure, robots.txt/access rules), scaffolds a CLI skill with the same structure, commands, and output contract as the shipped ones, and test-runs a live query before registering anything. Auth-walled portals are declined, and portals with restrictive terms get a prominent personal-use-only warning in the generated skill. The generated skill is market-specific and lives in your fork; the generator itself is the universal part.
+
+> **Overseas reference (this fork):** The four Danish portals (Jobbank, Jobdanmark, Jobindex, Jobnet) are kept from upstream as a working reference implementation, but the domestic (China) flow does not invoke them. Domestic search runs through `bosszhipin-search` / `domestic-jobs-search`; `freehire-search` (multi-market aggregator) and `linkedin-search` (country-agnostic) remain generally usable. CI keeps type-checking and testing the Danish CLIs so they don't rot — the intent is "keep, isolate," not delete.
 
 Maintaining a fork adapted to your market or language? Add it to the [Community forks & adaptations](https://github.com/MadsLorentzen/ai-job-search/discussions/78) thread so others can find it.
 

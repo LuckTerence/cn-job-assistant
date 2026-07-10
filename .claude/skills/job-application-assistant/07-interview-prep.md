@@ -2,6 +2,14 @@
 
 <!-- SETUP: STAR examples are personalized by running /setup based on your actual experience -->
 
+> **真实模拟与评分请复用 `interview-mock` 技能**（底层 AuraInterviewer，MIT）：多轮 AI 对话 + 技术准确性/
+> 表达清晰度/情感状态 多维评分 + 结构化报告。本文件保留为**国内题型方法论**（STAR、群面/无领导小组、
+> 行测、国企党政面等），不重复实现模拟引擎。
+
+> **面试题库 / 知识源请复用 [yangshun/tech-interview-handbook](https://github.com/yangshun/tech-interview-handbook)（MIT）**：
+> 业界广泛使用的技术面试手册，覆盖算法（Blind 75 / Grind 75 / 速查表）、行为问题、简历指南、前端面试，
+> 并贯穿"申请 → 面试 → offer 谈判"全流程。本文件的方法论可直接对照其结构化内容补充题库与答题框架，不重复搬运其知识。
+
 ## STAR Format
 
 Structure answers as: **Situation** (context), **Task** (your responsibility), **Action** (what you did), **Result** (outcome).

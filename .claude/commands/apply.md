@@ -12,12 +12,17 @@ Follow these steps **exactly in order**. Do not skip steps.
 
 ---
 
-## Step 0: Parse Input
+## Step 0: Parse Input & Detect Market
 
 - If `$ARGUMENTS` looks like a URL, use `WebFetch` to retrieve the job posting content.
 - If it is pasted text, use it directly.
-- Extract: **company name**, **role title**, **department** (if mentioned), **location**, and **language** of the posting (Danish or English).
+- Extract: **company name**, **role title**, **department** (if mentioned), **location**, and **language** of the posting (Danish / English / Chinese).
+- **Detect market** and set `MARKET`:
+  - If the posting is **Chinese / 中国大陆市场** (Chinese-language JD, or company/location indicates mainland China), set `MARKET=domestic`.
+  - Otherwise (`MARKET=international`, Danish/English or any overseas market), use the standard LaTeX flow below (Steps 2–5).
 - Store these for use throughout the workflow.
+
+> **Domestic (中国) shortcut:** If `MARKET=domestic`, **skip Steps 2–5** (the LaTeX CV/cover-letter flow) and go straight to **Section D — Domestic Path** at the end of this command. You can also invoke `/apply-zh` directly to force the domestic path.
 
 ---
 
@@ -30,7 +35,7 @@ Read the evaluation framework:
 Using the framework from `04-job-evaluation.md`, evaluate the job posting against the candidate's profile. If the salary lookup tool is configured, run:
 
 ```bash
-python salary_lookup.py "<Company Name>" --json
+python3 salary_lookup.py "<Company Name>" --json
 ```
 
 If the posting specifies a city, add `--city "<City>"` to narrow results. Parse the JSON output and include the salary benchmark in the evaluation. If the tool is not configured or returns an error, skip the salary benchmark.
@@ -282,3 +287,40 @@ List the files written:
 Tell the user: "Both files are ready for your review. Open them to check the final output before compiling."
 
 Also mention: once they have actually submitted the application, `/outcome <company>` logs it in the tracker and starts the per-application record that `/setup` later uses to calibrate the fit framework.
+
+---
+
+## Section D: Domestic Path (MARKET=domestic)
+
+For a **Chinese / mainland-China** job posting. No LaTeX, no English cover letter — produce a **中文简历源文件** + **打招呼话术 / 中文求职信**, and let the user build/export and submit manually. Skip Steps 2–5 above.
+
+### Step D0: Evaluate Fit (shared)
+
+Run the same fit evaluation as Step 1, but source the candidate profile from **`CLAUDE.zh.md`** (the Chinese profile populated by `/setup-zh`) instead of the English `01-candidate-profile.md`. Read `.claude/skills/job-application-assistant/04-job-evaluation.md` for the evaluation methodology. Present the 5-part evaluation and ask whether to proceed.
+- Salary benchmark via `salary_lookup.py` is overseas-oriented; for domestic roles, skip it or surface the candidate's own 期望薪资 captured during `/setup`.
+
+### Step D1: Draft Chinese Resume (content, not layout)
+
+- Read the structure + per-track rules in `.claude/skills/job-application-assistant/08-resume-zh.md` and pick the right track template (`templates/zh/resume_<track>.md`: 互联网 / 国企央企 / 外企 / 体制内 / 应届).
+- Write a **Markdown source** to `documents/zh/resume_<company>.md` (one page, Chinese). Tailor bullets to the JD; follow the 1-page hard rule for 社招.
+- **Build & export** is done by the user via the `resume-build` skill (Reactive-Resume, self-hosted) — export `.docx` (preferred for WPS/ATS) or `.pdf`. Do not hand-generate `.docx` here.
+
+### Step D2: Generate 打招呼话术 / 中文求职信
+
+- Delegate to the `/da-zhaohu` command (reads `09-da-zhaohu-zh.md`): produces a Boss直聘 短话术 (40–80 字) or a 正式中文求职信 (300–400 字) per platform.
+- Or inline: read `09-da-zhaohu-zh.md` and produce the same output, writing to `documents/zh/`.
+
+### Step D3: Compliance Self-Check (mandatory)
+
+- [ ] All experience/data real — no fabricated skills or results.
+- [ ] Resume + 话术 both name the company and role.
+- [ ] Keywords aligned to JD only where genuinely possessed.
+- [ ] No auto-submit — user pastes into the app manually (platform risk control).
+
+### Step D4: Present & Hand Off
+
+Tell the user:
+
+> "中文简历草稿已写入 `documents/zh/resume_<company>.md`，请在 Reactive-Resume（`/resume-build`）中导入并导出 .docx；打招呼话术已生成于 `documents/zh/`，请手动粘贴到对应 App 投递。投递后运行 `/outcome <company>` 记录进度。"
+
+Domestic flow composes: `bosszhipin-search` / `domestic-jobs-search` (检索) + `08-resume-zh.md` (简历) + `resume-build` (构建导出) + `09-da-zhaohu-zh.md` / `/da-zhaohu` (开场) + manual submit.

@@ -13,6 +13,8 @@ Read these two files in parallel before doing anything else. You must know what 
 - `.claude/skills/job-application-assistant/01-candidate-profile.md`
 - `.claude/skills/job-application-assistant/02-behavioral-profile.md`
 
+> **Domestic (中国大陆) users:** the candidate profile lives in `CLAUDE.zh.md`, not `01/02`. For a domestic application, read `CLAUDE.zh.md` instead and write discovered competencies back into its 身份信息 / 工作经历 / 专业技能 / 行为风格 sections (the same sections `/setup-zh` populates).
+
 Hold this content in context throughout the command. Do not re-read these files later.
 
 ---

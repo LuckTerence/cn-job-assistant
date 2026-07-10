@@ -23,15 +23,23 @@ v1 preps for a **specific application**. Generic no-target practice is out of sc
 
 1. **The archive** (maintained by `/outcome`): `documents/applications/<company>_<role>/`
    - `job_posting.md` - the exact posting the user applied to
-   - `cv_draft.tex` and `cover_letter.tex` - what was actually submitted. **These are what the interviewer read**; every talking point must be consistent with their claims.
+   - **Submitted materials** - what the interviewer actually read. Market-aware: use whichever pair is present.
+     - International (`/apply`): `cv_draft.tex` and `cover_letter.tex`
+     - Domestic (`/apply-zh`): `cv_draft.md` and `cover_letter.md` (a Boss 打招呼话术 archives as `cover_letter.md`; note in the prep pack that it is a 短话术, not a formal letter)
+     - **Every talking point must be consistent with their claims.**
    - `outcome.md` - the stage reached so far and any recorded feedback from earlier stages. Feedback from stage N is the highest-value input for stage N+1 prep.
-2. **Fallbacks** (the application may predate `/outcome`): posting via WebFetch on the tracker row's `source` URL, or ask the user to paste it; CV via `cv/main_<company>.tex` and cover letter via `cover_letters/cover_<company>_*.tex`. State plainly which context is missing rather than guessing - and suggest `/outcome <company>` to build the archive for next time.
+2. **Fallbacks** (the application may predate `/outcome`): posting via WebFetch on the tracker row's `source` URL, or ask the user to paste it. Submitted-materials fallback, market-aware:
+   - International: CV via `cv/main_<company>.tex` and cover letter via `cover_letters/cover_<company>_*.tex`
+   - Domestic: CV via `documents/zh/resume_<company>.md` and cover letter via `documents/zh/cover_<company>_*.md` or `documents/zh/da-zhaohu_<company>_*.md`
+   State plainly which context is missing rather than guessing - and suggest `/outcome <company>` to build the archive for next time.
 3. **Ask the user what this interview is** (skip anything `outcome.md` already records): stage (phone screen / technical / case / final round), date, format (phone, video, onsite), and who is interviewing (names and titles, if known).
 4. **Read the frameworks once** - do not re-read them in later steps:
    - `.claude/skills/job-application-assistant/07-interview-prep.md`
-   - `.claude/skills/job-application-assistant/01-candidate-profile.md`
-   - `.claude/skills/job-application-assistant/02-behavioral-profile.md`
-   - `.claude/skills/job-application-assistant/04-job-evaluation.md`
+   - `.claude/skills/job-application-assistant/04-job-evaluation.md` *(language-agnostic fit framework — always read)*
+   - **Candidate profile & behavioral style** — market-aware; read whichever is populated for this candidate:
+     - Domestic (中文岗): `CLAUDE.zh.md` (画像源; 行为风格在"行为风格"段)
+     - International: `.claude/skills/job-application-assistant/01-candidate-profile.md` and `02-behavioral-profile.md`
+     - If both are populated, prefer the one matching the application's market (see Step 1.1 — archive has `.tex` = international, `.md` = domestic).
 
 ---
 
@@ -61,7 +69,7 @@ Derive from four sources, in priority order:
 
 ### 2. STAR answer mapping
 Match the ready-made STAR examples in `07-interview-prep.md` to the likely questions using their "Use for" tags. Then:
-- For likely questions **no existing STAR example covers**, draft a new STAR answer grounded strictly in facts from `01-candidate-profile.md` - profile facts arranged into S/T/A/R, not embellished. Include these drafts in the prep pack; offer to append them to `07-interview-prep.md` only if the user explicitly approves.
+- For likely questions **no existing STAR example covers**, draft a new STAR answer grounded strictly in facts from the candidate profile (domestic: `CLAUDE.zh.md`; international: `01-candidate-profile.md`) - profile facts arranged into S/T/A/R, not embellished. Include these drafts in the prep pack; offer to append them to `07-interview-prep.md` only if the user explicitly approves.
 - If `/setup` left incomplete STAR stubs relevant to this role, surface them: the user should fill in the details before the interview.
 
 ### 3. Consistency brief
@@ -84,7 +92,7 @@ Save the pack to `documents/applications/<company>_<role>/interview_prep_<stage>
 
 Ask if the user wants to practice. If yes, run the roleplay **in this conversation** following the Roleplay Guidelines in `07-interview-prep.md` exactly: warm-up first, then role-specific technical questions, 1-2 behavioral questions tied to the posting's competencies, and one tough question or curveball. After each answer, give brief feedback - what worked, what to sharpen, and which STAR example from the pack would have served better.
 
-Calibrate feedback against `02-behavioral-profile.md`: coach toward the user's natural register, not a generic ideal - the same voice-consistency rule the `/apply` reviewer applies to cover letters.
+Calibrate feedback against the candidate's behavioral style (domestic: the "行为风格" section of `CLAUDE.zh.md`; international: `02-behavioral-profile.md`): coach toward the user's natural register, not a generic ideal - the same voice-consistency rule the `/apply` reviewer applies to cover letters.
 
 ---
 

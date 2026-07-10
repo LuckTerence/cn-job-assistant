@@ -2,6 +2,10 @@
 
 <!-- SETUP: Skill match areas and career goals are personalized by running /setup -->
 
+> **量化匹配请复用 `resume-match` 技能**（底层 Resume Matcher，Apache-2.0）：它自动产出
+> 匹配/缺失/额外技能三分类、JD 关键词密度与 ATS 友好性检查，比手写打分更可复现。
+> 本文件保留为**人工评估框架**——用于判断"何时投、风险几何"，而非重复实现评分脚本。
+
 ## Scoring Dimensions
 
 Evaluate each job posting against these five dimensions:
@@ -81,7 +85,7 @@ Does this role advance career goals and contain tasks that energize?
 
 If the salary lookup tool is configured (`salary_data.json` exists), look up the company:
 ```
-python salary_lookup.py "<Company Name>" --json
+python3 salary_lookup.py "<Company Name>" --json
 ```
 
 If a city is known from the posting, add `--city "<City>"` to narrow results.

@@ -40,6 +40,7 @@ Read the current state of these files and report whether each has content or is 
 
 - `.claude/skills/job-application-assistant/01-candidate-profile.md`
 - `.claude/skills/job-application-assistant/02-behavioral-profile.md`
+- `CLAUDE.zh.md` *(domestic 中文画像，由 /setup-zh 填充 — 仅清空候选专属板块，保留结构与指引)*
 - `.claude/skills/job-application-assistant/05-cv-templates.md` *(profile statements section only — framework structure is preserved)*
 - `.claude/skills/job-application-assistant/07-interview-prep.md` *(STAR examples and STAR candidates sections only — framework structure is preserved)*
 
@@ -53,6 +54,9 @@ Present as:
 
 - 02-behavioral-profile.md — [has content / already empty]
   Full file will be replaced with a blank template.
+
+- CLAUDE.zh.md — [has content / already empty]
+  Domestic 中文画像。候选专属板块（身份信息 / 教育背景 / 工作经历 / 专业技能 / 证书与荣誉 / 行为风格 / 求职方向）将还原为 `[占位符]` 形式，其余结构、注释与指引保留。
 
 - 05-cv-templates.md — [has profile statements / already blank]
   Profile statement templates will be cleared. LaTeX structure and tailoring guidelines are preserved.
@@ -68,7 +72,7 @@ The following files are NOT touched (they contain framework rules, not candidate
 
 ### If scope includes `documents`:
 
-Use Glob to list all files present in `documents/cv/`, `documents/linkedin/`, `documents/diplomas/`, `documents/references/`, and `documents/applications/`. Present as:
+Use Glob to list all files present in `documents/cv/`, `documents/linkedin/`, `documents/diplomas/`, `documents/references/`, `documents/zh/`, and `documents/applications/`. Present as:
 
 ```
 ## Documents reset will delete:
@@ -84,6 +88,9 @@ documents/diplomas/
 
 documents/references/
   - [filename] or "(empty)"
+
+documents/zh/
+  - [filename] or "(empty)"  (domestic 中文简历 / 打招呼话术 — gitignored PII)
 
 documents/applications/
   - [subfolder/filename] or "(empty)"
@@ -160,6 +167,50 @@ Wait for the user's response.
 ## Using This in Applications
 ```
 
+**For `CLAUDE.zh.md`** (domestic 中文画像), replace only the candidate-specific sections with their `[占位符]` form — leave all headings, the `<!-- SETUP -->` comment, the 角色定位 / 国内岗位工作流 / 核查清单 sections, and the repository-structure note intact:
+
+```markdown
+### 身份信息
+- **姓名：** [你的姓名]
+- **所在地：** [城市]
+- **语言：** [中文 / 英语等级 / 其他]
+- **政治面貌：** [中共党员 / 共青团员 / 群众]（国企/体制内岗位重要）
+- **求职状态：** [在职看机会 / 离职 / 应届]
+
+### 教育背景
+<!-- 倒序，最新在前 -->
+- **[学历] [专业]** ([入学年]-[毕业年]) - [学校]
+  - 主修课程 / GPA / 排名：[要点]
+
+### 工作经历
+<!-- 倒序，最新在前 -->
+- **[职位]** ([起始月/年] - [结束月/年]) - **[公司]** ([城市])
+  - [核心职责 1]
+  - [量化业绩]
+
+### 专业技能
+- **主攻：** [你的核心技能]
+- **次攻：** [次要技能]
+- **领域：** [行业/领域专长]
+- **工具：** [软件/工具]
+
+### 证书与荣誉
+- **[证书名]** - [机构] ([日期])
+- **[荣誉名]** - [活动] ([年份])
+
+### 行为风格
+- **[特质 1]** - [描述]
+- **优势：** [你的优势]
+- **成长点：** [待提升处]
+
+### 求职方向
+- **目标行业：** [行业 1] / [行业 2]
+- **目标岗位：** [岗位类型]
+- **目标赛道：** [互联网 / 国企央企 / 外企 / 体制内 / 应届（可多选）]
+- **薪资期望：** [范围，可选]
+- **城市偏好：** [城市 1] / [城市 2]
+```
+
 **For `05-cv-templates.md`**, locate the section that begins with `**Profile statement templates` and extends through the role-specific template blocks. Replace only that section with:
 
 ```markdown
@@ -193,6 +244,7 @@ rm -f documents/cv/*
 rm -f documents/linkedin/*
 rm -f documents/diplomas/*
 rm -f documents/references/*
+rm -f documents/zh/*
 rm -rf documents/applications/*/
 ```
 
