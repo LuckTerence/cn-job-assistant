@@ -139,7 +139,6 @@ echo "=========================================="
 echo " Demo 完成 ✓"
 echo "=========================================="
 echo
-echo "  视觉动图: docs/assets/demo-loop.gif"
 echo "  打开看板: open $OUT/job_search_tracker.html"
 echo "  人话摘要: $OUT/match_brief_zh.txt"
 echo "  今日工作台: $OUT/tracker_today.txt"

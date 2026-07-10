@@ -89,13 +89,3 @@ upskill/*.md
 
 # Local agent workspace
 .workbuddy/
-
-# GIF build artifacts
-docs/assets/_gif_frames/
-
-# GIF build temp
-docs/assets/_gif_frames/
-
-# Allow demo poster (repo ignores *.png globally)
-!docs/assets/
-!docs/assets/**

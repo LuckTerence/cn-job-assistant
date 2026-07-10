@@ -9,7 +9,6 @@
 |--------|--------|
 | 了解产品、立刻上手 | [README.md](./README.md) |
 | **先看演示产出（一条命令）** | `bash scripts/demo.sh` → [examples/demo/](./examples/demo/) |
-| 30 秒循环动图 | [docs/assets/demo-loop.gif](./docs/assets/demo-loop.gif) |
 | Agent 安装（Claude / Cursor） | [docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md) |
 | 分赛道样例（互联网 vs 国企） | [examples/demo/tracks/](./examples/demo/tracks/) |
 | 看架构分层（核心 vs catalog） | [ARCHITECTURE.zh.md](./ARCHITECTURE.zh.md) |

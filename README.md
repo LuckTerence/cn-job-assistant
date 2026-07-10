@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/assets/demo-loop.gif" alt="流程示意：生成材料、本地打分、投递看板" width="900">
-</p>
-
 <h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
 
 <p align="center">
@@ -84,8 +80,7 @@
 
 ## 先看一眼产出（无需填简历 / 无需登录）
 
-上方 GIF：**岗位描述 → 生成材料 → 打分 → Tracker**（约 30 秒循环）。  
-clone 后一条命令，离线生成同样产物（虚构数据）：
+clone 后一条命令，离线生成样例（虚构数据）：
 
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
@@ -95,19 +90,16 @@ bash scripts/demo.sh
 ```
 
 ```bash
-open examples/demo/output/job_search_tracker.html   # macOS 看板
-open docs/assets/demo-loop.gif                      # 动图
+open examples/demo/output/job_search_tracker.html   # macOS 打开投递看板
 ```
 
 | 演示产物 | 路径 |
 |----------|------|
-| 循环动图 | [`docs/assets/demo-loop.gif`](./docs/assets/demo-loop.gif) |
-| 中文人话摘要 | [`examples/demo/output/match_brief_zh.txt`](./examples/demo/output/match_brief_zh.txt) |
-| 匹配报告 JSON | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
+| 匹配摘要 | [`examples/demo/output/match_brief_zh.txt`](./examples/demo/output/match_brief_zh.txt) |
+| 匹配报告 | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
 | HTML 投递看板 | [`examples/demo/output/job_search_tracker.html`](./examples/demo/output/job_search_tracker.html) |
-| 今日工作台 | [`examples/demo/output/tracker_today.txt`](./examples/demo/output/tracker_today.txt) |
-| 互联网 vs 国企 | [`examples/demo/tracks/`](./examples/demo/tracks/) |
-| 质量飞轮 diff | [`examples/demo/output/match_diff_v1_v2.txt`](./examples/demo/output/match_diff_v1_v2.txt) |
+| 今日进度 | [`examples/demo/output/tracker_today.txt`](./examples/demo/output/tracker_today.txt) |
+| 互联网 vs 国企样例 | [`examples/demo/tracks/`](./examples/demo/tracks/) |
 
 样例说明：[examples/demo/README.md](./examples/demo/README.md) · Agent 安装：[docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md)
 
