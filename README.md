@@ -181,9 +181,10 @@ python tools/install_domestic_search.py status
 ```
 
 写入 `documents/zh/`：简历 md、**简历 PDF（拿去投）**、话术、岗位描述、匹配报告。  
-单独导出 PDF：
+单独导出 PDF（推荐先 `brew install typst`，版式更好）：
 
 ```bash
+python tools/export_resume_pdf.py --which          # 看本机后端
 python tools/export_resume_pdf.py -i documents/zh/resume_公司.md
 ```
 
@@ -204,7 +205,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 |----------|------|
 | 一键 Demo | `bash scripts/demo.sh` / 预生成看板与摘要 |
 | 中文简历分赛道模板 + **双赛道样例** | 互联网 vs 国企产出对比 |
-| **可投递 A4 PDF** | `tools/export_resume_pdf.py`（`/apply-zh` 必出 PDF，不是只给 md） |
+| **可投递 A4 PDF** | `export_resume_pdf.py`：优先 **Typst** 模板，回退 Chrome/pandoc（见 `docs/resume-pdf-reuse.zh.md`） |
 | Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
 | 匹配打分 + **人话一页摘要** | `report --zh-only`；禁止虚构写进摘要 |
 | 质量飞轮 | `match_resume.py diff` 对比 v1→v2 |
@@ -263,6 +264,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | [integrations/catalog/README.md](./integrations/catalog/README.md) | 模拟面试 / Reactive-Resume 等真实成本 |
 | [SETUP.md](./SETUP.md) | 上游英文 / LaTeX 环境 |
 | [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) | 多轮对标与决策记录 |
+| [docs/resume-pdf-reuse.zh.md](./docs/resume-pdf-reuse.zh.md) | 简历 PDF 开源复用（10 项目） |
 
 ---
 

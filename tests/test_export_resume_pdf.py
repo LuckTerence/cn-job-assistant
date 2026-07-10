@@ -17,26 +17,39 @@ DEMO_MD = ROOT / "examples" / "demo" / "resume_星云科技.md"
 
 
 class ExportResumePdfTests(unittest.TestCase):
-    def test_md_to_html_has_identity_and_sections(self) -> None:
+    def test_parse_and_html(self) -> None:
         md = DEMO_MD.read_text(encoding="utf-8")
-        html = exp.md_to_resume_html(md, title="测试")
+        res = exp.parse_resume_md(md)
+        self.assertTrue(res.name)
+        self.assertGreaterEqual(len(res.sections), 1)
+        html = exp.resume_to_html(res)
         self.assertIn("<h1>", html)
         self.assertIn("专业技能", html)
         self.assertIn("<ul>", html)
-        self.assertIn("PingFang", html)
 
-    def test_export_pdf_when_chrome_available(self) -> None:
-        if not exp.find_chrome():
-            self.skipTest("Chrome/Chromium/Edge not installed")
+    def test_typst_source_generates(self) -> None:
+        md = DEMO_MD.read_text(encoding="utf-8")
+        res = exp.parse_resume_md(md)
+        typ = exp.resume_to_typst(res)
+        self.assertIn("#resume(", typ)
+        self.assertIn("专业技能", typ)
+        self.assertIn("#let resume", typ)
+
+    def test_export_pdf_auto(self) -> None:
+        if not exp.find_typst() and not exp.find_chrome():
+            self.skipTest("no typst and no chrome")
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "r.pdf"
-            path = exp.export_pdf(DEMO_MD, out)
+            path, backend = exp.export_pdf(DEMO_MD, out)
             self.assertTrue(path.is_file())
             self.assertGreater(path.stat().st_size, 1000)
-            data = path.read_bytes()
-            self.assertTrue(data.startswith(b"%PDF"))
-            pages = len(re.findall(rb"/Type\s*/Page[^s]", data))
-            self.assertEqual(pages, 1, msg=f"expected 1 page, got {pages}")
+            self.assertTrue(path.read_bytes().startswith(b"%PDF"))
+            self.assertIn(backend, ("typst", "chrome", "pandoc"))
+            pages = len(re.findall(rb"/Type\s*/Page[^s]", path.read_bytes()))
+            self.assertEqual(pages, 1, msg=f"backend={backend} pages={pages}")
+
+    def test_cli_which(self) -> None:
+        self.assertEqual(exp.main(["--which"]), 0)
 
     def test_cli_html_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -45,7 +58,7 @@ class ExportResumePdfTests(unittest.TestCase):
                 ["--input", str(DEMO_MD), "--output", str(out), "--html-only"]
             )
             self.assertEqual(rc, 0)
-            self.assertTrue(out.with_suffix(".html").is_file() or Path(str(out) + ".html").is_file() or list(Path(tmp).glob("*.html")))
+            self.assertTrue(out.with_suffix(".html").is_file())
 
 
 if __name__ == "__main__":

@@ -2,7 +2,9 @@
 
 > 调研日期：2026-07-10  
 > 目的：中文简历**必须能投 PDF**，优先复用成熟项目，不自研排版引擎。  
-> 现状：仓库内 `tools/export_resume_pdf.py` 是过渡方案（自写 MD→HTML + Chrome 打印）。
+> 现状（已落地）：`tools/export_resume_pdf.py` 为**多后端编排器**——  
+> **优先 Typst**（`templates/zh/typst/resume.typ`）→ pandoc → Chrome HTML 打印回退。  
+> 未 vendoring OrangeX4 源码（上游无 LICENSE）；模板为本仓库自有精简版，选型见下表。
 
 ---
 
@@ -68,11 +70,16 @@
 | 在 catalog 写清各模板许可证与安装 | 复制未声明许可的源码进主仓 |
 | 样例 PDF 用开源模板渲一份「好看标杆」 | 把 Reactive-Resume 当默认（太重） |
 
-### 落地优先级
+### 落地状态
 
-1. **P0**：`export_resume_pdf.py` 增加 `backend=typst|chrome|pandoc`，默认自动探测；文档指向 Chinese-Resume-in-Typst + awesome-resume-for-chinese。  
-2. **P1**：提供「Agent 可填」的最小 Typst/YAML 片段（或 MD→Typst 字段映射），一键 `typst compile`。  
-3. **P2**：外企双语用 NorthSecond 模板；重 UI 仍指向 Reactive-Resume catalog。
+| 项 | 状态 |
+|----|------|
+| `export_resume_pdf.py --backend auto\|typst\|chrome\|pandoc` | ✅ |
+| MD 解析 → 填 `templates/zh/typst/resume.typ` → `typst compile` | ✅ |
+| Chrome / pandoc 回退 | ✅ |
+| `--which` 探测本机后端 | ✅ |
+| 个人 clone OrangeX4 作自定义模板 | 文档说明；不默认 vendoring |
+| 外企双语 NorthSecond / RenderCV | P2 可选 |
 
 ---
 

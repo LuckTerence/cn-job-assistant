@@ -44,13 +44,16 @@ python tools/match_resume.py report --zh-only \
 - **国内投递默认交付物是 PDF**，不是 Markdown。生成 md 后**必须**导出：
 
 ```bash
+# 推荐本机安装 Typst：brew install typst（版式优先）
 python tools/export_resume_pdf.py \
   --input documents/zh/resume_<company>.md \
   --output documents/zh/resume_<company>.pdf
+# 查看后端：python tools/export_resume_pdf.py --which
 ```
 
 - 向用户明确：上传平台时用 **`.pdf`**；md 只是源文件。
-- 若本机无 Chrome/Chromium/Edge，工具会报错并写出 `.html`，指导用户「打印 → 另存 PDF」。
+- 后端优先级：**Typst → pandoc → Chrome**；无 Typst 时自动回退 Chrome 打印。
+- 都没有时会写 HTML，指导「打印 → 存 PDF」。
 - 不要只丢给用户一份 md 就结束本步。
 
 ---
