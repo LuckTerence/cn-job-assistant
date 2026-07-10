@@ -15,6 +15,8 @@
     --accent-fu: #d97706;
     --accent-rv: #059669;
     --accent-empty: #6b7280;
+    --accent-pos: #7c3aed;
+    --muted: #888;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -22,16 +24,19 @@
       --bg: #1a1a1d;
       --card-bg: #242428;
       --border: #33333a;
+      --muted: #999;
     }
   }
   body { max-width: 1280px; margin: 2rem auto; padding: 0 1rem; background: var(--bg); }
   h1 { font-size: 1.4rem; }
-  h2 { font-size: 1.1rem; margin-top: 2rem; }
-  .meta { color: #888; font-size: 0.85rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; margin-bottom: 0.5rem; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; }
   .stats { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
   .stat { background: var(--card-bg); padding: 0.65rem 1rem; border-radius: 8px;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 5.5rem; text-align: center; }
   .stat b { display: block; font-size: 1.3rem; }
+  .stat span { font-size: 0.72rem; color: var(--muted); }
+  .stat-pos { border-top: 3px solid var(--accent-pos); }
   .actions-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 2rem; }
   .card { background: var(--card-bg); border-radius: 10px; padding: 1rem 1.1rem;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #ccc; }
@@ -41,18 +46,29 @@
   .card-empty { border-left-color: var(--accent-empty); text-align: center; padding: 1.5rem; }
   .card-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem; }
   .card ul { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.7; }
-  .card-hint { margin-top: 0.6rem; font-size: 0.78rem; color: #888; }
+  .card-hint { margin-top: 0.6rem; font-size: 0.78rem; color: var(--muted); }
   .badge { display: inline-block; font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;
             color: #fff; vertical-align: middle; line-height: 1.4; }
   .badge-iv { background: var(--accent-iv); }
   .badge-rv { background: var(--accent-rv); }
+  .encourage { margin: 1rem 0 1.5rem; padding: 0.7rem 1rem; background: var(--card-bg);
+               border-radius: 8px; color: var(--muted); font-size: 0.85rem;
+               box-shadow: 0 1px 3px rgba(0,0,0,.06); border-left: 3px solid var(--accent-pos); }
+  .weekend-hint { margin: 0 0 1.5rem; padding: 0.6rem 1rem; background: var(--card-bg);
+                   border-radius: 8px; color: var(--accent-fu); font-size: 0.85rem;
+                   box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .closed-fold { margin-top: 2rem; }
+  .closed-fold summary { cursor: pointer; list-style: none; padding: 0.5rem 0; }
+  .closed-fold summary::-webkit-details-marker { display: none; }
+  .closed-fold summary:hover { opacity: 0.8; }
+  .fold-hint { color: var(--muted); font-size: 0.85rem; font-weight: 400; }
   table { border-collapse: collapse; width: 100%; background: var(--card-bg); font-size: 0.82rem;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 2rem; border-radius: 6px; overflow: hidden; }
   th, td { border-bottom: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
   th { background: rgba(128,128,128,.1); position: sticky; top: 0; font-weight: 600; white-space: nowrap; }
   tr:hover { background: rgba(128,128,128,.05); }
   .row-iv td { border-left: 3px solid var(--accent-iv); }
-  .row-closed td { opacity: 0.65; }
+  .row-closed td { opacity: 0.6; }
   code { background: rgba(128,128,128,.12); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
 </style>
 </head>
@@ -62,14 +78,18 @@
      · generated 2026-07-11 by <code>tools/tracker.py dashboard</code>
      · do not commit (personal data)</p>
   <div class="stats">
-    <div class="stat"><b>3</b>total</div>
-    <div class="stat"><b>2</b>open</div>
-    <div class="stat"><b>1</b>closed</div>
-    <div class="stat"><b>1</b>interview</div>
-    <div class="stat"><b>0</b>to follow</div>
+    <div class="stat"><b>3</b><span>total</span></div>
+    <div class="stat"><b>2</b><span>open</span></div>
+    <div class="stat"><b>1</b><span>closed</span></div>
+    <div class="stat"><b>1</b><span>interview</span></div>
+    <div class="stat"><b>0</b><span>to follow</span></div>
+    <div class="stat stat-pos"><b>3</b><span>累计已投</span></div>
+    <div class="stat stat-pos"><b>1</b><span>面试次数</span></div>
+    <div class="stat stat-pos"><b>33.3%</b><span>面试率</span></div>
   </div>
   <div class="actions-grid"><div class="card card-iv"><div class="card-title">📅 进行中的面试</div><ul><li><span class="badge badge-iv">interview</span> <b>青梧数据</b> / 后端开发 · 智联</li></ul><div class="card-hint">准备面试跑 /interview；状态变了用 tracker update</div></div><div class="card card-rv"><div class="card-title">📝 建议复盘（近30天结束）</div><ul><li><span class="badge badge-rv">rejected</span> <b>北岸出行</b> / 服务端 · 2026-07-11</li></ul><div class="card-hint">跑 /outcome 总结经验，改完简历用 diff 对比改进</div></div></div>
-  <h2>进行中 / Open (2)</h2><table><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th></tr></thead><tbody><tr><td>2026-07-11</td><td>星云科技</td><td>高级后端</td><td>Boss直聘</td><td>applied</td><td>demo-strong</td><td>demo: 已生成材料，待手动投递</td><td>examples/demo/resume_星云科技.md</td><td>examples/demo/da-zhaohu_星云科技_后端.md</td><td>examples/demo/jd_星云科技_后端.md</td></tr><tr class="row-iv"><td>2026-07-11</td><td>青梧数据</td><td>后端开发</td><td>智联</td><td>interview</td><td>demo</td><td>demo: 二面中</td><td></td><td></td><td></td></tr></tbody></table>
-  <h2>已结束 / Closed (1)</h2><table><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th></tr></thead><tbody><tr class="row-closed"><td>2026-07-11</td><td>北岸出行</td><td>服务端</td><td>猎聘</td><td>rejected</td><td></td><td>demo: 已结束</td><td></td><td></td><td></td></tr></tbody></table>
+  
+  
+  <h2>进行中 / Open (2)</h2><table><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th></tr></thead><tbody><tr><td>2026-07-11</td><td>星云科技</td><td>高级后端</td><td>Boss直聘</td><td>applied</td><td>demo-strong</td><td>demo: 已生成材料，待手动投递</td><td>examples/demo/resume_星云科技.md</td><td>examples/demo/da-zhaohu_星云科技_后端.md</td><td>examples/demo/jd_星云科技_后端.md</td></tr><tr class="row-iv"><td>2026-07-11</td><td>青梧数据</td><td>后端开发</td><td>智联</td><td>interview</td><td>demo</td><td>demo: 二面中</td><td></td><td></td><td></td></tr></tbody></table><details class="closed-fold"><summary><h2 style="display:inline">已结束 / Closed (1)</h2> <span class="fold-hint">（点击展开）</span></summary><table><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th></tr></thead><tbody><tr class="row-closed"><td>2026-07-11</td><td>北岸出行</td><td>服务端</td><td>猎聘</td><td>rejected</td><td></td><td>demo: 已结束</td><td></td><td></td><td></td></tr></tbody></table></details>
 </body>
 </html>

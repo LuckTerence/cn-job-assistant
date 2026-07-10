@@ -4,7 +4,8 @@
 > **日期**：2026-07-11  
 > **原则**：产品成熟度 = 闭环完成度 × 用户反馈验证数，不是功能数。  
 > **定位**：Agent 可读可跑的本地求职工作流（非 SaaS、默认不自动投）。  
-> **相关**：[`pm-review-2026-07-10.zh.md`](./pm-review-2026-07-10.zh.md)、[`ARCHITECTURE.zh.md`](../ARCHITECTURE.zh.md)
+> **相关**：[`pm-review-2026-07-10.zh.md`](./pm-review-2026-07-10.zh.md)、[`ARCHITECTURE.zh.md`](../ARCHITECTURE.zh.md)、  
+> **情绪/节奏文案层（闭环之后）**：[`dev-calmer-ux-copy.zh.md`](./dev-calmer-ux-copy.zh.md)
 
 ---
 

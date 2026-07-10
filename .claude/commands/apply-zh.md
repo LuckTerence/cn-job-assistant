@@ -225,6 +225,9 @@ python tools/tracker.py add \
 - 用户没明确说"已经投了" → 默认 `to_apply`，不要自作主张标 applied
 - 若发现已有同公司+岗位+渠道的记录，tracker 会提示 duplicate，用 `update` 改状态即可
 - 写入成功后告诉用户：日常用 `python tools/tracker.py today` 或 `dashboard` 看进度
+- **首次庆祝**：如果这是本会话第一次成功写入 tracker（add 命令返回成功），在告诉用户进度查看方式**之前**，加一句：
+  > ✅ 第一份材料准备好了！这是最难的一步——接下来会越来越顺。
+  （用「本会话是否已 add 过」判断即可；不必读 CSV 判断是否全局首次。）
 
 ---
 

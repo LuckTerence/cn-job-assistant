@@ -372,12 +372,13 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("prefers-color-scheme", text)
 
     def test_html_dashboard_empty_shows_no_todo(self) -> None:
-        """Empty tracker should show the 'no todos' card, not crash."""
+        """Zero-row tracker should show Chinese onboarding message, not 'empty'."""
         tracker.main(["--csv", str(self.csv), "init"])
         html = Path(self.tmp.name) / "dash.html"
         tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
         text = html.read_text(encoding="utf-8")
-        self.assertIn("暂无待办", text)
+        self.assertIn("还没有投递记录", text)
+        self.assertIn("/apply-zh", text)
 
     def test_html_dashboard_hides_empty_structured_columns(self) -> None:
         """When salary/city are empty for all rows, columns should be hidden from table."""
@@ -422,6 +423,206 @@ class TrackerTests(unittest.TestCase):
         tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
         text = html.read_text(encoding="utf-8")
         self.assertIn("已结束", text)
+
+    def test_html_dashboard_closed_is_collapsed(self) -> None:
+        """Closed rows should be wrapped in <details> for folding."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "PastCo", "--role", "dev", "--channel", "Boss",
+            "--status", "rejected", "--date", "2026-07-01",
+        ])
+        html = Path(self.tmp.name) / "d.html"
+        tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
+        text = html.read_text(encoding="utf-8")
+        self.assertIn("<details", text)
+        self.assertIn("点击展开", text)
+
+    def test_html_dashboard_positive_stats_cards(self) -> None:
+        """Dashboard should include 累计已投/面试次数/面试率 stat cards."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "IvCo", "--role", "eng", "--channel", "Boss",
+            "--status", "interview",
+        ])
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "ApCo", "--role", "eng", "--channel", "Boss",
+            "--status", "applied",
+        ])
+        html = Path(self.tmp.name) / "d.html"
+        tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
+        text = html.read_text(encoding="utf-8")
+        self.assertIn("累计已投", text)
+        self.assertIn("面试次数", text)
+        self.assertIn("面试率", text)
+
+    def test_html_dashboard_encouragement_shown_for_rejections(self) -> None:
+        """With 3+ recent rejected/no_response, an encouragement line should appear."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        for i, c in enumerate(["A", "B", "C"]):
+            tracker.main([
+                "--csv", str(self.csv), "add",
+                "--company", c, "--role", "dev", "--channel", "Boss",
+                "--status", "rejected", "--date", date.today().isoformat(),
+            ])
+        html = Path(self.tmp.name) / "d.html"
+        tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
+        text = html.read_text(encoding="utf-8")
+        self.assertIn("encourage", text)
+        self.assertTrue(any(p in text for p in tracker.ENCOURAGEMENTS))
+
+    def test_compute_stats_basic(self) -> None:
+        """compute_stats should exclude to_apply/skipped, count interviews, compute rate."""
+        rows = [
+            {"status": "applied", "date": date.today().isoformat(), "company": "A", "role": "x"},
+            {"status": "to_apply", "date": "", "company": "B", "role": "x"},
+            {"status": "interview", "date": date.today().isoformat(), "company": "C", "role": "x"},
+            {"status": "rejected", "date": date.today().isoformat(), "company": "D", "role": "x"},
+            {"status": "skipped", "date": "", "company": "E", "role": "x"},
+        ]
+        stats = tracker.compute_stats(rows, today=date.today())
+        self.assertEqual(stats["total_applied"], 3)
+        self.assertEqual(stats["total_interviews"], 1)
+        self.assertIn("%", stats["interview_rate"])
+        self.assertEqual(stats["week_applied"], 3)
+
+    def test_compute_stats_empty(self) -> None:
+        """Empty rows should give 0s and 暂无 rate."""
+        stats = tracker.compute_stats([], today=date.today())
+        self.assertEqual(stats["total_applied"], 0)
+        self.assertEqual(stats["interview_rate"], "暂无")
+
+    def test_today_empty_csv_shows_marathon(self) -> None:
+        """today with 0 rows should show onboarding message, not init instructions."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            tracker.main(["--csv", str(self.csv), "today"])
+        out = buf.getvalue()
+        self.assertIn("还没有投递记录", out)
+        self.assertIn("/apply-zh", out)
+
+    def test_today_no_urgent_shows_marathon(self) -> None:
+        """today with rows but no interviews/follow-ups should show marathon rest message."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "NewCo", "--role", "dev", "--channel", "Boss",
+            "--status", "applied", "--date", date.today().isoformat(),
+        ])
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            tracker.main(["--csv", str(self.csv), "today"])
+        out = buf.getvalue()
+        self.assertIn("马拉松", out)
+        self.assertIn("累计已投", out)
+
+    def test_today_shows_positive_stats(self) -> None:
+        """today should always show 累计/本周/面试率 stats section."""
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "X", "--role", "dev", "--channel", "Boss",
+            "--status", "applied",
+        ])
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            tracker.main(["--csv", str(self.csv), "today"])
+        out = buf.getvalue()
+        self.assertIn("累计已投", out)
+        self.assertIn("面试率", out)
+
+    def test_today_weekend_hint_on_weekend(self) -> None:
+        """When today is weekend and there are follow_ups, show weekend hint."""
+        from unittest.mock import patch
+        tracker.main(["--csv", str(self.csv), "init"])
+        old_date = (date.today() - timedelta(days=10)).isoformat()
+        tracker.main([
+            "--csv", str(self.csv), "add",
+            "--company", "OldCo", "--role", "dev", "--channel", "Boss",
+            "--status", "applied", "--date", old_date,
+        ])
+        saturday = date(2026, 7, 11)
+        buf = io.StringIO()
+        with redirect_stdout(buf), patch("tools.tracker.date") as mock_date:
+            mock_date.today.return_value = saturday
+            mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
+            tracker.main(["--csv", str(self.csv), "today"])
+        out = buf.getvalue()
+        self.assertIn("周末", out)
+
+
+class CalmerBriefTests(unittest.TestCase):
+    """Tests for UX-P1: calmer match brief (calmer-ux-copy spec)."""
+
+    def _build_brief(self, *, score: int, miss: list[str], jd: str = "") -> dict:
+        import match_resume as m
+        result = m.MatchResult(
+            score=score,
+            cosine=0.0,
+            verdict=("strong_match" if score >= 70 else
+                     "moderate_match" if score >= 50 else
+                     "partial_match" if score >= 30 else "weak_match"),
+            keywords=m.KeywordBreakdown(hit=["python"], miss=miss, extra=[]),
+            jd_keyword_count=10,
+            resume_token_count=100,
+            jd_token_count=100,
+            keyword_coverage=round(100.0 * 1 / max(1, 1 + len(miss)), 1),
+        )
+        return m.build_zh_brief(
+            combined_result=result,
+            still_miss=miss,
+            cover_only=[],
+            suggestions=[],
+            jd_text=jd,
+        )
+
+    def test_high_score_has_positive_tone_and_interview_action(self) -> None:
+        brief = self._build_brief(score=85, miss=["kafka"])
+        self.assertIn("挺匹配", brief["tone_open"])
+        self.assertIn("面试", brief["action_by_band"])
+
+    def test_low_score_has_practice_or_pivot_language(self) -> None:
+        brief = self._build_brief(score=20, miss=["kafka", "redis", "微服务", "高并发"])
+        self.assertIn("有距离" if "有距离" in brief["tone_open"] else "练手", brief["tone_open"] + brief["action_by_band"])
+        self.assertIn("练手", brief["action_by_band"])
+
+    def test_miss_split_core_vs_nice(self) -> None:
+        import match_resume as m
+        miss = ["kafka", "redis", "团队协作", "沟通能力", "责任心", "抗压"]
+        core, nice = m._split_miss_core_nice(miss)
+        self.assertIn("kafka", core)
+        self.assertIn("redis", core)
+
+    def test_brief_contains_no_shaming_title(self) -> None:
+        """Formatted brief must NOT contain the old shaming phrase."""
+        import match_resume as m
+        brief = self._build_brief(score=30, miss=["a", "b", "c", "d", "e", "f"])
+        text = m.format_zh_brief(brief)
+        self.assertNotIn("还差", text)
+        self.assertIn("不会的别硬编", text)
+
+    def test_brief_has_compliance_sentence(self) -> None:
+        import match_resume as m
+        brief = self._build_brief(score=50, miss=[])
+        text = m.format_zh_brief(brief)
+        self.assertIn("别硬", text)
+
+    def test_brief_has_next_action_section(self) -> None:
+        import match_resume as m
+        brief = self._build_brief(score=65, miss=["docker"])
+        text = m.format_zh_brief(brief)
+        self.assertIn("下一步建议", text)
+        self.assertTrue(brief.get("action_by_band"))
+
+    def test_brief_json_backward_compat(self) -> None:
+        """still_missing must still exist for diff/old JSON consumers."""
+        brief = self._build_brief(score=60, miss=["kafka"])
+        self.assertIn("still_missing", brief)
+        self.assertIn("miss_core", brief)
+        self.assertIn("miss_nice", brief)
 
 
 if __name__ == "__main__":

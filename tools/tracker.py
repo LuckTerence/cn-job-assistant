@@ -27,7 +27,7 @@ import html
 import shutil
 import sqlite3
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -355,12 +355,100 @@ def build_action_items(rows: list[dict[str, str]], today: date | None = None) ->
     return {"interviews": interviews, "follow_ups": follow_ups, "reviews": reviews}
 
 
+NOT_COUNTED_STATUSES = {"to_apply", "skipped"}
+
+ENCOURAGEMENTS: tuple[str, ...] = (
+    "投了就比光收藏不投的人强一步。",
+    "这个岗位不合适很正常，继续找更贴的。",
+    "每次结束都是在缩小「什么适合我」的范围。",
+    "拒绝是流程的一部分，不是对你整个人的判决。",
+    "先保证每份材料有针对性，比多投一个更重要。",
+)
+
+
+def _pick_encouragement(rows: list[dict[str, str]], today: date) -> str | None:
+    """Pick one encouragement line if rejection/no_response count triggers it.
+
+    Trigger (any):
+      1. rejected + no_response in last 30 days >= 3 AND count % 3 == 0
+      2. rejected in this week >= 3
+    Seeded by f"{today}:{len(rejected)}" so same day renders the same line (no flicker).
+    """
+    recent_30 = 0
+    week_rejected = 0
+    wk_start = _week_start(today)
+    wk_end = wk_start + timedelta(days=6)
+    for r in rows:
+        st = r.get("status", "").lower()
+        d = _parse_date(r.get("date", ""))
+        if d is None:
+            continue
+        age = (today - d).days
+        if st in ("rejected", "no_response") and 0 <= age <= 30:
+            recent_30 += 1
+        if st == "rejected" and wk_start <= d <= wk_end:
+            week_rejected += 1
+
+    triggered = (recent_30 >= 3 and recent_30 % 3 == 0) or week_rejected >= 3
+    if not triggered:
+        return None
+    seed_val = hash(f"{today.isoformat()}:{recent_30}")
+    return ENCOURAGEMENTS[seed_val % len(ENCOURAGEMENTS)]
+
+
+def _week_start(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+def compute_stats(rows: list[dict[str, str]], today: date | None = None) -> dict:
+    """Compute positive-feedback stats for today/dashboard.
+
+   口径：
+      - total_applied (A): status not in NOT_COUNTED_STATUSES (排除 to_apply/skipped)
+      - total_interviews (I): status in INTERVIEW_STATUSES
+      - week_applied (W): date in current week (Mon start) AND counted in A
+      - interview_rate: I/A percent string, or "暂无" if A==0
+    """
+    today = today or date.today()
+    wk_start = _week_start(today)
+    wk_end = wk_start + timedelta(days=6)
+
+    total_applied = 0
+    total_interviews = 0
+    week_applied = 0
+    for r in rows:
+        st = r.get("status", "").lower()
+        if st in NOT_COUNTED_STATUSES:
+            continue
+        total_applied += 1
+        if st in INTERVIEW_STATUSES:
+            total_interviews += 1
+        d = _parse_date(r.get("date", ""))
+        if d is not None and wk_start <= d <= wk_end:
+            week_applied += 1
+
+    if total_applied > 0:
+        rate = round(total_interviews * 100.0 / total_applied, 1)
+        rate_str = f"{rate}%"
+    else:
+        rate_str = "暂无"
+
+    return {
+        "total_applied": total_applied,
+        "total_interviews": total_interviews,
+        "week_applied": week_applied,
+        "interview_rate": rate_str,
+    }
+
+
 def export_html(csv_path: Path, html_path: Path) -> None:
     rows = read_rows(csv_path)
     today = date.today()
     actions = build_action_items(rows, today)
+    stats = compute_stats(rows, today)
     open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
     closed_rows = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
+    encouragement = _pick_encouragement(rows, today)
 
     visible_cols = [c for c in HEADER if any(r.get(c, "").strip() for r in rows)] or HEADER
 
@@ -424,14 +512,14 @@ def export_html(csv_path: Path, html_path: Path) -> None:
             return (
                 '<div class="card card-empty">'
                 '<div class="card-title">✨ 暂无待办</div>'
-                '<div class="card-hint">新投岗位会自动出现在这里；投完记得 tracker add 记一笔</div>'
+                '<div class="card-hint">今天没有紧急的事，投简历是马拉松。想投新岗位随时 /apply-zh。</div>'
                 '</div>'
             )
         return '<div class="actions-grid">' + "".join(cards) + '</div>'
 
-    def render_table(title: str, subset: list[dict[str, str]]) -> str:
+    def render_table(title: str, subset: list[dict[str, str]], *, closed: bool = False) -> str:
         if not subset:
-            return f"<h2>{esc(title)}</h2><p><em>empty</em></p>"
+            return ""
         head = "".join(f"<th>{esc(h)}</th>" for h in visible_cols)
         body_parts = []
         for r in subset:
@@ -443,10 +531,59 @@ def export_html(csv_path: Path, html_path: Path) -> None:
             elif st in REVIEW_STATUSES or st in CLOSED_STATUSES:
                 cls = ' class="row-closed"'
             body_parts.append(f"<tr{cls}>{cells}</tr>")
-        return (
-            f"<h2>{esc(title)} ({len(subset)})</h2>"
+        table_html = (
             f"<table><thead><tr>{head}</tr></thead>"
             f"<tbody>{''.join(body_parts)}</tbody></table>"
+        )
+        if closed:
+            return (
+                f'<details class="closed-fold">'
+                f'<summary><h2 style="display:inline">{esc(title)} ({len(subset)})</h2>'
+                f' <span class="fold-hint">（点击展开）</span></summary>'
+                f"{table_html}"
+                f'</details>'
+            )
+        return (
+            f"<h2>{esc(title)} ({len(subset)})</h2>"
+            f"{table_html}"
+        )
+
+    encourage_html = ""
+    if encouragement:
+        encourage_html = f'<div class="encourage">💬 {esc(encouragement)}</div>'
+
+    if not rows:
+        stats_html = ""
+        body_content = (
+            '<div class="card card-empty" style="max-width:480px;margin:3rem auto">'
+            '<div class="card-title">🌱 还没有投递记录</div>'
+            '<div class="card-hint">准备好了就 <code>/apply-zh &lt;JD&gt;</code> 开始第一个。</div>'
+            '</div>'
+        )
+        tables_html = ""
+    else:
+        stats_html = f"""<div class="stats">
+    <div class="stat"><b>{len(rows)}</b><span>total</span></div>
+    <div class="stat"><b>{len(open_rows)}</b><span>open</span></div>
+    <div class="stat"><b>{len(closed_rows)}</b><span>closed</span></div>
+    <div class="stat"><b>{len(actions["interviews"])}</b><span>interview</span></div>
+    <div class="stat"><b>{len(actions["follow_ups"])}</b><span>to follow</span></div>
+    <div class="stat stat-pos"><b>{stats["total_applied"]}</b><span>累计已投</span></div>
+    <div class="stat stat-pos"><b>{stats["total_interviews"]}</b><span>面试次数</span></div>
+    <div class="stat stat-pos"><b>{esc(stats["interview_rate"])}</b><span>面试率</span></div>
+  </div>"""
+        body_content = render_action_cards()
+        tables_html = (
+            render_table("进行中 / Open", open_rows)
+            + render_table("已结束 / Closed", closed_rows, closed=True)
+        )
+
+    is_weekend = today.weekday() >= 5
+    weekend_hint = ""
+    if is_weekend and actions["follow_ups"]:
+        weekend_hint = (
+            '<div class="weekend-hint">💡 今天是周末，HR 大概率不上班。'
+            '不急的话下周一再跟进也来得及。</div>'
         )
 
     doc = f"""<!DOCTYPE html>
@@ -466,6 +603,8 @@ def export_html(csv_path: Path, html_path: Path) -> None:
     --accent-fu: #d97706;
     --accent-rv: #059669;
     --accent-empty: #6b7280;
+    --accent-pos: #7c3aed;
+    --muted: #888;
   }}
   @media (prefers-color-scheme: dark) {{
     :root {{
@@ -473,16 +612,19 @@ def export_html(csv_path: Path, html_path: Path) -> None:
       --bg: #1a1a1d;
       --card-bg: #242428;
       --border: #33333a;
+      --muted: #999;
     }}
   }}
   body {{ max-width: 1280px; margin: 2rem auto; padding: 0 1rem; background: var(--bg); }}
   h1 {{ font-size: 1.4rem; }}
-  h2 {{ font-size: 1.1rem; margin-top: 2rem; }}
-  .meta {{ color: #888; font-size: 0.85rem; margin-bottom: 1rem; }}
+  h2 {{ font-size: 1.1rem; margin-top: 2rem; margin-bottom: 0.5rem; }}
+  .meta {{ color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; }}
   .stats {{ display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }}
   .stat {{ background: var(--card-bg); padding: 0.65rem 1rem; border-radius: 8px;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 5.5rem; text-align: center; }}
   .stat b {{ display: block; font-size: 1.3rem; }}
+  .stat span {{ font-size: 0.72rem; color: var(--muted); }}
+  .stat-pos {{ border-top: 3px solid var(--accent-pos); }}
   .actions-grid {{ display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 2rem; }}
   .card {{ background: var(--card-bg); border-radius: 10px; padding: 1rem 1.1rem;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #ccc; }}
@@ -492,18 +634,29 @@ def export_html(csv_path: Path, html_path: Path) -> None:
   .card-empty {{ border-left-color: var(--accent-empty); text-align: center; padding: 1.5rem; }}
   .card-title {{ font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem; }}
   .card ul {{ margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.7; }}
-  .card-hint {{ margin-top: 0.6rem; font-size: 0.78rem; color: #888; }}
+  .card-hint {{ margin-top: 0.6rem; font-size: 0.78rem; color: var(--muted); }}
   .badge {{ display: inline-block; font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;
             color: #fff; vertical-align: middle; line-height: 1.4; }}
   .badge-iv {{ background: var(--accent-iv); }}
   .badge-rv {{ background: var(--accent-rv); }}
+  .encourage {{ margin: 1rem 0 1.5rem; padding: 0.7rem 1rem; background: var(--card-bg);
+               border-radius: 8px; color: var(--muted); font-size: 0.85rem;
+               box-shadow: 0 1px 3px rgba(0,0,0,.06); border-left: 3px solid var(--accent-pos); }}
+  .weekend-hint {{ margin: 0 0 1.5rem; padding: 0.6rem 1rem; background: var(--card-bg);
+                   border-radius: 8px; color: var(--accent-fu); font-size: 0.85rem;
+                   box-shadow: 0 1px 3px rgba(0,0,0,.06); }}
+  .closed-fold {{ margin-top: 2rem; }}
+  .closed-fold summary {{ cursor: pointer; list-style: none; padding: 0.5rem 0; }}
+  .closed-fold summary::-webkit-details-marker {{ display: none; }}
+  .closed-fold summary:hover {{ opacity: 0.8; }}
+  .fold-hint {{ color: var(--muted); font-size: 0.85rem; font-weight: 400; }}
   table {{ border-collapse: collapse; width: 100%; background: var(--card-bg); font-size: 0.82rem;
            box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 2rem; border-radius: 6px; overflow: hidden; }}
   th, td {{ border-bottom: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }}
   th {{ background: rgba(128,128,128,.1); position: sticky; top: 0; font-weight: 600; white-space: nowrap; }}
   tr:hover {{ background: rgba(128,128,128,.05); }}
   .row-iv td {{ border-left: 3px solid var(--accent-iv); }}
-  .row-closed td {{ opacity: 0.65; }}
+  .row-closed td {{ opacity: 0.6; }}
   code {{ background: rgba(128,128,128,.12); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }}
 </style>
 </head>
@@ -512,16 +665,11 @@ def export_html(csv_path: Path, html_path: Path) -> None:
   <p class="meta">Source of truth: <code>{esc(str(csv_path.name))}</code>
      · generated {esc(today.isoformat())} by <code>tools/tracker.py dashboard</code>
      · do not commit (personal data)</p>
-  <div class="stats">
-    <div class="stat"><b>{len(rows)}</b>total</div>
-    <div class="stat"><b>{len(open_rows)}</b>open</div>
-    <div class="stat"><b>{len(closed_rows)}</b>closed</div>
-    <div class="stat"><b>{len(actions["interviews"])}</b>interview</div>
-    <div class="stat"><b>{len(actions["follow_ups"])}</b>to follow</div>
-  </div>
-  {render_action_cards()}
-  {render_table("进行中 / Open", open_rows)}
-  {render_table("已结束 / Closed", closed_rows)}
+  {stats_html}
+  {body_content}
+  {weekend_hint}
+  {encourage_html}
+  {tables_html}
 </body>
 </html>
 """
@@ -565,13 +713,12 @@ def cmd_today(args: argparse.Namespace) -> int:
     path = _csv_path(args.csv)
     rows = read_rows(path)
     if not rows:
-        print("今天还没有投递记录。先：")
-        print("  python tools/tracker.py init")
-        print("  python tools/tracker.py add --company … --role … --status applied")
+        print("还没有投递记录。准备好了就 /apply-zh <JD> 开始第一个。")
         return 0
 
     today = date.today()
     actions = build_action_items(rows, today)
+    stats = compute_stats(rows, today)
     open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
     closed = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
 
@@ -582,9 +729,24 @@ def cmd_today(args: argparse.Namespace) -> int:
         if r not in interviews and r not in follow_ups
     ]
 
-    print(f"投递记录共 {len(rows)} 条，还在跟的 {len(open_rows)} 条，已结束 {len(closed)} 条")
-    if follow_ups:
-        print(f"⏰ 建议跟进 {len(follow_ups)} 条（≥{FOLLOW_UP_DAYS}天无进展）")
+    is_weekend = today.weekday() >= 5
+    no_urgent = not interviews and not follow_ups
+
+    if no_urgent:
+        print("今天没有紧急的事。投简历是马拉松，歇一天也没关系。")
+        print("想投新岗位随时 /apply-zh。")
+        print()
+    else:
+        print(f"投递记录共 {len(rows)} 条，还在跟的 {len(open_rows)} 条，已结束 {len(closed)} 条")
+        if follow_ups:
+            print(f"⏰ 建议跟进 {len(follow_ups)} 条（≥{FOLLOW_UP_DAYS}天无进展）")
+        print()
+
+    print("── 进度 ──")
+    print(f"  本周已记录投递：{stats['week_applied']} 条")
+    print(f"  累计已投：{stats['total_applied']} 条")
+    print(f"  累计进入面试阶段：{stats['total_interviews']} 条")
+    print(f"  面试率：{stats['interview_rate']}" + ("（基于当前快照，非官方转化率）" if stats['total_applied'] > 0 else ""))
     print()
 
     def dump(title: str, subset: list[dict[str, str]], hint: str) -> None:
@@ -606,10 +768,16 @@ def cmd_today(args: argparse.Namespace) -> int:
         print(f"  （{hint}）")
         print()
 
-    dump("📅 面试相关", interviews, "需要准备就跑 /interview，状态变了用 tracker update")
-    dump("⏰ 建议跟进", follow_ups, f"投了≥{FOLLOW_UP_DAYS}天没消息；如已被拒/无回复用 /outcome 记一笔")
-    dump("已投/待投、等回复", other_open, "新投的用 tracker add")
-    dump(f"📝 最近结束的（近{REVIEW_DAYS}天）", actions["reviews"], "复盘可以用 /outcome，旧记录别删")
+    if interviews:
+        dump("📅 面试相关", interviews, "需要准备就跑 /interview，状态变了用 tracker update")
+    if follow_ups:
+        dump("⏰ 建议跟进", follow_ups, f"投了≥{FOLLOW_UP_DAYS}天没消息；如已被拒/无回复用 /outcome 记一笔")
+        if is_weekend:
+            print("💡 今天是周末，HR 大概率不上班。不急的话下周一再跟进也来得及。")
+            print()
+    if not no_urgent:
+        dump("已投/待投、等回复", other_open, "新投的用 tracker add")
+        dump(f"📝 最近结束的（近{REVIEW_DAYS}天）", actions["reviews"], "复盘可以用 /outcome，旧记录别删")
 
     print("常用：")
     print("  python tools/tracker.py list --open-only")

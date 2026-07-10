@@ -48,7 +48,7 @@ SKILL_TERMS: frozenset[str] = frozenset(
     microservices rest api graphql grpc rpc
     算法 数据结构 分布式 微服务 高并发 高可用 中间件 消息队列
     后端 前端 全栈 客户端 安卓 鸿蒙 测试 运维 产品 运营 数据分析
-    机器学习 深度学习 大模型 推荐系统 搜索 广告 风控 量化
+    机器学习 深度学习 大模型 推荐系统 搜索 广告 量化
     熟悉 精通 掌握 负责 主导 落地 优化 重构 架构 设计
     bachelor master phd 本科 硕士 博士 应届 社招 实习
     英语 六级 四级 托福 雅思 政治面貌 党员
@@ -375,8 +375,7 @@ def quality_report(
         )
     if still_miss:
         suggestions.append(
-            f"还有 {len(still_miss)} 个岗位里的词材料里没出现；"
-            "会的就补，不会的就当差距，别编。"
+            "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。"
         )
     if cover_part and cover_part.score < 40:
         suggestions.append("打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。")
@@ -392,6 +391,7 @@ def quality_report(
         still_miss=still_miss,
         cover_only=cover_only,
         suggestions=suggestions,
+        jd_text=jd_text,
     )
 
     return {
@@ -421,25 +421,85 @@ VERDICT_ZH = {
 }
 
 
+def _split_miss_core_nice(miss_terms: list[str], jd_text: str = "") -> tuple[list[str], list[str]]:
+    """Heuristic: split miss terms into core hard-skills vs nice-to-have.
+
+    v1 heuristic (no model, testable):
+      - term ∈ miss_core if:
+          1. term.lower() in SKILL_TERMS or PHRASE_TERMS
+          2. looks like a Latin tech token (matches LATIN_TECH_RE)
+          3. CJK term of length >= 2 that appears in the first 40% of JD text
+             (responsibility/requirement sections tend to be earlier)
+      - otherwise miss_nice
+    """
+    phrase_set = {p.lower() for p in PHRASE_TERMS}
+    jd_head = jd_text[: int(len(jd_text) * 0.4)] if jd_text else ""
+    core: list[str] = []
+    nice: list[str] = []
+    for t in miss_terms:
+        tl = t.lower()
+        is_core = False
+        if tl in SKILL_TERMS or tl in phrase_set:
+            is_core = True
+        elif LATIN_TECH_RE.fullmatch(t):
+            is_core = True
+        elif CJK_RE.fullmatch(t) and len(t) >= 2:
+            if t in jd_head:
+                is_core = True
+        if is_core:
+            core.append(t)
+        else:
+            nice.append(t)
+    return core[:6], nice[:6]
+
+
+def _tone_open(score: int) -> str:
+    if score >= 70:
+        return "这份和你挺匹配的。"
+    if score >= 40:
+        return "有一定匹配度，重点看下面缺口是否属实。"
+    return "这个岗位要求和你当前画像有距离——投了当练手也行，别抱太大期望；也可以想想是不是方向不太对。"
+
+
+def _action_by_band(score: int) -> str:
+    if score >= 80:
+        return "这份很匹配，重点准备面试就行。"
+    if score >= 60:
+        return "基本匹配，建议把上面「核心硬技能」里你确实会的补进简历；不会的别编。"
+    if score >= 40:
+        return "有一定匹配但缺口不少，可以投但别抱太大期望；或再找更贴近画像的岗位。"
+    return "匹配度较低，投了权当练手；建议优先找和你画像更接近的岗位。"
+
+
 def build_zh_brief(
     *,
     combined_result: MatchResult,
     still_miss: list[str],
     cover_only: list[str],
     suggestions: list[str],
+    jd_text: str = "",
 ) -> dict:
     """One-page Chinese brief: gaps / no-fiction / top 3 edit tips."""
     top_miss = still_miss[:8]
     top_hit = combined_result.keywords.hit[:8]
+    miss_core, miss_nice = _split_miss_core_nice(top_miss, jd_text=jd_text)
+    score = combined_result.score
+    tone = _tone_open(score)
+    action = _action_by_band(score)
+
     edit_tips: list[str] = []
     for tip in suggestions:
         if tip not in edit_tips:
             edit_tips.append(tip)
         if len(edit_tips) >= 3:
             break
-    if len(edit_tips) < 3 and top_miss:
+    if len(edit_tips) < 3 and miss_core:
         edit_tips.append(
-            f"如果确实会，可以优先补这几个词：{'、'.join(top_miss[:3])}。"
+            f"如果确实会，可以优先补这几个核心词：{'、'.join(miss_core[:3])}。"
+        )
+    if len(edit_tips) < 3 and miss_nice:
+        edit_tips.append(
+            f"锦上添花项如果属实可以补：{'、'.join(miss_nice[:3])}。"
         )
     if len(edit_tips) < 3:
         edit_tips.append("简历和话术里写上公司名、岗位名，别写成万能模板。")
@@ -447,14 +507,18 @@ def build_zh_brief(
         edit_tips.append("经历里尽量带数字，比空泛形容词好用。")
 
     return {
+        "tone_open": tone,
         "headline": (
-            f"综合 {combined_result.score}/100（{VERDICT_ZH.get(combined_result.verdict, combined_result.verdict)}），"
+            f"综合 {score}/100（{VERDICT_ZH.get(combined_result.verdict, combined_result.verdict)}），"
             f"关键词覆盖 {combined_result.keyword_coverage}%"
         ),
         "still_missing": top_miss,
+        "miss_core": miss_core,
+        "miss_nice": miss_nice,
         "already_hit": top_hit,
         "cover_only": cover_only[:5],
         "edit_top3": edit_tips[:3],
+        "action_by_band": action,
         "compliance": "不会的技能别硬写上去刷分。",
         "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。",
     }
@@ -462,16 +526,25 @@ def build_zh_brief(
 
 def format_zh_brief(brief: dict) -> str:
     lines = [
-        "匹配摘要",
+        "【匹配摘要】",
+        brief.get("tone_open", ""),
         brief.get("headline", ""),
         "",
         "已经对上的词：",
         "  " + ("、".join(brief.get("already_hit") or []) or "（没有）"),
         "",
-        "岗位里有、你材料里还没有的：",
-        "  " + ("、".join(brief.get("still_missing") or []) or "（没有，挺好）"),
-        "",
+        "JD 提到但你简历没写的词（不会的别硬编）：",
     ]
+    miss_core = brief.get("miss_core") or []
+    miss_nice = brief.get("miss_nice") or []
+    if miss_core or miss_nice:
+        if miss_core:
+            lines.append("  · 核心硬技能（会再补，不会别编）：" + "、".join(miss_core))
+        if miss_nice:
+            lines.append("  · 其他要求（锦上添花）：" + "、".join(miss_nice))
+    else:
+        lines.append("  （没有，挺好）")
+    lines.append("")
     if brief.get("cover_only"):
         lines += [
             "只写在打招呼里、简历正文没有的：",
@@ -482,6 +555,9 @@ def format_zh_brief(brief: dict) -> str:
     for i, tip in enumerate(brief.get("edit_top3") or [], 1):
         lines.append(f"  {i}. {tip}")
     lines += [
+        "",
+        "【下一步建议】",
+        brief.get("action_by_band", ""),
         "",
         brief.get("compliance", ""),
         brief.get("score_note", ""),

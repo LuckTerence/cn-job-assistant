@@ -163,6 +163,9 @@ echo "  今日工作台: $OUT/tracker_today.txt"
 echo "  赛道对比: $OUT/track_internet_brief.txt  vs  $OUT/track_soe_brief.txt"
 echo "  飞轮 diff: $OUT/match_diff_v1_v2.txt"
 echo
+echo "👆 这就是跑完一个岗位后的完整产出。"
+echo "打开 $OUT/job_search_tracker.html 看投递看板——你真实用的时候长这样。"
+echo
 echo "  真实求职: /setup-zh（可粘贴旧简历）→ /apply-zh → 手动投 → tracker"
 echo "  Agent 安装: docs/INSTALL.agents.zh.md"
 echo "  产品说明: README.md"
