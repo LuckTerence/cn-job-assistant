@@ -39,12 +39,21 @@ python tools/match_resume.py score \
 # 只抽 JD 关键词
 python tools/match_resume.py keywords --jd /path/to/jd.md
 
-# 生成质量报告（/apply-zh 产出后必跑）
+# 生成质量报告（默认含中文一页摘要）
 python tools/match_resume.py report \
   --resume documents/zh/resume_示例.md \
   --jd /path/to/jd.md \
   --cover documents/zh/da-zhaohu_示例_后端.md \
-  --out documents/zh/match_report_示例.json
+  --out documents/zh/match_report_示例.json \
+  --brief-out documents/zh/match_brief_示例.txt
+
+# 只要人话摘要
+python tools/match_resume.py report --zh-only --resume … --jd … --cover …
+
+# 质量飞轮：对比两版报告
+python tools/match_resume.py diff \
+  --before documents/zh/match_report_v1.json \
+  --after documents/zh/match_report_v2.json
 
 # JSON（agent 可读）
 python tools/match_resume.py score --resume … --jd … --json

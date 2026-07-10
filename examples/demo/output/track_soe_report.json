@@ -1,0 +1,120 @@
+{
+  "resume": {
+    "score": 37.3,
+    "cosine": 0.1336,
+    "keyword_coverage": 66.7,
+    "keywords": {
+      "hit": [
+        "java",
+        "党员",
+        "四级",
+        "英语"
+      ],
+      "miss": [
+        "中间件",
+        "运维"
+      ],
+      "extra": [
+        "spring",
+        "mysql",
+        "linux",
+        "git",
+        "oa",
+        "设计"
+      ]
+    },
+    "jd_keyword_count": 6,
+    "resume_token_count": 29,
+    "jd_token_count": 16,
+    "verdict": "partial_match"
+  },
+  "cover": {
+    "score": 19.3,
+    "cosine": 0.0787,
+    "keyword_coverage": 33.3,
+    "keywords": {
+      "hit": [
+        "java",
+        "党员"
+      ],
+      "miss": [
+        "中间件",
+        "四级",
+        "英语",
+        "运维"
+      ],
+      "extra": []
+    },
+    "jd_keyword_count": 6,
+    "resume_token_count": 12,
+    "jd_token_count": 16,
+    "verdict": "partial_match"
+  },
+  "combined": {
+    "score": 37.0,
+    "cosine": 0.128,
+    "keyword_coverage": 66.7,
+    "keywords": {
+      "hit": [
+        "java",
+        "党员",
+        "四级",
+        "英语"
+      ],
+      "miss": [
+        "中间件",
+        "运维"
+      ],
+      "extra": [
+        "spring",
+        "mysql",
+        "linux",
+        "git",
+        "oa",
+        "设计"
+      ]
+    },
+    "jd_keyword_count": 6,
+    "resume_token_count": 41,
+    "jd_token_count": 16,
+    "verdict": "partial_match"
+  },
+  "still_missing": [
+    "中间件",
+    "运维"
+  ],
+  "cover_only_hits": [],
+  "suggestions": [
+    "合并材料后仍缺失 2 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。",
+    "打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。"
+  ],
+  "brief_zh": {
+    "headline": "综合 37.0/100（部分匹配），关键词覆盖 66.7%",
+    "still_missing": [
+      "中间件",
+      "运维"
+    ],
+    "already_hit": [
+      "java",
+      "党员",
+      "四级",
+      "英语"
+    ],
+    "cover_only": [],
+    "edit_top3": [
+      "合并材料后仍缺失 2 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。",
+      "打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。",
+      "若真实具备，优先把这几个 JD 词写进经历要点：中间件、运维。"
+    ],
+    "compliance": "禁止为刷分虚构技能或业绩；不具备的 miss 项应诚实标注为缺口。",
+    "score_note": "分数为本地 TF–IDF + 关键词启发式，不是录用预测。"
+  },
+  "summary": {
+    "resume_score": 37.3,
+    "combined_score": 37.0,
+    "keyword_coverage_combined": 66.7,
+    "verdict": "partial_match",
+    "missing_count": 2,
+    "hit_count": 4
+  }
+}

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="claude_animation.gif" alt="CN Job Assistant" width="160">
+  <img src="docs/assets/demo-loop.gif" alt="CN Job Assistant demo loop" width="720">
 </p>
 
 <h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
@@ -84,7 +84,8 @@
 
 ## 先看一眼产出（无需填简历 / 无需登录）
 
-clone 后一条命令，本地生成**匹配报告 + 投递看板**（虚构数据，离线可跑）：
+上方 GIF：**JD → 生成材料 → 打分 → Tracker**（约 30 秒循环）。  
+clone 后一条命令，离线生成同样产物（虚构数据）：
 
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
@@ -93,20 +94,22 @@ bash scripts/demo.sh
 # 或: make demo
 ```
 
-然后浏览器打开：
-
 ```bash
-open examples/demo/output/job_search_tracker.html   # macOS
+open examples/demo/output/job_search_tracker.html   # macOS 看板
+open docs/assets/demo-loop.gif                      # 动图
 ```
 
 | 演示产物 | 路径 |
 |----------|------|
-| 匹配质量报告 | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
-| 文本摘要 | [`examples/demo/output/match_report.txt`](./examples/demo/output/match_report.txt) |
+| 循环动图 | [`docs/assets/demo-loop.gif`](./docs/assets/demo-loop.gif) |
+| 中文人话摘要 | [`examples/demo/output/match_brief_zh.txt`](./examples/demo/output/match_brief_zh.txt) |
+| 匹配报告 JSON | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
 | HTML 投递看板 | [`examples/demo/output/job_search_tracker.html`](./examples/demo/output/job_search_tracker.html) |
-| 样例 JD / 简历 / 话术 | [`examples/demo/`](./examples/demo/) |
+| 今日工作台 | [`examples/demo/output/tracker_today.txt`](./examples/demo/output/tracker_today.txt) |
+| 互联网 vs 国企 | [`examples/demo/tracks/`](./examples/demo/tracks/) |
+| 质量飞轮 diff | [`examples/demo/output/match_diff_v1_v2.txt`](./examples/demo/output/match_diff_v1_v2.txt) |
 
-样例说明见 [examples/demo/README.md](./examples/demo/README.md)。
+样例说明：[examples/demo/README.md](./examples/demo/README.md) · Agent 安装：[docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md)
 
 ---
 
@@ -163,13 +166,16 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 
 | ✅ 已落地 | 说明 |
 |----------|------|
-| 中文简历分赛道模板 | 互联网 / 国企 / 外企 / 体制内 / 应届 |
+| 一键 Demo | `bash scripts/demo.sh` / 动图 / 预生成看板 |
+| 中文简历分赛道模板 + **双赛道样例** | 互联网 vs 国企产出对比 |
 | Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
-| 本地匹配与生成质检 | TF–IDF 余弦 + 关键词，**无 embedding 下载** |
-| 本地投递 Tracker | CSV 权威源 + SQLite/HTML 导出 |
-| 国产模型友好 | 框架不绑死某一家 API |
-| 海外 LaTeX 流程 | 保留上游英文 CV / Cover Letter 能力 |
-| CI 覆盖国内工具 | tracker / match / 路径 lint / skill 面 allowlist |
+| 匹配打分 + **人话一页摘要** | `report --zh-only`；禁止虚构写进摘要 |
+| 质量飞轮 | `match_resume.py diff` 对比 v1→v2 |
+| Tracker + **每日工作台** | `tracker.py today` / `suggest-add` 挂钩 apply-zh |
+| `/setup-zh` 粘贴旧简历 | 冷启动减负 |
+| 国产模型友好 | 见 MODELS.zh.md |
+| Issue 赛道模板 | 互联网 / 国企 / 校招反馈 |
+| CI | demo 脚本 + tracker / match / lint |
 
 | ⚠️ 明确不做 / 降级 | 说明 |
 |-------------------|------|
@@ -230,8 +236,10 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | Phase 1 | ✅ | 搜岗安装器 + 本地 Tracker + skill 面诚实化 |
 | Phase 2 | ✅ | 本地匹配引擎 + `/apply-zh` 强制质量报告 |
 | Phase 3 | ✅ | Catalog 成本卡 + skill allowlist 治理 |
-| **Demo 包** | ✅ | `examples/demo` + `bash scripts/demo.sh` / `make demo` |
-| **Next** | 规划中 | Tracker 日更入口、setup 粘贴旧简历减负、report 中文一页摘要 |
+| **P0 增长资产** | ✅ | Demo + 动图 + Issue 模板 + 一键脚本 |
+| **P1 体验** | ✅ | 人话报告 / tracker 挂钩 / setup 粘贴简历 / 分赛道样例 / `today` |
+| **P2 分发** | 进行中 | Agent 安装文档已出；话题与社区内容待你发布 |
+| **暂缓** | — | 自动投 / 自研爬虫 / 强制 SaaS / 堆 catalog 重应用 |
 
 ---
 

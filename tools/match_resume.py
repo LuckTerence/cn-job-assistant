@@ -387,6 +387,13 @@ def quality_report(
     if base.verdict in ("strong_match", "moderate_match") and not suggestions:
         suggestions.append("量化匹配可接受；人工仍需核对经历真实性与赛道模板（08-resume-zh）。")
 
+    brief = build_zh_brief(
+        combined_result=combined_result,
+        still_miss=still_miss,
+        cover_only=cover_only,
+        suggestions=suggestions,
+    )
+
     return {
         "resume": base.to_dict(),
         "cover": cover_part.to_dict() if cover_part else None,
@@ -394,6 +401,7 @@ def quality_report(
         "still_missing": still_miss,
         "cover_only_hits": cover_only,
         "suggestions": suggestions,
+        "brief_zh": brief,
         "summary": {
             "resume_score": base.score,
             "combined_score": combined_result.score,
@@ -403,6 +411,128 @@ def quality_report(
             "hit_count": len(combined_result.keywords.hit),
         },
     }
+
+
+VERDICT_ZH = {
+    "strong_match": "匹配较强",
+    "moderate_match": "匹配中等",
+    "partial_match": "部分匹配",
+    "weak_match": "匹配偏弱",
+}
+
+
+def build_zh_brief(
+    *,
+    combined_result: MatchResult,
+    still_miss: list[str],
+    cover_only: list[str],
+    suggestions: list[str],
+) -> dict:
+    """One-page Chinese brief: gaps / no-fiction / top 3 edit tips."""
+    top_miss = still_miss[:8]
+    top_hit = combined_result.keywords.hit[:8]
+    edit_tips: list[str] = []
+    for tip in suggestions:
+        if tip not in edit_tips:
+            edit_tips.append(tip)
+        if len(edit_tips) >= 3:
+            break
+    if len(edit_tips) < 3 and top_miss:
+        edit_tips.append(
+            f"若真实具备，优先把这几个 JD 词写进经历要点：{'、'.join(top_miss[:3])}。"
+        )
+    if len(edit_tips) < 3:
+        edit_tips.append("通读简历，确保公司名与岗位名出现，避免群发感。")
+    if len(edit_tips) < 3:
+        edit_tips.append("每条经历尽量带数字（规模 / 耗时 / 收益），国内 HR 更爱量化。")
+
+    return {
+        "headline": (
+            f"综合 {combined_result.score}/100（{VERDICT_ZH.get(combined_result.verdict, combined_result.verdict)}），"
+            f"关键词覆盖 {combined_result.keyword_coverage}%"
+        ),
+        "still_missing": top_miss,
+        "already_hit": top_hit,
+        "cover_only": cover_only[:5],
+        "edit_top3": edit_tips[:3],
+        "compliance": "禁止为刷分虚构技能或业绩；不具备的 miss 项应诚实标注为缺口。",
+        "score_note": "分数为本地 TF–IDF + 关键词启发式，不是录用预测。",
+    }
+
+
+def format_zh_brief(brief: dict) -> str:
+    lines = [
+        "【一页摘要 · 人话版】",
+        brief.get("headline", ""),
+        "",
+        "✓ 已对齐（部分）：",
+        "  " + ("、".join(brief.get("already_hit") or []) or "（无）"),
+        "",
+        "✗ 还缺什么（JD 有、材料里没有）：",
+        "  " + ("、".join(brief.get("still_missing") or []) or "（无，很好）"),
+        "",
+    ]
+    if brief.get("cover_only"):
+        lines += [
+            "⚠ 只出现在话术、未进简历：",
+            "  " + "、".join(brief["cover_only"]),
+            "",
+        ]
+    lines.append("✎ 建议改哪 3 条（真实具备再写）：")
+    for i, tip in enumerate(brief.get("edit_top3") or [], 1):
+        lines.append(f"  {i}. {tip}")
+    lines += [
+        "",
+        "⛔ " + brief.get("compliance", ""),
+        "ℹ " + brief.get("score_note", ""),
+    ]
+    return "\n".join(lines)
+
+
+def diff_reports(before: dict, after: dict) -> dict:
+    """Compare two quality_report dicts (v1 → v2 coverage flywheel)."""
+    b = before.get("summary") or {}
+    a = after.get("summary") or {}
+    b_miss = set(before.get("still_missing") or [])
+    a_miss = set(after.get("still_missing") or [])
+    return {
+        "score_before": b.get("combined_score"),
+        "score_after": a.get("combined_score"),
+        "score_delta": round(
+            float(a.get("combined_score") or 0) - float(b.get("combined_score") or 0), 1
+        ),
+        "coverage_before": b.get("keyword_coverage_combined"),
+        "coverage_after": a.get("keyword_coverage_combined"),
+        "coverage_delta": round(
+            float(a.get("keyword_coverage_combined") or 0)
+            - float(b.get("keyword_coverage_combined") or 0),
+            1,
+        ),
+        "miss_resolved": sorted(b_miss - a_miss),
+        "miss_new": sorted(a_miss - b_miss),
+        "miss_still": sorted(a_miss & b_miss),
+        "verdict_before": b.get("verdict"),
+        "verdict_after": a.get("verdict"),
+    }
+
+
+def format_diff_human(diff: dict) -> str:
+    lines = [
+        "=== 质量飞轮 · 报告对比 (v1 → v2) ===",
+        f"综合分:   {diff['score_before']} → {diff['score_after']}  (Δ {diff['score_delta']:+})",
+        f"覆盖率:   {diff['coverage_before']}% → {diff['coverage_after']}%  (Δ {diff['coverage_delta']:+})",
+        f"verdict:  {diff['verdict_before']} → {diff['verdict_after']}",
+        "",
+        f"已补上的关键词 ({len(diff['miss_resolved'])}):",
+        "  " + (", ".join(diff["miss_resolved"]) if diff["miss_resolved"] else "（无）"),
+        f"新出现的缺口 ({len(diff['miss_new'])}):",
+        "  " + (", ".join(diff["miss_new"]) if diff["miss_new"] else "（无）"),
+        f"仍未覆盖 ({len(diff['miss_still'])}):",
+        "  " + (", ".join(diff["miss_still"]) if diff["miss_still"] else "（无）"),
+        "",
+        "提示：Δ 变好不代表可以虚构；只统计文本对齐度。",
+    ]
+    return "\n".join(lines)
 
 
 def format_score_human(result: MatchResult, title: str = "Match report") -> str:
@@ -426,9 +556,15 @@ def format_score_human(result: MatchResult, title: str = "Match report") -> str:
     return "\n".join(lines)
 
 
-def format_report_human(report: dict) -> str:
+def format_report_human(report: dict, *, zh_first: bool = True) -> str:
     s = report["summary"]
-    lines = [
+    lines: list[str] = []
+    brief = report.get("brief_zh")
+    if zh_first and brief:
+        lines.append(format_zh_brief(brief))
+        lines.append("")
+        lines.append("--- 详细指标 ---")
+    lines += [
         "=== Generation quality report ===",
         f"Résumé score:       {s['resume_score']}/100",
         f"Combined score:     {s['combined_score']}/100  ({s['verdict']})",
@@ -504,7 +640,10 @@ def cmd_report(args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
-        print(format_report_human(report))
+        if getattr(args, "zh_only", False):
+            print(format_zh_brief(report["brief_zh"]))
+        else:
+            print(format_report_human(report, zh_first=not getattr(args, "no_zh", False)))
     if args.out:
         out = Path(args.out)
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -513,6 +652,27 @@ def cmd_report(args: argparse.Namespace) -> int:
             encoding="utf-8",
         )
         print(f"\nWrote JSON → {out}", file=sys.stderr)
+    # Optional side-car brief
+    if getattr(args, "brief_out", ""):
+        bout = Path(args.brief_out)
+        bout.parent.mkdir(parents=True, exist_ok=True)
+        bout.write_text(format_zh_brief(report["brief_zh"]) + "\n", encoding="utf-8")
+        print(f"Wrote brief → {bout}", file=sys.stderr)
+    return 0
+
+
+def cmd_diff(args: argparse.Namespace) -> int:
+    before = json.loads(Path(args.before).read_text(encoding="utf-8"))
+    after = json.loads(Path(args.after).read_text(encoding="utf-8"))
+    diff = diff_reports(before, after)
+    if args.json:
+        print(json.dumps(diff, ensure_ascii=False, indent=2))
+    else:
+        print(format_diff_human(diff))
+    if args.out:
+        Path(args.out).write_text(
+            json.dumps(diff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
     return 0
 
 
@@ -544,7 +704,17 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("--jd", required=True)
     rp.add_argument("--cover", default="", help="path to 打招呼/求职信 markdown")
     rp.add_argument("--out", default="", help="optional JSON report path")
+    rp.add_argument("--brief-out", default="", help="write Chinese one-page brief to path")
+    rp.add_argument("--zh-only", action="store_true", help="print only Chinese brief")
+    rp.add_argument("--no-zh", action="store_true", help="skip Chinese brief header")
     rp.set_defaults(func=cmd_report)
+
+    df = sub.add_parser("diff", help="compare two report JSON files (v1 → v2 flywheel)")
+    df.add_argument("--before", required=True, help="older match_report.json")
+    df.add_argument("--after", required=True, help="newer match_report.json")
+    df.add_argument("--json", action="store_true")
+    df.add_argument("--out", default="")
+    df.set_defaults(func=cmd_diff)
 
     return p
 

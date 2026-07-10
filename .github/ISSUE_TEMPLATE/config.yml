@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 产品讨论 / Discussions
+    url: https://github.com/LuckTerence/cn-job-assistant/discussions
+    about: 求职经验、赛道反馈、功能脑暴（非缺陷请走讨论区）
+  - name: 上游国际版
+    url: https://github.com/MadsLorentzen/ai-job-search
+    about: 丹麦门户 / LaTeX 英文流程相关请优先看上游

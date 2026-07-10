@@ -1,0 +1,155 @@
+{
+  "resume": {
+    "score": 57.5,
+    "cosine": 0.4311,
+    "keyword_coverage": 75.0,
+    "keywords": {
+      "hit": [
+        "微服务",
+        "kafka",
+        "redis",
+        "高并发",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "k8s",
+        "mysql",
+        "spring boot",
+        "后端"
+      ],
+      "miss": [
+        "数据结构",
+        "高可用",
+        "中间件",
+        "算法"
+      ],
+      "extra": [
+        "落地",
+        "kubernetes",
+        "qps"
+      ]
+    },
+    "jd_keyword_count": 16,
+    "resume_token_count": 35,
+    "jd_token_count": 30,
+    "verdict": "moderate_match"
+  },
+  "cover": {
+    "score": 29.4,
+    "cosine": 0.2794,
+    "keyword_coverage": 31.2,
+    "keywords": {
+      "hit": [
+        "微服务",
+        "kafka",
+        "高并发",
+        "spring boot",
+        "后端"
+      ],
+      "miss": [
+        "redis",
+        "数据结构",
+        "高可用",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "k8s",
+        "mysql",
+        "中间件",
+        "算法"
+      ],
+      "extra": [
+        "java/go"
+      ]
+    },
+    "jd_keyword_count": 16,
+    "resume_token_count": 17,
+    "jd_token_count": 30,
+    "verdict": "partial_match"
+  },
+  "combined": {
+    "score": 56.1,
+    "cosine": 0.4068,
+    "keyword_coverage": 75.0,
+    "keywords": {
+      "hit": [
+        "微服务",
+        "kafka",
+        "redis",
+        "高并发",
+        "ci/cd",
+        "docker",
+        "go",
+        "java",
+        "k8s",
+        "mysql",
+        "spring boot",
+        "后端"
+      ],
+      "miss": [
+        "数据结构",
+        "高可用",
+        "中间件",
+        "算法"
+      ],
+      "extra": [
+        "落地",
+        "kubernetes",
+        "qps",
+        "java/go"
+      ]
+    },
+    "jd_keyword_count": 16,
+    "resume_token_count": 49,
+    "jd_token_count": 30,
+    "verdict": "moderate_match"
+  },
+  "still_missing": [
+    "数据结构",
+    "高可用",
+    "中间件",
+    "算法"
+  ],
+  "cover_only_hits": [],
+  "suggestions": [
+    "合并材料后仍缺失 4 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。",
+    "打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。"
+  ],
+  "brief_zh": {
+    "headline": "综合 56.1/100（匹配中等），关键词覆盖 75.0%",
+    "still_missing": [
+      "数据结构",
+      "高可用",
+      "中间件",
+      "算法"
+    ],
+    "already_hit": [
+      "微服务",
+      "kafka",
+      "redis",
+      "高并发",
+      "ci/cd",
+      "docker",
+      "go",
+      "java"
+    ],
+    "cover_only": [],
+    "edit_top3": [
+      "合并材料后仍缺失 4 个 JD 关键词（见 still_missing）；勿虚构技能，可在「不匹配说明」中诚实处理。",
+      "打招呼/求职信与 JD 相关性弱：点名公司与岗位，并嵌入 1–2 个最强命中词。",
+      "若真实具备，优先把这几个 JD 词写进经历要点：数据结构、高可用、中间件。"
+    ],
+    "compliance": "禁止为刷分虚构技能或业绩；不具备的 miss 项应诚实标注为缺口。",
+    "score_note": "分数为本地 TF–IDF + 关键词启发式，不是录用预测。"
+  },
+  "summary": {
+    "resume_score": 57.5,
+    "combined_score": 56.1,
+    "keyword_coverage_combined": 75.0,
+    "verdict": "moderate_match",
+    "missing_count": 4,
+    "hit_count": 12
+  }
+}

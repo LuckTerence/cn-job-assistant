@@ -1,0 +1,28 @@
+name: 缺陷报告
+description: demo / 工具 / 命令报错
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 提交或 tag（git rev-parse --short HEAD）
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      value: |
+        1. bash scripts/demo.sh 或 …
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果（报错全文可贴）
+    validations:
+      required: true
+  - type: textarea
+    id: expect
+    attributes:
+      label: 期望结果

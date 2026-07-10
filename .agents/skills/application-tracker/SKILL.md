@@ -54,6 +54,14 @@ python tools/tracker.py list
 python tools/tracker.py list --open-only
 python tools/tracker.py list --status interview
 
+# 每日工作台（今日待跟进 / 面试 / 已结束）
+python tools/tracker.py today
+
+# /apply-zh 后打印可复制 add 命令
+python tools/tracker.py suggest-add \
+  --company 示例科技 --role 后端 --channel Boss直聘 \
+  --cv documents/zh/resume_示例科技.md
+
 # 状态更新
 python tools/tracker.py update --company 示例科技 --role 后端工程师 --status interview
 

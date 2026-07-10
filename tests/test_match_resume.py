@@ -52,6 +52,18 @@ class MatchResumeTests(unittest.TestCase):
         self.assertGreaterEqual(report["summary"]["combined_score"], report["summary"]["resume_score"] - 5)
         self.assertIsInstance(report["suggestions"], list)
         self.assertTrue(len(report["suggestions"]) >= 1)
+        self.assertIn("brief_zh", report)
+        self.assertEqual(len(report["brief_zh"]["edit_top3"]), 3)
+        brief = m.format_zh_brief(report["brief_zh"])
+        self.assertIn("一页摘要", brief)
+        self.assertIn("禁止", brief)
+
+    def test_diff_reports_flywheel(self) -> None:
+        weak = m.quality_report(self.weak, self.jd)
+        good = m.quality_report(self.good, self.jd, self.cover)
+        diff = m.diff_reports(weak, good)
+        self.assertGreater(diff["score_delta"], 0)
+        self.assertIn("miss_resolved", diff)
 
     def test_cli_score_json(self) -> None:
         rc = m.main(

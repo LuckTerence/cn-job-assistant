@@ -1,0 +1,9 @@
+# 投递后粘贴执行（或让 Agent 代跑）：
+python tools/tracker.py add \
+  --company 星云科技 \
+  --role 高级后端 \
+  --channel Boss直聘 \
+  --status applied \
+  --cv examples/demo/resume_星云科技.md \
+  --cover examples/demo/da-zhaohu_星云科技_后端.md \
+  --source examples/demo/jd_星云科技_后端.md

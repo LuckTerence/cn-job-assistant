@@ -1,0 +1,18 @@
+name: 赛道反馈 · 校招应届
+description: 校招/实习/应届向使用反馈
+title: "[校招] "
+labels: ["track:校招", "feedback"]
+body:
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 你卡在哪一步
+      options: [demo, setup-zh, 简历模板, apply-zh, 匹配打分, tracker, 其他]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / 期望什么
+    validations:
+      required: true

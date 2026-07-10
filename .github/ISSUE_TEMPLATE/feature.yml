@@ -1,0 +1,22 @@
+name: 功能建议
+description: 新能力或体验改进（请先确认不在「明确暂缓」列表）
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: checkboxes
+    id: not-deferred
+    attributes:
+      label: 我确认这不是暂缓项
+      options:
+        - label: 不是自动投递 / 不是自研 Boss 爬虫 / 不是强制 SaaS
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的用户问题
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案（可选）

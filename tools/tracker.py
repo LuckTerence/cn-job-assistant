@@ -370,6 +370,94 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     return 0
 
 
+INTERVIEW_STATUSES = {
+    "interview",
+    "interview_1",
+    "interview_2",
+    "interview_final",
+    "screening",
+    "offer",
+}
+FOLLOW_STATUSES = {"applied", "to_apply", "in_progress"}
+
+
+def cmd_today(args: argparse.Namespace) -> int:
+    """Daily job-search cockpit: open items grouped by next action."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    if not rows:
+        print("今天还没有投递记录。先：")
+        print("  python tools/tracker.py init")
+        print("  python tools/tracker.py add --company … --role … --status applied")
+        return 0
+
+    open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
+    interviews = [r for r in open_rows if r["status"].lower() in INTERVIEW_STATUSES]
+    follow = [r for r in open_rows if r["status"].lower() in FOLLOW_STATUSES]
+    other_open = [
+        r
+        for r in open_rows
+        if r not in interviews and r not in follow
+    ]
+    closed = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
+
+    print("=== 今日求职工作台 ===")
+    print(f"总计 {len(rows)} 条 · 进行中 {len(open_rows)} · 已结束 {len(closed)}")
+    print()
+
+    def dump(title: str, subset: list[dict[str, str]], hint: str) -> None:
+        print(f"## {title} ({len(subset)})")
+        if not subset:
+            print("  （空）")
+        else:
+            for r in subset:
+                note = f" — {r['notes'][:40]}" if r.get("notes") else ""
+                print(
+                    f"  · [{r['status']}] {r['company']} / {r['role']} "
+                    f"({r['channel'] or '—'}){note}"
+                )
+        print(f"  → {hint}")
+        print()
+
+    dump("面试 / Offer 跟进", interviews, "准备 /interview 或更新：tracker update --status …")
+    dump("已投待回复", follow, "可跟进或标记 no_response；新投递用 tracker add")
+    if other_open:
+        dump("其他进行中", other_open, "核对状态是否写对")
+    dump("已结束（最近）", closed[-5:], "复盘用 /outcome；勿删历史行")
+
+    print("快捷命令：")
+    print("  python tools/tracker.py list --open-only")
+    print("  python tools/tracker.py dashboard")
+    print("  /apply-zh <JD>   # 生成材料后再 add 一条")
+    return 0
+
+
+def cmd_suggest_add(args: argparse.Namespace) -> int:
+    """Print a copy-paste tracker add command (for /apply-zh handoff)."""
+    company = args.company.strip()
+    role = (args.role or "").strip()
+    channel = (args.channel or "Boss直聘").strip()
+    cv = args.cv or f"documents/zh/resume_{company}.md"
+    cover = args.cover or ""
+    source = args.source or ""
+    parts = [
+        "python tools/tracker.py add",
+        f"--company {company!s}",
+        f"--role {role!s}" if role else "",
+        f"--channel {channel!s}",
+        "--status applied",
+        f"--cv {cv}",
+    ]
+    if cover:
+        parts.append(f"--cover {cover}")
+    if source:
+        parts.append(f"--source {source}")
+    cmd = " \\\n  ".join(p for p in parts if p)
+    print("# 投递后粘贴执行（或让 Agent 代跑）：")
+    print(cmd)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="tracker",
@@ -438,6 +526,21 @@ def build_parser() -> argparse.ArgumentParser:
     dash_p = sub.add_parser("dashboard", help="write single-file HTML dashboard")
     dash_p.add_argument("--out", default="")
     dash_p.set_defaults(func=cmd_dashboard)
+
+    today_p = sub.add_parser("today", help="daily cockpit: interviews / follow-ups / closed")
+    today_p.set_defaults(func=cmd_today)
+
+    sug_p = sub.add_parser(
+        "suggest-add",
+        help="print copy-paste add command after /apply-zh",
+    )
+    sug_p.add_argument("--company", required=True)
+    sug_p.add_argument("--role", default="")
+    sug_p.add_argument("--channel", default="Boss直聘")
+    sug_p.add_argument("--cv", default="")
+    sug_p.add_argument("--cover", default="")
+    sug_p.add_argument("--source", default="")
+    sug_p.set_defaults(func=cmd_suggest_add)
 
     return p
 

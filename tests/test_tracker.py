@@ -142,6 +142,37 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("source", tracker.HEADER)
         self.assertEqual(len(tracker.HEADER), 13)
 
+    def test_today_and_suggest_add(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main(
+            [
+                "--csv",
+                str(self.csv),
+                "add",
+                "--company",
+                "星云",
+                "--role",
+                "后端",
+                "--status",
+                "interview",
+            ]
+        )
+        self.assertEqual(tracker.main(["--csv", str(self.csv), "today"]), 0)
+        self.assertEqual(
+            tracker.main(
+                [
+                    "suggest-add",
+                    "--company",
+                    "星云",
+                    "--role",
+                    "后端",
+                    "--channel",
+                    "Boss直聘",
+                ]
+            ),
+            0,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

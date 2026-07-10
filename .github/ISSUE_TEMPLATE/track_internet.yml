@@ -1,0 +1,27 @@
+name: 赛道反馈 · 互联网
+description: 互联网/大厂/创业公司求职使用反馈
+title: "[互联网] "
+labels: ["track:互联网", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量附上**脱敏**信息（勿贴真实手机号/身份证）。
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 你卡在哪一步
+      options: [安装/demo, setup-zh 画像, 搜岗, apply-zh 生成, 匹配打分, tracker 追踪, 其他]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / 期望什么
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: 环境（可选）
+      placeholder: "OS / Python / Agent 类型（Claude Code、Cursor、其他）"
