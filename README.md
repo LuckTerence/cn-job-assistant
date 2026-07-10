@@ -45,7 +45,7 @@ files ready    with fit ratings     (LaTeX, tailored)
                -> /apply            -> Revise -> Final output
 ```
 
-**Domestic (中国大陆) variant:** minimum runnable loop is `tools/install_domestic_search.py` → `/setup-zh` → `/apply-zh`/`/da-zhaohu` → `tools/match_resume.py report` (local TF–IDF quality score) → manual apply → `tools/tracker.py`. Outputs land in `documents/zh/`. Heavy optional integrations (full Resume Matcher UI, Reactive-Resume, mock interview stacks, etc.) live under [`integrations/catalog/`](./integrations/catalog/README.md). Profile: `CLAUDE.zh.md`. Full guide: [`README.zh.md`](./README.zh.md).
+**Domestic (中国大陆) variant:** minimum runnable loop is `tools/install_domestic_search.py` → `/setup-zh` → `/apply-zh`/`/da-zhaohu` → `tools/match_resume.py report` → manual apply → `tools/tracker.py`. Core vs optional architecture: [`ARCHITECTURE.zh.md`](./ARCHITECTURE.zh.md). Heavy self-hosted stacks live only under [`integrations/catalog/`](./integrations/catalog/README.md) with explicit setup-cost metadata (enforced by `tools/lint_skill_surface.py`). Profile: `CLAUDE.zh.md`. Guide: [`README.zh.md`](./README.zh.md).
 
 The framework encodes career guidance best practices, including structured evaluation criteria, forward-looking cover letter framing, and optional salary benchmarking.
 

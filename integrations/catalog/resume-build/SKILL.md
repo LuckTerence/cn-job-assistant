@@ -1,22 +1,46 @@
 ---
 name: resume-build
 version: 1.0.0
-description: >
-  中文简历的构建与导出。本技能复用成熟开源简历构建器 Reactive-Resume
-  （MIT，可 Docker 自托管，隐私优先，16+ 模板，导出 PDF/JSON/DOCX，内置 AI），
-  而非自行实现 .docx/PDF 生成。JD→简历的智能生成另见 AitoResume。
-  触发词：做简历、生成简历、导出简历、简历模板、简历 PDF、简历 DOCX、Reactive Resume。
+description: '中文简历的构建与导出。本技能复用成熟开源简历构建器 Reactive-Resume （MIT，可 Docker 自托管，隐私优先，16+
+  模板，导出 PDF/JSON/DOCX，内置 AI）， 而非自行实现 .docx/PDF 生成。JD→简历的智能生成另见 AitoResume。 触发词：做简历、生成简历、导出简历、简历模板、简历
+  PDF、简历 DOCX、Reactive Resume。
+
+  '
 context: fork
+optional: true
+tier: catalog
+setup_cost: medium
+requires: Docker (self-host) or third-party SaaS account
+os: any
+default_alternative: '`/apply-zh` Markdown in documents/zh/ + any editor export PDF/DOCX'
+upstream: https://github.com/AmruthPillai/Reactive-Resume
+license_note: MIT
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 ---
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
 
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
 
 # 简历构建技能（复用 Reactive-Resume）
 
 > **不要重复造轮子**：简历构建器（实时预览、多模板、PDF/DOCX 导出、AI 润色）已被成熟开源项目
 > [AmruthPillai/Reactive-Resume](https://github.com/AmruthPillai/Reactive-Resume)（**MIT**，约 36k★，隐私优先、可自托管）
 > 完整实现。本技能直接复用它做"构建 + 导出"，不再手写 .docx 生成逻辑。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `medium` |
+| 预估首次搭建 | 30–120 min Docker; or minutes on hosted |
+| 依赖 / 资源 | Docker (self-host) or third-party SaaS account |
+| 操作系统 | any |
+| 内存 / 磁盘 | Docker ~512MB–1GB |
+| 上游 | https://github.com/AmruthPillai/Reactive-Resume |
+| 许可证 | MIT |
+| **默认请用** | `/apply-zh` Markdown in documents/zh/ + any editor export PDF/DOCX |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 复用关系
 

@@ -6,8 +6,9 @@
 > ② `/setup-zh` + `/apply-zh` / `/da-zhaohu`（中文简历与话术）  
 > ③ `python tools/match_resume.py`（本地匹配分 + 关键词 hit/miss，无模型下载）  
 > ④ `python tools/tracker.py`（本地投递追踪，CSV 权威源）  
-> 默认**不自动投递**。重型自托管（模拟面试 / Reactive-Resume / 全量 Resume Matcher 等）在
-> [`integrations/catalog/`](./integrations/catalog/README.md)，不进核心默认路径。
+> 默认**不自动投递**。  
+> **架构分层**（核心 skill 面 vs 可选 catalog）：[`ARCHITECTURE.zh.md`](./ARCHITECTURE.zh.md)。  
+> 重型自托管仅见 [`integrations/catalog/`](./integrations/catalog/README.md)（含真实搭建成本表）。
 
 > 本仓库是 [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)（MIT）的**国内适配分支**，
 > 在保留原版"岗位匹配评估 + 简历定制 + 面试准备"工作流的基础上，新增面向中国大陆求职市场的改造。
@@ -95,7 +96,7 @@ README.zh.md  MODELS.zh.md
 | 项目 | 协议 | 复用点 | 在本分支的角色 |
 |------|------|--------|---------------|
 | **Ocyss/boss-helper** | 非商用 | Boss直聘 浏览器扩展（UI/批量投递/GPT 招呼/多账号） | boss-cli 的 **UI 替代** |
-| **Reactive-Resume** | MIT | 简历构建器（16+ 模板、PDF/JSON/DOCX 导出、AI、可自托管） | **resume-build** 技能底层，替代手写 .docx |
+| **Reactive-Resume** | MIT | 简历构建器（16+ 模板、PDF/JSON/DOCX 导出、AI、可自托管） | **catalog 可选** `resume-build/`；默认 Markdown |
 | **AitoResume** | — | 按 JD 生成/优化简历，支持本地 Ollama | JD→简历初稿补充 |
 | **claude-apply** | MIT | 端到端投递管线（扫描 ATS→评分→CDP 真实浏览器填写→追踪） | **可选**端到端参考（海外 ATS，见下） |
 | **claude-job-auto-apply** | MIT | 全自动代理（搜岗→按 JD 改简历→写信→填表→自动注册/过验证码） | **可选**全自动极端形态参考 |
@@ -113,7 +114,7 @@ README.zh.md  MODELS.zh.md
 | # | 项目 | 协议 | 核心能力 | 在本分支的复用落点 |
 |---|------|------|---------|-------------------|
 | 1 | **rebecha1227-a11y/CareerForge** | — | AI 求职全链路（搜岗/改简历/写求职信/模拟面试），中文 | 全链路形态**参考**（对标自身架构） |
-| 2 | **GodLeaveMe/AuraInterviewer** | MIT | AI 模拟面试（GPT/DeepSeek/SiliconFlow，多维评分+结构化报告） | **interview-mock** 技能底层，替代手写模拟 |
+| 2 | **GodLeaveMe/AuraInterviewer** | MIT | AI 模拟面试（GPT/DeepSeek/SiliconFlow，多维评分+结构化报告） | **catalog 可选**；默认 `/interview` + `07` |
 | 3 | **wzx11223344/resume-customizer** | NOASSERTION（实测无代码） | JD 解析+技能匹配+ATS 优化（仅 README 描述；实测仓库仅 SKILL.md/README/LICENSE，无 `scripts/`，属空壳） | 原拟作 **resume-match** 底层，测试发现无可运行代码，**已弃用**，改由 Resume Matcher 取代 |
 | 4 | **spencergg/resume-parser** | — | ResumeSDK 简历解析（中英，170+ 字段，40+ 格式） | 解析层可补 resume-match |
 | 5 | **siddhesh3008/Job-Application-Tracker** | — | Personal ATS（追踪投递/状态/可视化） | **可选**投递追踪参考（本分支暂无追踪） |
@@ -143,9 +144,9 @@ README.zh.md  MODELS.zh.md
 
 | # | 项目 | 协议 | 核心能力 | 在本分支的复用落点 |
 |---|------|------|---------|-------------------|
-| 1 | **Ssupercoder/Salary-Negotiation-Skill** | 未声明 | 中文谈薪 LLM Agent（五阶段引擎 + Qwen2.5-7B + RAG 市场锚点，三运行版本） | **salary-negotiate** 技能底层（已集成，仅方法论参考） |
-| 2 | **NissonCX/offercatcher** | MIT | 扫描 Apple Mail → AI 提取招聘事件 → Apple Reminders（**非**平台监控器） | **job-alert** 技能底层（已集成） |
-| 3 | **quionie/outreach-ai** | MIT | 多通道冷触达 CLI（email/LinkedIn/Twitter，Claude/OpenAI/Ollama，批量 CSV） | **referral-outreach** 技能底层（已集成） |
+| 1 | **Ssupercoder/Salary-Negotiation-Skill** | 未声明 | 中文谈薪 LLM Agent（五阶段引擎 + Qwen2.5-7B + RAG 市场锚点，三运行版本） | **catalog 方法论 only**；勿复制源码 |
+| 2 | **NissonCX/offercatcher** | MIT | 扫描 Apple Mail → AI 提取招聘事件 → Apple Reminders（**非**平台监控器） | **catalog 可选**（仅 macOS） |
+| 3 | **quionie/outreach-ai** | MIT | 多通道冷触达 CLI（email/LinkedIn/Twitter，Claude/OpenAI/Ollama，批量 CSV） | **catalog 可选**（pip CLI） |
 | 4 | **ZHAB00/ai_interview** | MIT | 语音实时 AI 模拟面试（DeepSeek + Qwen ASR/TTS，四阶段 + 五维评分 + 雷达图） | **可选**给 interview-mock 补语音维度 |
 | 5 | **dyweb/awesome-resume-for-chinese** | — | 中文简历模板合集（LaTeX / HTML / Typst 多套，含应届 / 双栏） | **可选**给 `08-resume-zh` / `resume-build` 补模板源 |
 | 6 | **feder-cr/Jobs_Applier_AI_Agent_AIHawk** | 见 LICENSE | 自动投递 Web Agent（Selenium，生成 tailored 简历 / 求职信） | **可选/警示**全自动形态参考（本分支不自动投递；其已移除第三方插件） |
@@ -156,12 +157,10 @@ README.zh.md  MODELS.zh.md
 
 #### 本轮识别出的新差距与处置
 
-- **谈薪话术缺失**：原流程拿到 offer 后无谈判策略。现由 **salary-negotiate**（复用 Salary-Negotiation-Skill）
-  提供五阶段博弈 + 话术卡片；该仓库**未声明许可证**，本分支仅作方法论参考，不复制其源码。
-- **投递后事件提醒缺失**：原流程无"别漏面试 / 笔试 / 截止"机制。现由 **job-alert**（复用 offercatcher，MIT）
-  扫描 Apple Mail → 写入 Apple Reminders；已澄清其**不是**招聘平台监控器，纠正了第三方博客的误述。
-- **内推 / 冷触达缺失**：原流程无找人内推的触达能力。现由 **referral-outreach**（复用 outreach-ai，MIT）
-  生成多通道冷邮件 / DM 序列；沿用"生成文案、用户手动发送"策略，不自动代发。
+- **谈薪 / 提醒 / 内推**：曾以 doc-only skill「已集成」表述，**Phase 3 起统一为 catalog 可选**，
+  并标注真实搭建成本与默认替代路径（见 `integrations/catalog/README.md`）。
+  Salary-Negotiation-Skill **未声明许可证** → 仅方法论；offercatcher **仅 macOS**；
+  outreach-ai 为可选 pip CLI，不自动代发。
 - **语音面试维度缺失**：**interview-mock** 仅有文本多轮。可选参考 **ZHAB00/ai_interview**（MIT，语音实时 +
   雷达图报告）补语音维度，需另行自托管。
 - **中文 LaTeX 模板源缺失**：`08-resume-zh.md` 为自写分赛道模板。可选参考 **awesome-resume-for-chinese**
@@ -217,8 +216,8 @@ README.zh.md  MODELS.zh.md
 - **技术 / 学术简历构建**：`resume-build`（Reactive-Resume）外，新增 **rendercv**（LaTeX 学术 / 工程）与 **open-resume**（解析 / ATS，AGPL 仅方法论）为可选互补。
 - **ATS 模拟 / 双评分维度**：新增 **ats-screener**（企业级 ATS 模拟）与 **Resume-Builder**（双 ATS/HR 评分）为可选参考，补 `resume-match` 与求职信维度。
 - **自动投递形态 / 技能包架构对标**：**Auto_job_applier_linkedIn**（AGPL）作自动投递形态参考（坚持不自动投递）；**career-ops**（59k★ 全流程）与 **career-ops-plugin**（9 技能 Claude 插件）作同赛道架构对标，不集成代码。
-- **交付优先迭代**：Phase 1 搜岗安装器 + Tracker + skill 重整；Phase 2 本地 `match_resume.py` 匹配/质检。
-  核心 `.agents/skills`：**10 个**（6 海外 CLI + 4 国内：搜岗×2 / tracker / resume-match）；重依赖见 catalog。
+- **交付优先迭代**：Phase 1 搜岗+Tracker；Phase 2 本地匹配；**Phase 3** catalog 成本卡 +
+  `lint_skill_surface` allowlist（核心 10 / catalog 6）。见 `ARCHITECTURE.zh.md`。
 
 ## 测试与验证（第四轮验证结论）
 
@@ -240,12 +239,12 @@ README.zh.md  MODELS.zh.md
 | 被引用轮子 | 本分支原声称 | GitHub 实测许可证 | 一致性 | 处置 |
 |-----------|-------------|------------------|--------|------|
 | srbhr/Resume-Matcher | Apache-2.0（新接入） | Apache-2.0 | 一致 | 已用作 resume-match 底层 |
-| NissonCX/offercatcher | MIT | MIT | 一致 | 维持（job-alert 底层） |
-| quionie/outreach-ai | MIT | MIT | 一致 | 维持（referral-outreach 底层）；**功能冒烟测试通过** |
-| jackwener/boss-cli | Apache-2.0 | 无 LICENSE 文件 | **不一致** | **已修正**为"未声明，参考使用，复用前确认授权" |
-| loks666/get_jobs | 禁商用协议 | NOASSERTION（自定义） | 一致（禁商用） | 维持（domestic-jobs-search 底层） |
-| AmruthPillai/Reactive-Resume | MIT | MIT | 一致 | 维持（resume-build 底层） |
-| GodLeaveMe/AuraInterviewer | MIT | MIT | 一致 | 维持（interview-mock 底层） |
+| NissonCX/offercatcher | MIT | MIT | 一致 | catalog 可选（macOS） |
+| quionie/outreach-ai | MIT | MIT | 一致 | catalog 可选；曾做 help 冒烟 |
+| jackwener/boss-cli | Apache-2.0 | 无 LICENSE 文件 | **不一致** | 安装器参考；许可证未声明 |
+| loks666/get_jobs | 禁商用协议 | NOASSERTION（自定义） | 一致（禁商用） | 安装器克隆；个人非商用 |
+| AmruthPillai/Reactive-Resume | MIT | MIT | 一致 | catalog 可选 |
+| GodLeaveMe/AuraInterviewer | MIT | MIT | 一致 | catalog 可选（高成本） |
 | yangshun/tech-interview-handbook | MIT | MIT | 一致 | 维持（可选知识源） |
 | gototrip1/Automated-resume-submission-Agent | 未声明 | 无 LICENSE 文件 | 一致（均"未声明"） | 维持（可选参考，不集成） |
 | wzx11223344/resume-customizer | MIT | NOASSERTION（空壳，无代码） | **不一致** | **已弃用**，resume-match 改用 Resume Matcher |

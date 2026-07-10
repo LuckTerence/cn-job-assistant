@@ -1,14 +1,26 @@
 ---
 name: resume-match
 version: 1.1.0
-description: >
-  简历与 JD 的匹配度分析、关键词提取与定制建议。本技能复用开源项目 Resume Matcher
-  （srbhr/Resume-Matcher，Apache-2.0，27k+★ 的简历↔JD 匹配器，基于 embedding 的语义匹配 +
-  关键词抽取 + 排名 + 定制内容/求职信生成），而非自行实现评分脚本。触发词：匹配度、JD 匹配、关键词、
+description: '简历与 JD 的匹配度分析、关键词提取与定制建议。本技能复用开源项目 Resume Matcher （srbhr/Resume-Matcher，Apache-2.0，27k+★
+  的简历↔JD 匹配器，基于 embedding 的语义匹配 + 关键词抽取 + 排名 + 定制内容/求职信生成），而非自行实现评分脚本。触发词：匹配度、JD 匹配、关键词、
   简历诊断、skills gap、简历定制、简历优化。
+
+  '
 context: fork
-allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(python*), Bash(uv*), Bash(pip*)
+optional: true
+tier: catalog
+setup_cost: high
+requires: Python; sentence-transformers embedding weights (~100MB+ download); Streamlit/UV
+  app
+os: any
+default_alternative: '`python tools/match_resume.py` (core, no model download)'
+upstream: https://github.com/srbhr/Resume-Matcher
+license_note: Apache-2.0
+allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 ---
+
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
+
 > ⚠️ **可选重型集成**：默认请用核心 skill **`resume-match`** → `python tools/match_resume.py`
 > （本地 TF–IDF，无模型下载）。本目录描述的是上游 **Resume Matcher** 全量应用
 > （sentence-transformers + UI，首次需下 embedding 权重），仅在需要神经语义匹配时自托管。
@@ -21,6 +33,22 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(pyth
 > 完整实现——它基于句向量（sentence-transformers）做简历与 JD 的余弦相似度匹配，抽取关键词并排序，
 > 还能生成定制内容与求职信。本技能直接复用它，不再手写 `04-job-evaluation.md` 里的评分脚本逻辑；
 > 本仓库 `04-job-evaluation.md` 降为**人工评估框架**指引（何时打分、看哪些维度）。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `high` |
+| 预估首次搭建 | 20–60 min + first-run model download |
+| 依赖 / 资源 | Python; sentence-transformers embedding weights (~100MB+ download); Streamlit/UV app |
+| 操作系统 | any |
+| 内存 / 磁盘 | model weights on disk; several hundred MB RAM |
+| 上游 | https://github.com/srbhr/Resume-Matcher |
+| 许可证 | Apache-2.0 |
+| **默认请用** | `python tools/match_resume.py` (core, no model download) |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 关于上游选型的诚实说明（测试发现的修正）
 
@@ -56,7 +84,7 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(pyth
 1. 用户提供母版简历（PDF/DOCX）与目标 JD（文本）。
 2. 用 **Resume Matcher** 得到**匹配度排名**与**关键词命中/缺失清单**（即"匹配度"的量化依据）。
 3. 依据排名与缺失关键词，给出**定制建议**（哪些经历要突出、补哪些 JD 关键词）。
-4. 定制后的内容交给 `resume-build`（Reactive-Resume）做样式与导出；人工侧评估回到
+4. 定制后的内容交给 `integrations/catalog/resume-build/`（可选）做样式与导出；人工侧评估回到
    `04-job-evaluation.md`（何时投、风险判断）。
 
 ## 安装与运行（摘要，以 Resume Matcher 仓库为准）
@@ -81,7 +109,7 @@ uv run app
 ## 与其他技能的配合
 
 - 人工评估框架 → `04-job-evaluation.md`
-- 简历构建/导出 → `resume-build`（Reactive-Resume）
+- 简历构建/导出 → `integrations/catalog/resume-build/`（可选）
 - 分赛道结构规范 → `08-resume-zh.md` + `templates/zh/`
-- 模拟面试 → `interview-mock`（AuraInterviewer）
+- 模拟面试 → `integrations/catalog/interview-mock/`（AuraInterviewer）
 - 岗位检索 → `bosszhipin-search` / `domestic-jobs-search`

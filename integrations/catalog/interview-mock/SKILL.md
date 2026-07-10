@@ -1,15 +1,24 @@
 ---
 name: interview-mock
 version: 1.0.0
-description: >
-  模拟面试与表现评估。本技能复用开源 AI 面试平台 AuraInterviewer
-  （MIT，Spring Boot + Vue3 微服务，集成 GPT/DeepSeek/SiliconFlow 多模型，多维评分 + 结构化报告），
-  而非自行实现面试模拟引擎。触发词：模拟面试、练面试、面试练习、面试反馈、mock interview、面评。
+description: '模拟面试与表现评估。本技能复用开源 AI 面试平台 AuraInterviewer （MIT，Spring Boot + Vue3 微服务，集成
+  GPT/DeepSeek/SiliconFlow 多模型，多维评分 + 结构化报告）， 而非自行实现面试模拟引擎。触发词：模拟面试、练面试、面试练习、面试反馈、mock
+  interview、面评。
+
+  '
 context: fork
+optional: true
+tier: catalog
+setup_cost: high
+requires: Java 18+, Node 18+, MySQL 8, Redis; docker-compose multi-service
+os: any (Docker recommended)
+default_alternative: '`/interview` + `.claude/skills/job-application-assistant/07-interview-prep.md`'
+upstream: https://github.com/GodLeaveMe/AuraInterviewer
+license_note: MIT
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 ---
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
 
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
 
 # 模拟面试技能（复用 AuraInterviewer）
 
@@ -17,6 +26,22 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 > [GodLeaveMe/AuraInterviewer](https://github.com/GodLeaveMe/AuraInterviewer)（**MIT**）完整实现。
 > 本技能直接复用它做"练习 + 评估"，不再手写面试模拟逻辑；本仓库 `07-interview-prep.md` 仅保留为
 > **题型与答题方法论**指引（STAR、群面、行测、国企党政面等国内题型）。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `high` |
+| 预估首次搭建 | 2–6 hours first deploy; ongoing JVM/DB ops |
+| 依赖 / 资源 | Java 18+, Node 18+, MySQL 8, Redis; docker-compose multi-service |
+| 操作系统 | any (Docker recommended) |
+| 内存 / 磁盘 | ~2–4 GB RAM for full stack |
+| 上游 | https://github.com/GodLeaveMe/AuraInterviewer |
+| 许可证 | MIT |
+| **默认请用** | `/interview` + `.claude/skills/job-application-assistant/07-interview-prep.md` |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 复用关系
 
@@ -65,8 +90,8 @@ docker-compose up -d          # 启动后访问前端 http://localhost:3000
 ## 与其他技能的配合
 
 - 题型方法论 → `07-interview-prep.md`
-- 岗位匹配度 → `resume-match`（Resume Matcher）/ `04-job-evaluation.md`
-- 简历 → `resume-build`（Reactive-Resume）
+- 岗位匹配度 → 核心 `tools/match_resume.py` 或可选 `integrations/catalog/resume-match/`/ `04-job-evaluation.md`
+- 简历 → `integrations/catalog/resume-build/`（可选）
 - 话术 → `09-da-zhaohu-zh.md` + `/打招呼`
 - 语音实时面试（可选维度）→ **[ZHAB00/ai_interview](https://github.com/ZHAB00/ai_interview)**（MIT；DeepSeek + 阿里云 Qwen ASR/TTS，四阶段 + 五维评分 + 雷达图报告，需另行自托管）
 - 面试题库 / 知识源（可选）→ **[yangshun/tech-interview-handbook](https://github.com/yangshun/tech-interview-handbook)**（MIT；算法/行为/系统/简历/薪资全流程手册，作题库与方法论补充）

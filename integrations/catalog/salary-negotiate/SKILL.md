@@ -1,15 +1,24 @@
 ---
 name: salary-negotiate
 version: 1.0.0
-description: >
-  薪资谈判 / 谈薪话术生成与策略。本技能复用开源中文谈薪技能 Salary-Negotiation-Skill
-  （Ssupercoder，LLM Agent 架构，谈薪五阶段引擎 + Qwen2.5-7B + RAG 市场锚点，含 codex/openclaw 无代码版本），
-  而非自行实现谈判策略引擎。触发词：谈薪、薪资谈判、offer 谈判、要价、薪酬博弈、salary negotiation。
+description: '薪资谈判 / 谈薪话术生成与策略。本技能复用开源中文谈薪技能 Salary-Negotiation-Skill （Ssupercoder，LLM
+  Agent 架构，谈薪五阶段引擎 + Qwen2.5-7B + RAG 市场锚点，含 codex/openclaw 无代码版本）， 而非自行实现谈判策略引擎。触发词：谈薪、薪资谈判、offer
+  谈判、要价、薪酬博弈、salary negotiation。
+
+  '
 context: fork
+optional: true
+tier: catalog
+setup_cost: methodology_only
+requires: Read-only methodology; upstream license undeclared — do not copy source
+os: n/a
+default_alternative: Human negotiation prep; optional notes in CLAUDE.zh.md 期望薪资
+upstream: https://github.com/Ssupercoder/Salary-Negotiation-Skill
+license_note: undeclared — methodology reference only, no vendoring
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 ---
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
 
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
 
 # 谈薪技能（复用 Salary-Negotiation-Skill）
 
@@ -17,6 +26,22 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 > [Ssupercoder/Salary-Negotiation-Skill](https://github.com/Ssupercoder/Salary-Negotiation-Skill) 完整实现
 > （LLM Agent 架构，**谈薪五阶段引擎 + SQLite 记忆 + Qwen2.5-7B-Instruct + RAG 向量库**）。
 > 本技能直接复用它做"策略 + 话术"，不再手写谈薪逻辑；本仓库不内置任何谈判脚本。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `methodology_only` |
+| 预估首次搭建 | read docs only (0 deploy) |
+| 依赖 / 资源 | Read-only methodology; upstream license undeclared — do not copy source |
+| 操作系统 | n/a |
+| 内存 / 磁盘 | n/a |
+| 上游 | https://github.com/Ssupercoder/Salary-Negotiation-Skill |
+| 许可证 | undeclared — methodology reference only, no vendoring |
+| **默认请用** | Human negotiation prep; optional notes in CLAUDE.zh.md 期望薪资 |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 复用关系
 
@@ -63,5 +88,5 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
 
 - 匹配度锚定 → `resume-match`（底层 Resume Matcher）
 - offer 多维对比（可选）→ `salary-compare`（见 README 对标表）
-- 简历 → `resume-build`（Reactive-Resume）/ `08-resume-zh.md`
-- 面试 → `interview-mock`（AuraInterviewer）
+- 简历 → `integrations/catalog/resume-build/`（可选）/ `08-resume-zh.md`
+- 面试 → `integrations/catalog/interview-mock/`（AuraInterviewer）

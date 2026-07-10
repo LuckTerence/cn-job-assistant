@@ -1,22 +1,45 @@
 ---
 name: referral-outreach
 version: 1.0.0
-description: >
-  内推 / 冷触达序列生成（邮件/LinkedIn/Twitter）。本技能复用开源 CLI outreach-ai
-  （quionie，MIT）：单命令生成多通道个性化冷邮件/DM，支持 Claude/OpenAI/Ollama，
-  批量 CSV + 语气档案。而非自行实现冷邮件生成器。触发词：内推、冷邮件、cold email、
-  触达、找人内推、outreach、referral、找校友内推。
-context: fork
-allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(python*)
----
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
+description: '内推 / 冷触达序列生成（邮件/LinkedIn/Twitter）。本技能复用开源 CLI outreach-ai （quionie，MIT）：单命令生成多通道个性化冷邮件/DM，支持
+  Claude/OpenAI/Ollama， 批量 CSV + 语气档案。而非自行实现冷邮件生成器。触发词：内推、冷邮件、cold email、 触达、找人内推、outreach、referral、找校友内推。
 
+  '
+context: fork
+optional: true
+tier: catalog
+setup_cost: low
+requires: Python + pip; Claude/OpenAI/Ollama API key
+os: any
+default_alternative: Write referral notes manually; track in tools/tracker.py
+upstream: https://github.com/quionie/outreach-ai
+license_note: MIT
+allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
+---
+
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
 
 # 内推 / 冷触达技能（复用 outreach-ai）
 
 > **不要重复造轮子**：多通道冷触达（email / LinkedIn / Twitter 序列、A/B 变体、语气档案、批量 CSV、
 > LinkedIn 资料抓取做个性化）已被成熟开源 CLI [quionie/outreach-ai](https://github.com/quionie/outreach-ai)（**MIT**）完整实现。
 > 本技能直接复用它生成"内推 / 冷触达"文案序列，不再手写邮件模板引擎。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `low` |
+| 预估首次搭建 | 15–30 min (`pip` + API key) |
+| 依赖 / 资源 | Python + pip; Claude/OpenAI/Ollama API key |
+| 操作系统 | any |
+| 内存 / 磁盘 | light CLI |
+| 上游 | https://github.com/quionie/outreach-ai |
+| 许可证 | MIT |
+| **默认请用** | Write referral notes manually; track in tools/tracker.py |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 复用关系
 
@@ -76,6 +99,6 @@ outreach generate \
 ## 与其他技能的配合
 
 - 岗位 / 公司来源 → `bosszhipin-search` / `domestic-jobs-search`
-- 简历附件 → `resume-build`（Reactive-Resume）/ `08-resume-zh.md`
+- 简历附件 → `integrations/catalog/resume-build/`（可选）/ `08-resume-zh.md`
 - 话术衔接 → `09-da-zhaohu-zh.md` + `/打招呼`（内推开场可复用其结构）
-- 谈薪衔接 → `salary-negotiate`（拿到面试 / offer 后）
+- 谈薪衔接 → `integrations/catalog/salary-negotiate/`（拿到面试 / offer 后）

@@ -1,16 +1,24 @@
 ---
 name: job-alert
 version: 1.0.0
-description: >
-  招聘事件提醒（面试/笔试/测评/截止）同步到 Apple 提醒。本技能复用开源工具 offercatcher
-  （NissonCX，MIT）：扫描本地 Apple Mail → AI 提取招聘事件 → 写入 Reminders.app。
-  不做招聘平台监控，仅做"邮件→提醒"的本地桥接。触发词：投递提醒、面试提醒、招聘邮件、
+description: '招聘事件提醒（面试/笔试/测评/截止）同步到 Apple 提醒。本技能复用开源工具 offercatcher （NissonCX，MIT）：扫描本地
+  Apple Mail → AI 提取招聘事件 → 写入 Reminders.app。 不做招聘平台监控，仅做"邮件→提醒"的本地桥接。触发词：投递提醒、面试提醒、招聘邮件、
   笔试提醒、offer deadline、job alert、别漏面试。
-context: fork
-allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(python*)
----
-> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见仓库 `README.zh.md` 与 `tools/tracker.py` / `install_domestic_search.py`。
 
+  '
+context: fork
+optional: true
+tier: catalog
+setup_cost: medium
+requires: macOS only; Apple Mail + Reminders; optional LLM API
+os: macOS
+default_alternative: Calendar / Reminders manual + `/outcome`
+upstream: https://github.com/NissonCX/offercatcher
+license_note: MIT
+allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion
+---
+
+> ⚠️ **已移出核心 skill 面**：本文件现位于 `integrations/catalog/`，供可选自托管参考，**不是**开箱可跑的 agent 工具。国内最小闭环见 `README.zh.md`、`ARCHITECTURE.zh.md` 与 `tools/{install_domestic_search,tracker,match_resume}.py`。
 
 # 招聘事件提醒技能（复用 offercatcher）
 
@@ -22,6 +30,22 @@ allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, AskUserQuestion, Bash(pyth
 > **事实澄清**：部分第三方博客将该项目描述为"国内招聘平台监控器（Boss / 猎聘 / 拉勾状态追踪）"。
 > 经核对仓库源码与 README，**offercatcher 实际是一个本地邮件解析 → Apple 提醒工具，并非外部招聘平台监控器**。
 > 本技能严格按其真实功能描述，不夸大其能力边界。
+
+
+## 真实搭建成本（Phase 3 标注）
+
+| 项 | 值 |
+|----|-----|
+| 成本档 | `medium` |
+| 预估首次搭建 | 30–90 min on Mac with Mail already in use |
+| 依赖 / 资源 | macOS only; Apple Mail + Reminders; optional LLM API |
+| 操作系统 | macOS |
+| 内存 / 磁盘 | light (local scripts) |
+| 上游 | https://github.com/NissonCX/offercatcher |
+| 许可证 | MIT |
+| **默认请用** | Calendar / Reminders manual + `/outcome` |
+
+> 本仓库 **CI 不部署、不测试** 本条目的上游服务。启用前请自行评估运维与合规成本。
 
 ## 复用关系
 
@@ -79,4 +103,4 @@ python3 scripts/manual_event.py --title "Google Interview" --due "2026-04-15 14:
 
 - 投递状态追踪（可选）→ `Job-Application-Tracker`（见 README 对标表）
 - 岗位检索 → `bosszhipin-search` / `domestic-jobs-search`
-- 面试准备 → `interview-mock`（AuraInterviewer）
+- 面试准备 → `integrations/catalog/interview-mock/`（AuraInterviewer）

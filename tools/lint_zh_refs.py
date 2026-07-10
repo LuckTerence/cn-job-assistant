@@ -133,6 +133,9 @@ def check_catalog_optional_moved() -> None:
     readme = catalog / "README.md"
     if not readme.is_file():
         errors.append("integrations/catalog/README.md missing")
+    if not (ROOT / "ARCHITECTURE.zh.md").is_file():
+        errors.append("ARCHITECTURE.zh.md missing (core vs catalog map)")
+    # Defer detailed catalog allowlist to lint_skill_surface.py
 
 
 def main() -> int:
