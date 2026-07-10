@@ -55,6 +55,7 @@ cover_letters/Cover_*.tex
 
 # documents/ subfolder contents are personal — only README and folder structure are tracked
 documents/cv/**
+documents/zh/**
 documents/linkedin/**
 documents/diplomas/**
 documents/references/**

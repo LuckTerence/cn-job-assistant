@@ -9,6 +9,7 @@ This folder holds your actual career documents. The `/setup` command reads every
 ```
 documents/
 ├── cv/                          # Your CV files (PDF or LaTeX)
+├── zh/                          # 国内投递产物：中文简历 + 打招呼话术 / 求职信（由 /apply-zh、/da-zhaohu 生成）
 ├── linkedin/                    # LinkedIn profile export (PDF)
 ├── diplomas/                    # Degree certificates and transcripts
 ├── references/                  # Reference letters
@@ -39,6 +40,18 @@ Your master CV — the most complete, unedited version of your professional reco
 **Naming:** Any filename works. If multiple files are present, `/setup` reads all of them and cross-references for consistency.
 
 **Tip:** Keep your most comprehensive CV here (not a tailored variant). The skill files are the canonical source — tailored CVs are generated per application by `/apply`.
+
+---
+
+## zh/
+
+国内中文岗的投递产物（由 `/apply-zh`、`/da-zhaohu` 生成），统一放在这一目录：
+
+- `resume_<company>.md` — 中文简历 Markdown 源文件（由 `/apply-zh` 生成，导入 Reactive-Resume 导出 .docx/.pdf）
+- `da-zhaohu_<company>_<role>.md` — Boss直聘短话术
+- `cover_<company>_<role>.md` — 正式中文求职信
+
+**这些文件含有姓名、电话、薪资等个人信息，已被 `.gitignore` 忽略，不会进入版本库。**
 
 ---
 
