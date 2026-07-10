@@ -110,5 +110,74 @@ class MatchResumeTests(unittest.TestCase):
         )
 
 
+class CalmerBriefTests(unittest.TestCase):
+    """Tests for UX-P1: calmer match brief (calmer-ux-copy spec)."""
+
+    def _build_brief(self, *, score: float, miss: list[str], jd: str = "") -> dict:
+        result = m.MatchResult(
+            score=score,
+            cosine=0.0,
+            verdict=("strong_match" if score >= 70 else
+                     "moderate_match" if score >= 50 else
+                     "partial_match" if score >= 30 else "weak_match"),
+            keywords=m.KeywordBreakdown(hit=["python"], miss=miss, extra=[]),
+            jd_keyword_count=10,
+            resume_token_count=100,
+            jd_token_count=100,
+            keyword_coverage=round(100.0 * 1 / max(1, 1 + len(miss)), 1),
+        )
+        return m.build_zh_brief(
+            combined_result=result,
+            still_miss=miss,
+            cover_only=[],
+            suggestions=[],
+            jd_text=jd,
+        )
+
+    def test_high_score_has_positive_tone_and_interview_action(self) -> None:
+        brief = self._build_brief(score=85, miss=["kafka"])
+        self.assertIn("挺匹配", brief["tone_open"])
+        self.assertIn("面试", brief["action_by_band"])
+
+    def test_low_score_has_practice_or_pivot_language(self) -> None:
+        brief = self._build_brief(score=20, miss=["kafka", "redis", "微服务", "高并发"])
+        combined = brief["tone_open"] + brief["action_by_band"]
+        self.assertTrue("有距离" in combined or "练手" in combined, msg=combined)
+        self.assertIn("练手", brief["action_by_band"])
+
+    def test_miss_split_core_vs_nice(self) -> None:
+        miss = ["kafka", "redis", "团队协作", "沟通能力", "责任心", "抗压"]
+        core, nice = m._split_miss_core_nice(miss)
+        self.assertIn("kafka", core)
+        self.assertIn("redis", core)
+
+    def test_brief_contains_no_shaming_title(self) -> None:
+        brief = self._build_brief(score=30, miss=["a", "b", "c", "d", "e", "f"])
+        text = m.format_zh_brief(brief)
+        self.assertNotIn("还差", text)
+        self.assertIn("不会的别硬编", text)
+
+    def test_brief_has_compliance_sentence(self) -> None:
+        brief = self._build_brief(score=50, miss=[])
+        text = m.format_zh_brief(brief)
+        self.assertIn("别硬", text)
+
+    def test_brief_has_next_action_section(self) -> None:
+        brief = self._build_brief(score=65, miss=["docker"])
+        text = m.format_zh_brief(brief)
+        self.assertIn("下一步建议", text)
+        self.assertTrue(brief.get("action_by_band"))
+
+    def test_brief_json_backward_compat(self) -> None:
+        brief = self._build_brief(score=60, miss=["kafka"])
+        self.assertIn("still_missing", brief)
+        self.assertIn("miss_core", brief)
+        self.assertIn("miss_nice", brief)
+
+    def test_float_score_accepted(self) -> None:
+        brief = self._build_brief(score=54.9, miss=["大模型"])
+        self.assertIn("有一定匹配度", brief["tone_open"])
+
+
 if __name__ == "__main__":
     unittest.main()

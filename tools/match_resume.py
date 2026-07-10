@@ -453,7 +453,7 @@ def _split_miss_core_nice(miss_terms: list[str], jd_text: str = "") -> tuple[lis
     return core[:6], nice[:6]
 
 
-def _tone_open(score: int) -> str:
+def _tone_open(score: float) -> str:
     if score >= 70:
         return "这份和你挺匹配的。"
     if score >= 40:
@@ -461,7 +461,7 @@ def _tone_open(score: int) -> str:
     return "这个岗位要求和你当前画像有距离——投了当练手也行，别抱太大期望；也可以想想是不是方向不太对。"
 
 
-def _action_by_band(score: int) -> str:
+def _action_by_band(score: float) -> str:
     if score >= 80:
         return "这份很匹配，重点准备面试就行。"
     if score >= 60:

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import shutil
 import sqlite3
@@ -392,7 +393,8 @@ def _pick_encouragement(rows: list[dict[str, str]], today: date) -> str | None:
     triggered = (recent_30 >= 3 and recent_30 % 3 == 0) or week_rejected >= 3
     if not triggered:
         return None
-    seed_val = hash(f"{today.isoformat()}:{recent_30}")
+    seed_key = f"{today.isoformat()}:{recent_30}".encode("utf-8")
+    seed_val = int(hashlib.md5(seed_key).hexdigest()[:8], 16)
     return ENCOURAGEMENTS[seed_val % len(ENCOURAGEMENTS)]
 
 
