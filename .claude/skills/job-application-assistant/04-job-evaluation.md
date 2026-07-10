@@ -83,14 +83,12 @@ Does this role advance career goals and contain tasks that energize?
 
 ### 6. Salary Benchmark (Optional)
 
-If the salary lookup tool is configured (`salary_data.json` exists), look up the company:
-```
-python3 salary_lookup.py "<Company Name>" --json
-```
+Market-aware — pick the branch that matches the posting's market:
 
-If a city is known from the posting, add `--city "<City>"` to narrow results.
+- **International (海外岗):** if configured (`salary_data.json` exists), run `python3 salary_lookup.py "<Company Name>" --json` (add `--city "<City>"` to narrow). Present as the index table below; higher index = above-market.
+- **Domestic (国内中文岗):** do **not** run the 海外 `salary_lookup.py` tool — its indices are Denmark-specific and do not apply to the China market. Use the **期望薪资** recorded in `CLAUDE.zh.md` (求职方向段) as the baseline, and compare it against the salary range stated in the JD. If the JD lists no range, skip this subsection.
 
-Present findings as:
+Present findings (international) as:
 ```
 ### Salary Benchmark
 | Metric | Value |
@@ -101,7 +99,7 @@ Present findings as:
 
 Interpret results relative to the baseline defined in the data file's metadata. For index-based data, higher typically means above-market compensation.
 
-If the salary tool is not configured, skip this section.
+If the salary tool is not configured (international) or you are on the domestic path, skip the index table.
 
 ## Output Format
 
@@ -132,11 +130,11 @@ Present the evaluation as:
 [1-2 sentences: apply/skip/apply with caveats]
 
 ### Company Research Checklist
-- [ ] Checked company website (mission, values, recent news)
-- [ ] Checked review sites (Glassdoor, Jobindex, etc.)
-- [ ] Checked LinkedIn for team size, recent hires, connections
+- [ ] Checked company website / 公众号 / 官网新闻 (mission, values, recent news)
+- [ ] Checked China workplace communities (看准网 / 脉脉 / BOSS直聘公司评价 / 企查查)
+- [ ] Checked 脉脉 / LinkedIn for team size, recent hires, connections
 - [ ] Checked media for restructuring, growth, or workplace issues
-- [ ] Identified network contacts who may know the team/manager
+- [ ] Identified network contacts (内推人脉 / 校友 / 前同事) who may know the team/manager
 ```
 
 ## Weighting

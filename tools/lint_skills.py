@@ -286,6 +286,54 @@ def check_domestic_awareness(commands) -> None:
             )
 
 
+# ---------------------------------------------------------------------------
+# Document-level domestic-awareness guard.
+#
+# The recurring bug class moved one level up: a domestic command was fixed to
+# read CLAUDE.zh.md / write documents/zh, but the shared methodology doc it
+# points domestic users to still baked in overseas assumptions (04 told a
+# China user to run the Danish salary tool and listed Jobindex as a review
+# site). check_domestic_awareness() only sees commands, not the docs they
+# reference. This guard scans those shared docs for overt overseas / Denmark-
+# specific tokens and fails unless the same line also carries an explicit
+# overseas-context marker (海外/国际/...), so dual-market docs can still
+# document the international path without tripping the guard.
+# ---------------------------------------------------------------------------
+DOMESTIC_METHOD_DOCS = {
+    ".claude/skills/job-application-assistant/04-job-evaluation.md",
+    ".claude/skills/job-application-assistant/07-interview-prep.md",
+    ".claude/skills/job-application-assistant/08-resume-zh.md",
+    ".claude/skills/job-application-assistant/09-da-zhaohu-zh.md",
+}
+# Tokens that mean "this is the overseas / Denmark flow". Case-insensitive.
+OVERSEAS_TOKENS = (
+    "jobindex", "jobbank", "jobnet", "jobdanmark",
+    "copenhagen", "aarhus", "denmark", "丹麦",
+    "salary_lookup.py", "salary_data.json", "glassdoor",
+)
+# A line carrying one of these markers is explicitly framing the overseas path,
+# so an overseas token on that line is legitimate (dual-market doc).
+OVERSEAS_CTX_MARKERS = ("海外", "国际", "international", "intl")
+
+
+def check_shared_domestic_docs() -> None:
+    for relpath in DOMESTIC_METHOD_DOCS:
+        path = ROOT / relpath
+        if not path.is_file():
+            continue
+        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            low = line.lower()
+            has_token = any(tok in low for tok in OVERSEAS_TOKENS)
+            has_ctx = any(m in line for m in OVERSEAS_CTX_MARKERS)
+            if has_token and not has_ctx:
+                errors.append(
+                    f"{relpath}:{i}: domestic methodology doc references an "
+                    f"overseas/Denmark-specific token without an explicit "
+                    f"overseas-context marker (海外/国际/...) - a domestic "
+                    f"user may be told to use a non-China tool or site"
+                )
+
+
 def main() -> int:
     skills = sorted(ROOT.glob(".claude/skills/*/SKILL.md")) + sorted(ROOT.glob(".agents/skills/*/SKILL.md"))
     commands = sorted((ROOT / ".claude" / "commands").glob("*.md"))
@@ -301,6 +349,7 @@ def main() -> int:
     check_settings()
     check_crossrefs(_command_stems(), _skill_names())
     check_domestic_awareness(commands)
+    check_shared_domestic_docs()
 
     if errors:
         print(f"lint_skills: {len(errors)} failure(s)")
