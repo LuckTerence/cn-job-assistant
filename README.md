@@ -197,7 +197,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 
 | ✅ 已落地 | 说明 |
 |----------|------|
-| 一键 Demo | `bash scripts/demo.sh` / 动图 / 预生成看板 |
+| 一键 Demo | `bash scripts/demo.sh` / 预生成看板与摘要 |
 | 中文简历分赛道模板 + **双赛道样例** | 互联网 vs 国企产出对比 |
 | Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
 | 匹配打分 + **人话一页摘要** | `report --zh-only`；禁止虚构写进摘要 |
@@ -267,7 +267,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | Phase 1 | ✅ | 搜岗安装器 + 本地 Tracker + skill 面诚实化 |
 | Phase 2 | ✅ | 本地匹配引擎 + `/apply-zh` 强制质量报告 |
 | Phase 3 | ✅ | Catalog 成本卡 + skill allowlist 治理 |
-| **P0 增长资产** | ✅ | Demo + 动图 + Issue 模板 + 一键脚本 |
+| **P0 增长资产** | ✅ | Demo 脚本 + Issue 模板 |
 | **P1 体验** | ✅ | 人话报告 / tracker 挂钩 / setup 粘贴简历 / 分赛道样例 / `today` |
 | **P2 分发** | 进行中 | Agent 安装文档已出；话题与社区内容待你发布 |
 | **投递三档** | ✅ | `tools/apply_assist.py`：manual / semi / auto（选择权在用户） |
