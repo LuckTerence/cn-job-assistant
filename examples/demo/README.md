@@ -15,12 +15,12 @@ bash scripts/demo.sh
 
 | 文件 | 是啥 |
 |------|------|
-| `profile_snippet.md` | 假的候选人简介 |
-| `jd_星云科技_后端.md` | 假的岗位描述（文件名带 `jd_` 只是习惯） |
-| `resume_星云科技.md` | 假的定制简历 |
-| `da-zhaohu_星云科技_后端.md` | 假的打招呼 |
-| `resume_弱匹配.md` | 故意不对口的简历，用来对比分数 |
-| `tracks/internet` / `tracks/soe` | 互联网 vs 国企各一套 |
+| `examples/demo/profile_snippet.md` | 假的候选人简介 |
+| `examples/demo/jd_星云科技_后端.md` | 假的岗位描述（文件名带 `jd_` 只是习惯） |
+| `examples/demo/resume_星云科技.md` | 假的定制简历 |
+| `examples/demo/da-zhaohu_星云科技_后端.md` | 假的打招呼 |
+| `examples/demo/resume_弱匹配.md` | 故意不对口的简历，用来对比分数 |
+| `examples/demo/tracks/` | 互联网 vs 国企各一套 |
 
 ## 真用时
 
