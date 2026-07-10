@@ -1,0 +1,4 @@
+date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source
+2026-07-10,星云科技,,高级后端,,Boss直聘,applied,,demo-strong,demo: 已生成材料，待手动投递,examples/demo/resume_星云科技.md,examples/demo/da-zhaohu_星云科技_后端.md,examples/demo/jd_星云科技_后端.md
+2026-07-10,青梧数据,,后端开发,,智联,interview,,demo,demo: 二面中,,,
+2026-07-10,北岸出行,,服务端,,猎聘,rejected,,,demo: 已结束,,,

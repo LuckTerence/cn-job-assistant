@@ -67,6 +67,10 @@ job_search_tracker.csv
 job_search_tracker.db
 job_search_tracker.html
 job_search_tracker_export.csv
+# Demo package: committed sample board (fictional data only)
+!examples/demo/output/job_search_tracker.csv
+!examples/demo/output/job_search_tracker.db
+!examples/demo/output/job_search_tracker.html
 
 # Vendored domestic search backends (cloned by install_domestic_search.py)
 third_party/
