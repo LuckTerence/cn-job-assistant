@@ -155,7 +155,11 @@ export const search = defineCommand({
 
       if (signal.aborted) return
 
-      let results = data.items.map(normalizeItem)
+      const items = Array.isArray(data.items) ? data.items : []
+      if (!Array.isArray(data.items)) {
+        writeError("items missing or not an array in Jobdanmark response", "SHAPE_UNEXPECTED")
+      }
+      let results = items.map(normalizeItem)
       if (flags.limit !== undefined) {
         results = results.slice(0, flags.limit)
       }

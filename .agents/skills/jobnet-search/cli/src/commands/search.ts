@@ -115,7 +115,11 @@ export const search = defineCommand({
       if (signal.aborted) return
 
       // Map raw job ads to documented output shape (omit description)
-      let results = data.jobAds.map((job) => ({
+      const ads = Array.isArray(data.jobAds) ? data.jobAds : []
+      if (!Array.isArray(data.jobAds)) {
+        writeError("jobAds missing or not an array in Jobnet response", "SHAPE_UNEXPECTED")
+      }
+      let results = ads.map((job) => ({
         jobAdId: job.jobAdId,
         title: job.title,
         hiringOrgName: job.hiringOrgName,
@@ -141,12 +145,13 @@ export const search = defineCommand({
         results = results.slice(0, flags.limit)
       }
 
+      const sf: Partial<SearchFacetsRaw> = data.searchFacets ?? {}
       const facets = {
-        regions: data.searchFacets.regions ?? [],
-        workHours: data.searchFacets.workHours ?? [],
-        employmentDurations: data.searchFacets.employmentDurations ?? [],
-        occupationAreas: data.searchFacets.occupationAreas ?? [],
-        countries: data.searchFacets.countries ?? [],
+        regions: sf.regions ?? [],
+        workHours: sf.workHours ?? [],
+        employmentDurations: sf.employmentDurations ?? [],
+        occupationAreas: sf.occupationAreas ?? [],
+        countries: sf.countries ?? [],
       }
 
       const meta = {

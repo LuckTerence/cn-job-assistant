@@ -10,14 +10,14 @@ export function writeError(error: string, code: string): void {
 export async function fetchWithUA(url: string): Promise<Response> {
   const maxRetries = 6
   let delay = 500
+  let lastStatus: string | null = null
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const response = await fetch(url, {
       headers: { "User-Agent": USER_AGENT },
     })
     if (response.status === 429 || response.status >= 500) {
-      if (attempt === maxRetries) {
-        throw new Error(`Request failed: ${response.status} ${response.statusText}`)
-      }
+      lastStatus = `${response.status} ${response.statusText}`
+      if (attempt === maxRetries) break
       const jitter = Math.floor(Math.random() * 500)
       await new Promise((resolve) => setTimeout(resolve, delay + jitter))
       delay = Math.min(delay * 2, 5000)
@@ -25,7 +25,9 @@ export async function fetchWithUA(url: string): Promise<Response> {
     }
     return response
   }
-  throw new Error("Request failed after max retries")
+  throw new Error(
+    `Request failed after max retries${lastStatus ? `: ${lastStatus}` : ""}`,
+  )
 }
 
 export interface RssItem {

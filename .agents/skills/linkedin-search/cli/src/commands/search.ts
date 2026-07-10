@@ -55,6 +55,15 @@ export async function runSearch(opts: SearchOpts): Promise<number> {
   try {
     const html = await htmlFetch(buildUrl(opts))
     let cards = parseJobCards(html)
+    // Surface (non-fatal) signal when zero cards parse: could be a genuine empty
+    // result OR a LinkedIn markup change that broke the selectors. /scrape reads
+    // stdout for results; this stderr note lets the operator distinguish the two.
+    if (cards.length === 0) {
+      writeError(
+        "parseJobCards returned 0 cards — either no matches or LinkedIn markup changed (selectors may need updating)",
+        "PARSER_EMPTY",
+      )
+    }
     if (opts.limit !== undefined && opts.limit >= 0) cards = cards.slice(0, opts.limit)
 
     if (opts.format === "table") {

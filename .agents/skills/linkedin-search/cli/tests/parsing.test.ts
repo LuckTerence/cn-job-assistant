@@ -53,3 +53,26 @@ describe("decodeHtmlEntities (via parseJobDetail)", () => {
     expect(job.title).toBe("Señor Engineer");
   });
 });
+
+// Pins the empty-result contract that runSearch turns into a PARSER_EMPTY stderr
+// warning: when LinkedIn's markup changes (login wall, anti-bot, redesign) the
+// job-posting URN anchor disappears and parseJobCards must return [] — never
+// throw. This guards the "silent empty" failure mode from regressing.
+describe("parseJobCards empty-result contract (PARSER_EMPTY trigger)", () => {
+  test("returns [] when the job-posting URN anchor is absent (login wall / markup change)", () => {
+    const wall = `<html><body><div class="artdeco">Please sign in to view jobs</div></body></html>`;
+    expect(parseJobCards(wall)).toEqual([]);
+  });
+
+  test("returns [] for a genuine no-results page with no cards", () => {
+    const empty = `<section class="jobs-search__results-list"><p>No jobs found</p></section>`;
+    expect(parseJobCards(empty)).toEqual([]);
+  });
+
+  test("still extracts a card when the anchor IS present", () => {
+    const cards = parseJobCards(searchCard("777", "Real Job"));
+    expect(cards).toHaveLength(1);
+    expect(cards[0].id).toBe("777");
+    expect(cards[0].title).toBe("Real Job");
+  });
+});

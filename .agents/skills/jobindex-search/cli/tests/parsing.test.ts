@@ -44,3 +44,19 @@ describe("decodeHtmlEntities (via parseJobCards)", () => {
     expect(c.company).toBe("Nørrebro ApS");
   });
 });
+
+// Pins parseJobCards' empty-result contract: when the jobad-wrapper anchor is
+// absent it must return [], never throw — the same resilience property the
+// Stash-based parseSearchPage path relies on for the active search flow.
+describe("parseJobCards empty-result contract", () => {
+  test("returns [] when no jobad-wrapper chunks are present", () => {
+    const html = `<html><body><div>No matching jobs</div></body></html>`;
+    expect(parseJobCards(html)).toEqual([]);
+  });
+
+  test("extracts a card when the jobad-wrapper anchor IS present", () => {
+    const [c] = parseJobCards(card("h9", "Backend Dev"));
+    expect(c.id).toBe("h9");
+    expect(c.title).toBe("Backend Dev");
+  });
+});
