@@ -36,12 +36,22 @@ python tools/match_resume.py report --zh-only \
 
 ---
 
-## Step 2: 中文简历草稿
+## Step 2: 中文简历草稿 + **可投递 PDF（必须）**
 
 - 读 `08-resume-zh.md`，按赛道选 `templates/zh/resume_<track>.md`。
-- 写入 `documents/zh/resume_<company>.md`。
+- 写入 `documents/zh/resume_<company>.md`（源文件，便于改）。
 - **只写真实具备的技能**；可参考 `match_resume.py keywords --jd …`。
-- 仅 Markdown；导出 PDF/DOCX 用户自理或见 `integrations/catalog/resume-build/`。
+- **国内投递默认交付物是 PDF**，不是 Markdown。生成 md 后**必须**导出：
+
+```bash
+python tools/export_resume_pdf.py \
+  --input documents/zh/resume_<company>.md \
+  --output documents/zh/resume_<company>.pdf
+```
+
+- 向用户明确：上传平台时用 **`.pdf`**；md 只是源文件。
+- 若本机无 Chrome/Chromium/Edge，工具会报错并写出 `.html`，指导用户「打印 → 另存 PDF」。
+- 不要只丢给用户一份 md 就结束本步。
 
 ---
 
@@ -171,6 +181,11 @@ python tools/tracker.py suggest-add \
 
 ## Step 8: 呈现与交付
 
-汇总：`documents/zh/` 下简历、话术、岗位描述、匹配报告；当前投递模式；tracker 命令。
+汇总路径（缺一不可说清楚）：
 
-闭环：搜岗 → 生成 → **按你选的模式投** → tracker。
+- `documents/zh/resume_<company>.md`（源）
+- **`documents/zh/resume_<company>.pdf`（投递用，必须生成）**
+- 话术 / 求职信、岗位描述、匹配报告
+- 当前投递模式 + tracker 命令
+
+闭环：搜岗 → 生成材料 → **导出 PDF** → 按模式投 → tracker。

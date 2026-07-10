@@ -22,7 +22,21 @@ fi
 
 mkdir -p "$OUT"
 
-echo "▶ [1/7] 匹配质量报告（强匹配简历 vs 岗位描述）"
+echo "▶ [0/8] 导出可投递 PDF（默认交付格式）"
+"$PY" tools/export_resume_pdf.py \
+  --input "$DEMO/resume_星云科技.md" \
+  --output "$OUT/resume_星云科技.pdf" \
+  --keep-html
+"$PY" tools/export_resume_pdf.py \
+  --input "$DEMO/tracks/internet/resume.md" \
+  --output "$OUT/resume_互联网样例.pdf"
+"$PY" tools/export_resume_pdf.py \
+  --input "$DEMO/tracks/soe/resume.md" \
+  --output "$OUT/resume_国企样例.pdf"
+echo "  PDF → $OUT/resume_星云科技.pdf"
+
+echo
+echo "▶ [1/8] 匹配质量报告（强匹配简历 vs 岗位描述）"
 "$PY" tools/match_resume.py report \
   --resume "$DEMO/resume_星云科技.md" \
   --jd "$DEMO/jd_星云科技_后端.md" \
@@ -37,14 +51,14 @@ echo "▶ [1/7] 匹配质量报告（强匹配简历 vs 岗位描述）"
   | tee "$OUT/match_report.txt"
 
 echo
-echo "▶ [2/7] 对照：弱匹配简历（分数应明显更低）"
+echo "▶ [2/8] 对照：弱匹配简历（分数应明显更低）"
 "$PY" tools/match_resume.py score \
   --resume "$DEMO/resume_弱匹配.md" \
   --jd "$DEMO/jd_星云科技_后端.md" \
   | tee "$OUT/match_weak.txt"
 
 echo
-echo "▶ [3/7] 本地 Tracker（3 条演示投递）"
+echo "▶ [3/8] 本地 Tracker（3 条演示投递）"
 CSV="$OUT/job_search_tracker.csv"
 rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db"
 "$PY" tools/tracker.py --csv "$CSV" init --force
@@ -67,7 +81,7 @@ rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db"
 "$PY" tools/tracker.py --csv "$CSV" export --format sqlite --out "$OUT/job_search_tracker.db"
 
 echo
-echo "▶ [4/7] 中文人话摘要"
+echo "▶ [4/8] 中文人话摘要"
 "$PY" tools/match_resume.py report --zh-only \
   --resume "$DEMO/resume_星云科技.md" \
   --jd "$DEMO/jd_星云科技_后端.md" \
@@ -75,7 +89,7 @@ echo "▶ [4/7] 中文人话摘要"
   | tee "$OUT/match_brief_zh.txt"
 
 echo
-echo "▶ [5/7] 分赛道对比（互联网 vs 国企）"
+echo "▶ [5/8] 分赛道对比（互联网 vs 国企）"
 "$PY" tools/match_resume.py report --zh-only \
   --resume "$DEMO/tracks/internet/resume.md" \
   --jd "$DEMO/tracks/internet/jd.md" \
@@ -92,7 +106,7 @@ echo "  internet brief → $OUT/track_internet_brief.txt"
 echo "  soe brief      → $OUT/track_soe_brief.txt"
 
 echo
-echo "▶ [6/7] 质量飞轮 diff 演示（弱简历报告 vs 强简历报告）"
+echo "▶ [6/8] 质量飞轮 diff 演示（弱简历报告 vs 强简历报告）"
 "$PY" tools/match_resume.py report --json --no-zh \
   --resume "$DEMO/resume_弱匹配.md" \
   --jd "$DEMO/jd_星云科技_后端.md" \
@@ -103,7 +117,7 @@ echo "▶ [6/7] 质量飞轮 diff 演示（弱简历报告 vs 强简历报告）
   | tee "$OUT/match_diff_v1_v2.txt"
 
 echo
-echo "▶ [7/7] tracker today + suggest-add + 分数断言"
+echo "▶ [7/8] tracker today + suggest-add + 分数断言"
 "$PY" tools/tracker.py --csv "$CSV" today | tee "$OUT/tracker_today.txt"
 "$PY" tools/tracker.py suggest-add \
   --company 星云科技 --role 高级后端 --channel Boss直聘 \
@@ -132,6 +146,9 @@ assert strong > weak.score
 assert strong >= 45
 assert weak.score < 40
 print("  assertion OK: strong ≫ weak + brief_zh present")
+pdf = Path("examples/demo/output/resume_星云科技.pdf")
+assert pdf.is_file() and pdf.stat().st_size > 1000, pdf
+print(f"  pdf OK: {pdf} ({pdf.stat().st_size} bytes)")
 PY
 
 echo
@@ -139,6 +156,7 @@ echo "=========================================="
 echo " Demo 完成 ✓"
 echo "=========================================="
 echo
+echo "  可投递 PDF: $OUT/resume_星云科技.pdf"
 echo "  打开看板: open $OUT/job_search_tracker.html"
 echo "  人话摘要: $OUT/match_brief_zh.txt"
 echo "  今日工作台: $OUT/tracker_today.txt"

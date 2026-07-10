@@ -13,9 +13,10 @@
 | 薪资 | 不写 | 一般不写（面试谈）；猎聘年薪岗可写期望 |
 | 语言 | 英语（或当地官方语言） | 中文（外企可中英双语） |
 
-> **格式建议**：本仓库以 **Markdown** 作为源文件（便于版本管理与 AI 编辑），投递前导出为
-> `.docx`（用 WPS / Word 打开）或 `.pdf`。国内 HR 普遍使用 WPS，且多数ATS以 Word 文本层解析，
-> 故**最终投递优先 .docx**。
+> **交付格式（产品默认）**：Markdown 只作**源文件**；**投递用 PDF**。  
+> 一键导出：运行 tools 目录下的 export_resume_pdf.py（参数 --input 指向 resume 的 md）。  
+> 依赖本机 Chrome / Chromium / Edge 无头打印为 A4 PDF；没有浏览器时会写出 HTML，再用浏览器「打印 → 存 PDF」。  
+> 若某平台强制 Word，再另存 docx；默认仍以 **PDF** 为准。
 
 ## 分赛道模板
 
@@ -49,18 +50,18 @@
 - **关键词对齐 JD**：从职位描述抽取硬性要求，逐条在简历中体现（真实具备的前提下）。
 - **相关性裁剪**：与目标岗位无关的内容果断删减，不为"完整"牺牲聚焦。
 
-## 中文 ATS 注意
+## 投递与解析注意
 
-- 国内平台（智联/猎聘/BOSS）多用 Word 文本层解析，**投递用 .docx** 而非纯图片 PDF。
-- 避免复杂表格、文本框、艺术字——这些会被解析器丢弃。
-- 邮箱与电话写为**正文文字**（不要用图标/图片承载）。
-- 阅读顺序保持单栏，避免多栏混排导致解析错乱。
+- **默认投 PDF**（本仓库 `export_resume_pdf.py` 生成的是可选中文本的 PDF，不是扫描件图片）。
+- 避免复杂表格、文本框、艺术字。
+- 邮箱与电话写在正文里，不要做成图标。
+- 单栏、一页 A4（社招）；版式由导出 CSS 控制，勿在 md 里堆 HTML。
 
 ## 输出文件
 
 - 源文件：`documents/zh/resume_<company>.md`
-- 导出：`documents/zh/resume_<company>.docx`（WPS/Word）或 `.pdf`
-- 定制时以 `templates/zh/resume_<track>.md` 为结构基线，读取对应赛道模板后改写。
+- **投递文件：`documents/zh/resume_<company>.pdf`**（`export_resume_pdf.py` 必出）
+- 定制时以 `templates/zh/resume_<track>.md` 为结构基线。
 
 ## 与原有 LaTeX 流程的关系
 

@@ -7,9 +7,10 @@ bash scripts/demo.sh
 # 或 make demo
 ```
 
-会生成匹配摘要和本地投递表。浏览器打开：
+会生成 **可投递 PDF 简历**、匹配摘要和本地投递表。
 
-`examples/demo/output/job_search_tracker.html`
+- PDF：`examples/demo/output/resume_星云科技.pdf`
+- 看板：`examples/demo/output/job_search_tracker.html`
 
 ## 这里有什么
 
@@ -24,6 +25,12 @@ bash scripts/demo.sh
 
 ## 真用时
 
-`/setup-zh` → `/apply-zh`（贴岗位全文）→ 自己去 App 投 → `python tools/tracker.py add …`
+`/setup-zh` → `/apply-zh`（贴岗位全文 → 出 **PDF**）→ 用 PDF 去 App 投 → `python tools/tracker.py add …`
+
+单独导出 PDF：
+
+```bash
+python tools/export_resume_pdf.py -i documents/zh/resume_公司.md
+```
 
 更多见根目录 README。

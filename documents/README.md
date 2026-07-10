@@ -47,7 +47,8 @@ Your master CV — the most complete, unedited version of your professional reco
 
 国内中文岗的投递产物（由 `/apply-zh`、`/da-zhaohu` 生成），统一放在这一目录：
 
-- `resume_<company>.md` — 中文简历 Markdown 源（`/apply-zh`）；自行导出 PDF/DOCX，或可选 Reactive-Resume（见 `integrations/catalog/resume-build/`）
+- `resume_<company>.md` — 中文简历源（`/apply-zh`）
+- `resume_<company>.pdf` — **投递用 PDF**（`python tools/export_resume_pdf.py -i …` 生成，默认交付格式）
 - `jd_<company>_<role>.md` — 岗位描述原文落盘（文件名沿用 `jd_` 前缀，内容即招聘启事全文，供 `tools/match_resume.py`）
 - `da-zhaohu_<company>_<role>.md` / `cover_<company>_<role>.md` — 打招呼话术 / 正式求职信
 - `match_report_<company>.json` — 生成质量报告（`match_resume.py report`）

@@ -57,8 +57,8 @@
                            │
            ┌───────────────┼───────────────┐
            ▼               ▼               ▼
-     中文简历草稿    打招呼 / 求职信    匹配质量报告
-   documents/zh/     documents/zh/    match_report.json
+     中文简历 PDF    打招呼 / 求职信    匹配质量报告
+   resume_*.pdf      documents/zh/    match_report.json
            │               │               │
            └───────────────┴───────────────┘
                            │
@@ -95,11 +95,11 @@ open examples/demo/output/job_search_tracker.html   # macOS 打开投递看板
 
 | 演示产物 | 路径 |
 |----------|------|
+| **可投递 PDF 简历** | [`examples/demo/output/resume_星云科技.pdf`](./examples/demo/output/resume_星云科技.pdf) |
 | 匹配摘要 | [`examples/demo/output/match_brief_zh.txt`](./examples/demo/output/match_brief_zh.txt) |
-| 匹配报告 | [`examples/demo/output/match_report.json`](./examples/demo/output/match_report.json) |
 | HTML 投递看板 | [`examples/demo/output/job_search_tracker.html`](./examples/demo/output/job_search_tracker.html) |
 | 今日进度 | [`examples/demo/output/tracker_today.txt`](./examples/demo/output/tracker_today.txt) |
-| 互联网 vs 国企样例 | [`examples/demo/tracks/`](./examples/demo/tracks/) |
+| 互联网 / 国企 PDF | `examples/demo/output/resume_互联网样例.pdf` · `resume_国企样例.pdf` |
 
 样例说明：[examples/demo/README.md](./examples/demo/README.md) · Agent 安装：[docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md)
 
@@ -173,16 +173,21 @@ python tools/install_domestic_search.py status
 /setup-zh
 ```
 
-### 3. 丢一份岗位描述，生成材料 + 打分
+### 3. 丢一份岗位描述 → 材料 + PDF + 打分
 
 ```text
 /apply-zh
 （粘贴 Boss/智联 岗位链接或全文）
 ```
 
-会写入 `documents/zh/`：简历草稿、话术、岗位描述原文、**match_report_*.json**。
+写入 `documents/zh/`：简历 md、**简历 PDF（拿去投）**、话术、岗位描述、匹配报告。  
+单独导出 PDF：
 
-### 4. 你去 App 里手动投；回来记一笔
+```bash
+python tools/export_resume_pdf.py -i documents/zh/resume_公司.md
+```
+
+### 4. 用 PDF 在 App 里投；回来记一笔
 
 ```bash
 python tools/tracker.py init
@@ -199,6 +204,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 |----------|------|
 | 一键 Demo | `bash scripts/demo.sh` / 预生成看板与摘要 |
 | 中文简历分赛道模板 + **双赛道样例** | 互联网 vs 国企产出对比 |
+| **可投递 A4 PDF** | `tools/export_resume_pdf.py`（`/apply-zh` 必出 PDF，不是只给 md） |
 | Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
 | 匹配打分 + **人话一页摘要** | `report --zh-only`；禁止虚构写进摘要 |
 | 质量飞轮 | `match_resume.py diff` 对比 v1→v2 |

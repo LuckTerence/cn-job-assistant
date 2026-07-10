@@ -57,6 +57,7 @@ REQUIRED_IGNORE_RULES = [
     "job_search_tracker.html",
     "third_party/",
     "config/apply_mode.yaml",
+    # personal generated PDFs stay ignored; demo samples are allowlisted in .gitignore
 ]
 
 FORBIDDEN_SCRIPTS = {"preinstall", "install", "postinstall", "prepare", "prepack"}
