@@ -38,9 +38,10 @@ python tools/install_domestic_search.py smoke
 | 安装 / 状态 | **本仓库** `tools/install_domestic_search.py` | 打包交付层 |
 | 搜索岗位 | **boss-cli** `boss search` | 逆向 API，城市/薪资/经验等筛选 |
 | 查看推荐 | **boss-cli** `boss recommend` | 推荐流 |
-| 打招呼 | **boss-cli** `boss greet` / `batch-greet` | 单发或批量；本仓库默认**用户确认后**再发 |
+| 打招呼 | **boss-cli** `boss greet` / `batch-greet` | 仅 **auto 模式**且用户完成风险确认后，经 `apply_assist.py` 调用 |
 | 导出 岗位描述 | **boss-cli** `boss export` / `boss detail` | CSV/JSON |
-| AI 话术生成 | **本仓库** `09-da-zhaohu-zh.md` + `/da-zhaohu` | 生成文本后由用户粘贴 |
+| AI 话术生成 | **本仓库** `09-da-zhaohu-zh.md` + `/da-zhaohu` | 生成文本 |
+| 投递模式开关 | **本仓库** `tools/apply_assist.py` | manual / semi / auto，默认 manual |
 
 ## 认证
 
@@ -58,23 +59,29 @@ boss search "golang" --city 杭州 --salary 20-30K --exp 3-5年
 boss show 3
 boss detail <securityId> --json
 boss export "Python" -n 50 -o jobs.csv
-boss greet <securityId>          # 建议先 dry-run / 人工确认
-boss batch-greet "golang" --city 杭州 -n 5 --dry-run
+# 全自动打招呼请走门禁（不要直接 boss greet，除非用户已选 auto）
+python tools/apply_assist.py status
+python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-risk
+# 确认后再加 --execute
 ```
 
 ## 工作流
 
-1. 确认已安装：`python tools/install_domestic_search.py status`
-2. 用户给出目标 → `boss search` / `boss export`
-3. 岗位描述 交给 `/apply-zh` 或 `/da-zhaohu` 生成中文简历/话术
-4. **用户在 App 内手动投递**（或自行确认后使用 `boss greet`）
-5. `python tools/tracker.py add --company … --role … --channel Boss直聘 --status applied`
+1. `python tools/install_domestic_search.py status`
+2. `boss search` / `boss export` 找岗
+3. `/apply-zh` 或 `/da-zhaohu` 生成材料
+4. 按用户模式投递（**默认 manual**）：
+   - **manual**：用户在 App 里自己点
+   - **semi**：`python tools/apply_assist.py semi --url … --text-file …`（仍须用户点发送）
+   - **auto**：`apply_assist.py set-mode auto` + 配置风险项 + `auto-greet … --execute`
+5. `python tools/tracker.py add …`
 
 ## 合规与边界
 
 - 仅作**个人求职辅助**；遵守 Boss直聘 用户协议与 PIPL。
-- **本仓库统一不自动投递**为默认策略；批量打招呼有风控风险。
-- 逆向工具可能触发限流；按 boss-cli 指引处理。
+- **默认 manual，不自动投**；semi / auto 由用户显式打开。
+- auto 可能限流/封号，后果用户自负；Agent 不得静默 `--execute`。
+- 逆向工具可能触发风控；按 boss-cli 指引处理。
 
 ## 与其他技能的配合
 

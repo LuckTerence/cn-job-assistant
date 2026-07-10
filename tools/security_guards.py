@@ -56,6 +56,7 @@ REQUIRED_IGNORE_RULES = [
     "job_search_tracker.db",
     "job_search_tracker.html",
     "third_party/",
+    "config/apply_mode.yaml",
 ]
 
 FORBIDDEN_SCRIPTS = {"preinstall", "install", "postinstall", "prepare", "prepack"}

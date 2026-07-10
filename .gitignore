@@ -75,6 +75,9 @@ job_search_tracker_export.csv
 # Vendored domestic search backends (cloned by install_domestic_search.py)
 third_party/
 
+# Local apply mode (may contain risk acknowledgements; never commit)
+config/apply_mode.yaml
+
 # Upskill reports (personal output)
 upskill/*.md
 

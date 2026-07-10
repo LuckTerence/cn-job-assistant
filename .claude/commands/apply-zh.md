@@ -13,7 +13,7 @@
 - 若 `$ARGUMENTS` 是 URL，用 `WebFetch` 提取 岗位描述 正文；若是文本，直接使用。
 - 抽取：**公司名、岗位名、城市、薪资、经验要求、学历要求、硬性技能、岗位职责**。
 - 若平台是 Boss直聘，标记为"短话术模式"；否则标记为"正式求职信模式"。
-- **落盘 JD**：写入 `documents/zh/jd_<company>_<role>.md`（纯文本即可）。
+- **落盘岗位描述**：写入 `documents/zh/jd_<company>_<role>.md`（纯文本即可；文件名里的 `jd_` 表示岗位描述）。
 
 ---
 
@@ -86,13 +86,74 @@ python tools/match_resume.py diff \
 - [ ] 无虚构经历/技能
 - [ ] 点名公司与岗位
 - [ ] 已出 match 报告 + 人话摘要
-- [ ] 不自动投递
+- [ ] 投递方式按用户选择的模式执行（见 Step 6）；**未选择时默认手动**
 
 ---
 
-## Step 6: Tracker 半自动挂钩（强制展示）
+## Step 6: 投递模式（选择权在用户）
 
-生成结束后，**必须**用工具打印一条可复制命令（把占位换成真实值）：
+先读当前模式（不要替用户改成 auto）：
+
+```bash
+python tools/apply_assist.py status
+```
+
+| 模式 | 行为 | 谁点发送 |
+|------|------|----------|
+| **manual**（默认） | 只给材料路径，用户去 App 操作 | 用户 |
+| **semi** | 打开岗位链接 + 复制话术到剪贴板 | 用户（最后一下） |
+| **auto** | 可走 boss-cli 代发；多重门禁，默认 dry-run | 脚本（高风险） |
+
+### 6A 默认 manual
+
+告知用户：把话术/简历粘贴到 App，自己点发送。
+
+### 6B semi（推荐「好用」）
+
+若用户已 `set-mode semi`，或用户说「半自动 / 帮我打开页面复制话术」，执行：
+
+```bash
+python tools/apply_assist.py semi \
+  --url "<岗位链接，若有>" \
+  --text-file documents/zh/<da-zhaohu或cover文件>.md \
+  --company <公司> --role <岗位> --channel <渠道>
+```
+
+强调：**发送按钮仍须用户自己点**；本步不调用任何自动打招呼 API。
+
+### 6C auto（仅当用户明确要求全自动）
+
+1. 确认用户知道封号风险；引导其：
+   ```bash
+   python tools/apply_assist.py explain
+   python tools/apply_assist.py set-mode auto   # 需输入 YES
+   # 编辑 config/apply_mode.yaml：risk_acknowledgement 三项改为 true
+   ```
+2. **禁止**在未完成上述配置时调用 `boss greet` / `batch-greet`。
+3. 真正发送前必须 dry-run，再由用户加 `--execute`：
+   ```bash
+   python tools/apply_assist.py auto-greet \
+     --security-id <id> \
+     --text-file documents/zh/<话术>.md \
+     --company <公司> \
+     --i-understand-ban-risk
+   # 用户确认后再：
+   python tools/apply_assist.py auto-greet … --i-understand-ban-risk --execute
+   ```
+4. Agent **不得**静默加 `--execute`。
+
+也可用统一入口（auto 不会在此静默发送）：
+
+```bash
+python tools/apply_assist.py after-generate \
+  --url "…" --text-file "…" --company "…" --role "…"
+```
+
+---
+
+## Step 7: Tracker
+
+生成结束后打印可复制命令：
 
 ```bash
 python tools/tracker.py suggest-add \
@@ -104,23 +165,12 @@ python tools/tracker.py suggest-add \
   --source documents/zh/jd_<公司>_<岗位>.md
 ```
 
-把该命令的**完整输出**贴给用户，并说明：
-
-1. 在 App 内**手动**投递后，终端执行上面这条（或让我代跑 `tracker add`）。
-2. 每日入口：`python tools/tracker.py today`
-3. 看板：`python tools/tracker.py dashboard`
-4. 阶段变化：`/outcome <company>`
+说明：投完（无论手动还是自动）都要记一笔；日常用 `tracker.py today` / `dashboard`；阶段变化 `/outcome`。
 
 ---
 
-## Step 7: 呈现与交付
+## Step 8: 呈现与交付
 
-汇总路径：
+汇总：`documents/zh/` 下简历、话术、岗位描述、匹配报告；当前投递模式；tracker 命令。
 
-- `documents/zh/resume_<company>.md`
-- 话术 / 求职信
-- `jd_*` · `match_report_*.json` · `match_brief_*.txt`
-- 上方 **tracker suggest-add** 命令
-
-国内闭环：
-`install_domestic_search` → `/setup-zh` → 搜岗 → `/apply-zh` → 手动投 → `tracker.py today`。
+闭环：搜岗 → 生成 → **按你选的模式投** → tracker。

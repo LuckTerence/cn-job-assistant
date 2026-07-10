@@ -1,0 +1,24 @@
+# 复制为 apply_mode.yaml 后修改（apply_mode.yaml 已 gitignore，不会进仓库）
+#   cp config/apply_mode.example.yaml config/apply_mode.yaml
+#
+# 三档投递模式（选择权在你）：
+#   manual  默认：只生成材料，你在 App 里自己点发送
+#   semi    半自动：打开岗位页 + 复制话术到剪贴板，最后一步仍由你点发送
+#   auto    全自动：调用 boss-cli / 外部工具代发（高风险，默认关，需显式确认）
+
+mode: manual
+
+# 仅当 mode 为 auto 时生效。三项都必须改成 true，否则工具拒绝执行自动发送。
+risk_acknowledgement:
+  # 我已知晓可能违反招聘平台用户协议
+  platform_tos: false
+  # 我接受账号被限流 / 封禁的风险，后果自负
+  account_ban: false
+  # 仅用于个人求职，不用于商业代投
+  personal_use_only: false
+
+auto:
+  # 单次最多处理条数（防止误操作刷爆）
+  max_batch: 5
+  # 为 true 时，auto 子命令若无 --execute 则只打印将要执行的命令
+  default_dry_run: true

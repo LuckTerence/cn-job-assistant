@@ -5,8 +5,8 @@
 <h1 align="center">CN Job Assistant · 国内 AI 求职助手</h1>
 
 <p align="center">
-  <strong>本地优先 · 按岗位描述定制 · 可量化 · 不自动投递</strong><br>
-  把你的 AI Agent 变成「搜岗 → 改简历 / 打招呼 → 打分 → 手动投 → 追踪」的求职工作台
+  <strong>本地优先 · 按岗位描述定制 · 可量化 · 投递方式你选</strong><br>
+  搜岗 → 改简历/话术 → 打分 → <strong>手动 / 半自动 / 全自动（默认手动）</strong> → 记进度
 </p>
 
 <p align="center">
@@ -43,7 +43,7 @@
 | 不知道改得好不好 | 凭感觉 | **本地打分**：关键词 hit/miss + 匹配分（无模型下载） |
 | 投了就忘 | 表格手记 / 重型 Docker 看板 | **零依赖 Tracker**（CSV + HTML 看板） |
 | 工具要登录云、简历外传 | 各类在线 AI 简历站 | **本地优先**，个人数据 gitignore |
-| 全自动触发风控 | 各种「一键海投」 | **默认不自动投递**，合规立场写进产品 |
+| 全自动触发风控 | 各种「一键海投」默认开 | **默认手动**；半自动/全自动由你显式打开并确认风险 |
 
 > 这不是又一个「帮你海投」的脚本合集，而是 **Agent 可读可跑的求职工作流**。
 
@@ -113,6 +113,45 @@ open docs/assets/demo-loop.gif                      # 动图
 
 ---
 
+
+---
+
+## 投递三档（选择权在你）
+
+| 模式 | 做什么 | 谁点发送 | 怎么开 |
+|------|--------|----------|--------|
+| **manual**（默认） | 生成材料，你在 App 里投 | 你 | 不用改，开箱即是 |
+| **semi** 半自动 | 打开岗位页 + 复制话术到剪贴板 | 仍是你（最后一下） | `python tools/apply_assist.py set-mode semi` |
+| **auto** 全自动 | 经 boss-cli 等代发/打招呼 | 脚本 | 见下方，**高风险** |
+
+```bash
+python tools/apply_assist.py explain    # 三档说明
+python tools/apply_assist.py status     # 当前模式
+python tools/apply_assist.py init-config
+```
+
+**半自动示例**（推荐多数人用这个「好用」档）：
+
+```bash
+python tools/apply_assist.py semi \
+  --url 'https://www.zhipin.com/job_detail/…' \
+  --text-file documents/zh/da-zhaohu_某某_后端.md \
+  --company 某某 --role 后端
+# 然后你在打开的页面里粘贴并自己点发送
+```
+
+**全自动**必须同时满足：配置 `mode: auto`、三项风险确认为 true、命令行 `--i-understand-ban-risk`，真正发送再加 `--execute`。默认 dry-run 只打印命令。可能封号，后果自负。
+
+```bash
+python tools/apply_assist.py set-mode auto          # 需输入 YES
+# 编辑 config/apply_mode.yaml 把 risk_acknowledgement 全改 true
+python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-risk
+python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-risk --execute
+```
+
+示例配置：[`config/apply_mode.example.yaml`](./config/apply_mode.example.yaml)（复制为 `config/apply_mode.yaml`，后者 gitignore）。
+
+
 ## 三分钟上手（真实求职）
 
 ### 0. 前置
@@ -179,9 +218,9 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 
 | ⚠️ 明确不做 / 降级 | 说明 |
 |-------------------|------|
-| 默认自动投递 | 产品原则；第三方自动化需你自担风险 |
-| 假装「18 个技能都可跑」 | 重依赖已进 [integrations/catalog](./integrations/catalog/README.md)，带**真实搭建成本** |
-| 替你保证拿到 offer | 分数是启发式，不是录用预测 |
+| 默认就全自动海投 | 默认 **manual**；auto 须配置 + 风险确认 + `--execute` |
+| 假装重依赖也能开箱 | 见 [integrations/catalog](./integrations/catalog/README.md) |
+| 保证拿到 offer | 匹配分只是关键词对齐，不是录用预测 |
 
 ---
 
@@ -239,16 +278,17 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **P0 增长资产** | ✅ | Demo + 动图 + Issue 模板 + 一键脚本 |
 | **P1 体验** | ✅ | 人话报告 / tracker 挂钩 / setup 粘贴简历 / 分赛道样例 / `today` |
 | **P2 分发** | 进行中 | Agent 安装文档已出；话题与社区内容待你发布 |
-| **暂缓** | — | 自动投 / 自研爬虫 / 强制 SaaS / 堆 catalog 重应用 |
+| **投递三档** | ✅ | `tools/apply_assist.py`：manual / semi / auto（选择权在用户） |
+| **暂缓** | — | 自研爬虫协议、强制 SaaS、默认海投 |
 
 ---
 
 ## 合规（写进产品，不是附录）
 
-- **不自动投递**为默认策略，降低平台风控与协议风险  
-- 简历与投递记录含个人信息 → 本地处理，遵守 **PIPL**  
-- **禁止为刷匹配分虚构经历**；`match_resume` 的 miss 列表只作对齐提示  
-- 第三方工具（boss-cli / get_jobs 等）许可证与 ToS 以各自仓库为准；本仓库面向**个人求职**  
+- **默认 manual**（不自动点发送）；semi / auto 由用户显式选择，auto 须风险确认  
+- 简历与投递记录尽量留在本地，遵守 **PIPL**  
+- 不要为刷匹配分虚构经历  
+- boss-cli / get_jobs 等许可证与平台协议以各自仓库与平台为准；个人求职自负风险  
 
 ---
 

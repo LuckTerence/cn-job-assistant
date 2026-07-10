@@ -207,7 +207,7 @@ def cmd_smoke(args: argparse.Namespace) -> int:
         print("smoke: get_jobs not cloned (skip; run install-get-jobs locally)")
 
     # Always verify tracker + matcher companions (core domestic loop)
-    for name in ("tracker.py", "match_resume.py"):
+    for name in ("tracker.py", "match_resume.py", "apply_assist.py"):
         tool = ROOT / "tools" / name
         if not tool.is_file():
             failures.append(f"tools/{name} missing")
