@@ -81,7 +81,7 @@ POSITIVE_OUTCOMES = frozenset(
         "interview_final",
         "offer",
         "hired",
-        "screening",
+        # screening stays open-pipeline, not "进面+" for match-outcome
     }
 )
 NEGATIVE_OUTCOMES = frozenset({"rejected", "no_response", "withdrawn", "offer_declined"})
@@ -172,14 +172,36 @@ def match_rows(
     rows: list[dict[str, str]],
     company: str | None,
     role: str | None,
+    *,
+    channel: str | None = None,
+    exact: bool = False,
 ) -> list[tuple[int, dict[str, str]]]:
+    """Find rows by company/role(/channel).
+
+    exact=False (default, CLI-friendly): substring match on company/role.
+    exact=True (serve / safe write): case-insensitive equality.
+    channel: if set, require channel equality (case-insensitive).
+    """
     hits: list[tuple[int, dict[str, str]]] = []
-    company_l = (company or "").lower()
-    role_l = (role or "").lower()
+    company_l = (company or "").lower().strip()
+    role_l = (role or "").lower().strip()
+    channel_l = (channel or "").lower().strip()
     for i, row in enumerate(rows):
-        if company_l and company_l not in row["company"].lower():
-            continue
-        if role_l and role_l not in row["role"].lower():
+        rc = (row.get("company") or "").lower()
+        rr = (row.get("role") or "").lower()
+        if company_l:
+            if exact:
+                if company_l != rc:
+                    continue
+            elif company_l not in rc:
+                continue
+        if role_l:
+            if exact:
+                if role_l != rr:
+                    continue
+            elif role_l not in rr:
+                continue
+        if channel_l and channel_l != (row.get("channel") or "").lower():
             continue
         hits.append((i, row))
     return hits
@@ -395,14 +417,25 @@ def cmd_list(args: argparse.Namespace) -> int:
 def cmd_update(args: argparse.Namespace) -> int:
     path = _csv_path(args.csv)
     rows = read_rows(path)
-    hits = match_rows(rows, args.company, args.role)
+    match_channel = getattr(args, "match_channel", None)
+    hits = match_rows(
+        rows,
+        args.company,
+        args.role,
+        channel=(match_channel or None) or None,
+    )
     if not hits:
         print("error: no matching row", file=sys.stderr)
         return 1
     if len(hits) > 1 and not args.all:
-        print("error: multiple matches; narrow with --role or pass --all", file=sys.stderr)
+        print(
+            "error: multiple matches; narrow with --role / --match-channel or pass --all",
+            file=sys.stderr,
+        )
         for i, r in hits:
-            print(f"  [{i}] {r['company']} / {r['role']} / {r['status']}")
+            print(
+                f"  [{i}] {r['company']} / {r['role']} / {r.get('channel','')} / {r['status']}"
+            )
         return 1
 
     fields = {
@@ -744,6 +777,26 @@ def _load_match_resume():
     return m
 
 
+_PROFILE_EXPECTED_CACHE: str | None | bool = False  # False = unset
+_SCORE_PAIR_CACHE: dict[tuple[str, str, str], dict] = {}
+
+
+def _profile_expected_cached(m) -> str:
+    global _PROFILE_EXPECTED_CACHE
+    if _PROFILE_EXPECTED_CACHE is not False:
+        return str(_PROFILE_EXPECTED_CACHE or "")
+    exp = ""
+    if m.DEFAULT_PROFILE.is_file():
+        exp = (
+            m.extract_expected_from_profile(
+                m.DEFAULT_PROFILE.read_text(encoding="utf-8", errors="replace")
+            )
+            or ""
+        )
+    _PROFILE_EXPECTED_CACHE = exp
+    return exp
+
+
 def salary_flag_for_row(
     row: dict[str, str],
     *,
@@ -754,11 +807,7 @@ def salary_flag_for_row(
     offered_raw = (row.get("salary") or "").strip()
     exp_raw = (row.get("expected_salary") or "").strip() or (default_expected or "").strip()
     if not exp_raw:
-        # try profile once
-        if m.DEFAULT_PROFILE.is_file():
-            exp_raw = m.extract_expected_from_profile(
-                m.DEFAULT_PROFILE.read_text(encoding="utf-8", errors="replace")
-            ) or ""
+        exp_raw = _profile_expected_cached(m)
     if not offered_raw and not exp_raw:
         return "·"
     offered = m.parse_salary_text(offered_raw) if offered_raw else None
@@ -777,9 +826,14 @@ def score_tracker_rows(
     track: str | None = None,
     limit: int = 0,
 ) -> list[dict]:
-    """Score rows that have local cv_file + source; return ranked dicts."""
+    """Score rows that have local cv_file + source; return ranked dicts.
+
+    Caches by (cv_path, jd_path, track) within process to avoid double work
+    when rank + day-plan run back-to-back (flow shortlist).
+    """
     m = _load_match_resume()
     syn = m.load_synonym_map(track=track)
+    track_key = (track or "").strip()
     want = (status_filter or "").strip().lower()
     candidates = [
         r
@@ -814,21 +868,40 @@ def score_tracker_rows(
                 }
             )
             continue
+        cache_key = (str(cv_p.resolve()), str(jd_p.resolve()), track_key)
+        cached = _SCORE_PAIR_CACHE.get(cache_key)
+        if cached is not None:
+            results.append(
+                {
+                    **base,
+                    "score": cached["score"],
+                    "keyword_coverage": cached["keyword_coverage"],
+                    "verdict": cached["verdict"],
+                    "miss_top": list(cached.get("miss_top") or []),
+                    "error": "",
+                    "stored_score": r.get("match_score", ""),
+                    "from_cache": True,
+                }
+            )
+            continue
         try:
             result = m.match_texts(
                 cv_p.read_text(encoding="utf-8", errors="replace"),
                 jd_p.read_text(encoding="utf-8", errors="replace"),
                 synonym_map=syn,
             )
+            payload = {
+                "score": result.score,
+                "keyword_coverage": result.keyword_coverage,
+                "verdict": result.verdict,
+                "miss_top": result.keywords.miss[:5],
+            }
+            _SCORE_PAIR_CACHE[cache_key] = payload
             results.append(
                 {
                     **base,
-                    "score": result.score,
-                    "keyword_coverage": result.keyword_coverage,
-                    "verdict": result.verdict,
-                    "miss_top": result.keywords.miss[:5],
+                    **payload,
                     "error": "",
-                    # Prefer live score; fall back to stored columns
                     "stored_score": r.get("match_score", ""),
                 }
             )
@@ -935,6 +1008,7 @@ def export_html(csv_path: Path, html_path: Path, *, live: bool = False) -> None:
     stats = compute_stats(rows, today)
     skip_stats = compute_skip_stats(rows)
     funnel = compute_funnel(rows)
+    match_outcome = compute_match_outcome(rows)
     open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
     closed_rows = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
     encouragement = _pick_encouragement(rows, today)
@@ -952,9 +1026,47 @@ def export_html(csv_path: Path, html_path: Path, *, live: bool = False) -> None:
     statuses_sorted = sorted(status_counts.items(), key=lambda x: (-x[1], x[0]))
 
     visible_cols = [c for c in HEADER if any(r.get(c, "").strip() for r in rows)] or HEADER
+    # Prefer showing match columns when any score exists (quality flywheel)
+    for col in ("match_score", "match_coverage", "match_verdict"):
+        if any((r.get(col) or "").strip() for r in rows) and col not in visible_cols:
+            visible_cols.append(col)
 
     def esc(s: str) -> str:
         return html.escape(str(s or ""))
+
+    def render_match_outcome_card() -> str:
+        if match_outcome.get("scored", 0) <= 0:
+            return ""
+        rows_html = []
+        for b in match_outcome.get("bands") or []:
+            if not b.get("n"):
+                continue
+            avg = b.get("avg_score")
+            avg_s = "—" if avg is None else f"{avg:.0f}"
+            rows_html.append(
+                f"<tr><td><code>{esc(b['band'])}</code></td>"
+                f"<td>{b['n']}</td><td>{esc(avg_s)}</td>"
+                f"<td>{b['positive']}</td><td>{b['negative']}</td>"
+                f"<td>{esc(b.get('positive_rate_closed') or '—')}</td></tr>"
+            )
+        if not rows_html:
+            return ""
+        ready = (
+            "样本可粗判策略"
+            if match_outcome.get("signal_ready")
+            else "分数样本仍少，继续 gate 后写入 match_score"
+        )
+        return (
+            '<div class="card card-match">'
+            f'<div class="card-title">🎯 匹配分 × 结果（有分 {match_outcome["scored"]}/{match_outcome["total"]}）</div>'
+            '<table class="mini"><thead><tr>'
+            "<th>band</th><th>n</th><th>avg</th><th>进面+</th><th>拒/无</th><th>关闭进面率</th>"
+            "</tr></thead><tbody>"
+            + "".join(rows_html)
+            + "</tbody></table>"
+            f'<div class="card-hint">{esc(ready)} · CLI: tracker match-outcome</div>'
+            "</div>"
+        )
 
     def render_skip_signal() -> str:
         if skip_stats["total_skipped"] <= 0:
@@ -1075,6 +1187,9 @@ def export_html(csv_path: Path, html_path: Path, *, live: bool = False) -> None:
         funnel_card = render_funnel()
         if funnel_card:
             cards.insert(0, funnel_card)
+        match_card = render_match_outcome_card()
+        if match_card:
+            cards.append(match_card)
         skip_card = render_skip_signal()
         if skip_card:
             cards.append(skip_card)
@@ -1356,6 +1471,11 @@ def export_html(csv_path: Path, html_path: Path, *, live: bool = False) -> None:
   .card-rv {{ border-left-color: var(--accent-rv); }}
   .card-skip {{ border-left-color: #dc2626; }}
   .card-funnel {{ border-left-color: #0d9488; }}
+  .card-match {{ border-left-color: #7c3aed; }}
+  .card-match table.mini {{ width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.4rem; }}
+  .card-match table.mini th, .card-match table.mini td {{
+    text-align: left; padding: 0.2rem 0.35rem; border-bottom: 1px solid var(--border);
+  }}
   .funnel-row {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0.4rem 0; }}
   .funnel-step {{ background: rgba(13,148,136,.12); padding: 0.35rem 0.6rem; border-radius: 8px;
                   text-align: center; min-width: 3.2rem; }}
@@ -1536,20 +1656,27 @@ def cmd_serve(args: argparse.Namespace) -> int:
                 )
                 return
             rows = read_rows(path)
-            hits = match_rows(rows, company, role or None)
-            if channel:
-                hits = [
-                    (i, r)
-                    for i, r in hits
-                    if (r.get("channel") or "").lower() == channel.lower()
-                ]
+            # Exact match only — never bulk-update substring hits (P0 safety)
+            hits = match_rows(
+                rows,
+                company,
+                role or None,
+                channel=channel or None,
+                exact=True,
+            )
             if not hits:
                 self._send(404, b'{"error":"no matching row"}', "application/json")
                 return
-            if len(hits) > 1 and not role:
+            if len(hits) > 1:
                 self._send(
                     400,
-                    b'{"error":"multiple matches; need role"}',
+                    _json.dumps(
+                        {
+                            "error": "multiple matches; refine company/role/channel",
+                            "count": len(hits),
+                        },
+                        ensure_ascii=False,
+                    ).encode(),
                     "application/json",
                 )
                 return
@@ -1566,15 +1693,15 @@ def cmd_serve(args: argparse.Namespace) -> int:
                         "application/json",
                     )
                     return
-            for i, _ in hits:
-                rows[i]["status"] = status
-                if status.lower() == "skipped":
-                    rows[i]["skip_reason"] = skip_reason
-                else:
-                    rows[i]["skip_reason"] = ""
+            i, _ = hits[0]
+            rows[i]["status"] = status
+            if status.lower() == "skipped":
+                rows[i]["skip_reason"] = skip_reason
+            else:
+                rows[i]["skip_reason"] = ""
             write_rows(path, rows)
             body = _json.dumps(
-                {"ok": True, "company": company, "status": status},
+                {"ok": True, "company": company, "status": status, "updated": 1},
                 ensure_ascii=False,
             ).encode()
             self._send(200, body, "application/json")
@@ -1809,7 +1936,8 @@ def cmd_rank(args: argparse.Namespace) -> int:
         print("今日短名单: python tools/tracker.py day-plan")
 
     if args.write_fit:
-        # Write score into fit_rating + dedicated match_* columns
+        # Write score into fit_rating + dedicated match_* columns (status-scoped)
+        want_st = status.lower()
         by_key = {
             (
                 (r.get("company") or "").lower(),
@@ -1819,8 +1947,11 @@ def cmd_rank(args: argparse.Namespace) -> int:
             for r in ranked
             if r.get("score") is not None
         }
+        scored_total = len(by_key)
         changed = 0
         for row in rows:
+            if want_st and (row.get("status") or "").lower() != want_st:
+                continue
             key = (
                 row.get("company", "").lower(),
                 row.get("role", "").lower(),
@@ -1836,8 +1967,12 @@ def cmd_rank(args: argparse.Namespace) -> int:
                 changed += 1
         if changed:
             write_rows(path, rows)
+            extra = ""
+            if limit and scored_total and changed < scored_total:
+                extra = f"（limit={limit}，仅写入本页排序结果）"
             print(
-                f"已写入 fit_rating + match_score/coverage/verdict（{changed} 行）→ {path}",
+                f"已写入 fit_rating + match_score/coverage/verdict"
+                f"（{changed}/{scored_total} 行{extra}）→ {path}",
                 file=sys.stderr,
             )
     if args.out:
@@ -2302,11 +2437,12 @@ def import_job_rows(
     """
     rows = [dict(r) for r in existing]
     stats = {"added": 0, "skipped_dup": 0, "filled": 0, "forced": 0, "invalid": 0}
-    count = 0
     for job in jobs:
-        if limit is not None and count >= limit:
+        # limit = max successful mutations (add/fill/force), not raw loop count
+        if limit is not None and (
+            stats["added"] + stats["filled"] + stats["forced"]
+        ) >= limit:
             break
-        count += 1
         company = job.get("company", "").strip()
         if not company:
             stats["invalid"] += 1
@@ -2632,6 +2768,12 @@ def build_parser() -> argparse.ArgumentParser:
     up_p = sub.add_parser("update", help="update matching row(s)")
     up_p.add_argument("--company", required=True)
     up_p.add_argument("--role", default="")
+    up_p.add_argument(
+        "--match-channel",
+        default=None,
+        dest="match_channel",
+        help="disambiguate row by channel (select filter; not the same as --channel write)",
+    )
     up_p.add_argument("--all", action="store_true")
     up_p.add_argument("--status", default=None)
     up_p.add_argument("--notes", default=None, help="replace notes field")
@@ -2743,7 +2885,7 @@ def build_parser() -> argparse.ArgumentParser:
     rank_p.add_argument(
         "--write-fit",
         action="store_true",
-        help="write score into fit_rating column for scored rows",
+        help="write score into fit_rating + match_score/coverage/verdict (status-scoped)",
     )
     rank_p.set_defaults(func=cmd_rank)
 

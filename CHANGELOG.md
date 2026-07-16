@@ -3,6 +3,27 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.2.1] — 2026-07-17
+
+### 门禁误杀修复 + 安全/性能/1.2 接线补全
+
+| 修复 | 说明 |
+|------|------|
+| **诚信** | `metric_not_in_profile` → medium（不再 HARD_FAIL 误杀真实简历）；支持 `99.95%` 等小数 |
+| **serve** | 状态更新改为 **exact** company/role/channel，禁止子串批量误改 |
+| **flow --skip-import** | 有 `--jobs` 时也真正跳过 import |
+| **rank --write-fit** | 仅写当前 status 过滤行；帮助文案同步 match_* |
+| **import --limit** | 按成功写入计数，不按原始循环 |
+| **性能** | rank/day-plan 复用 (cv,jd,track) 打分缓存；画像期望薪资读一次 |
+| **看板** | 匹配分×结果卡片；demo 写入 match_score + gate + match-outcome |
+| **CLI** | `update --match-channel`；quality_gate 错误 profile 路径 exit 3 |
+| **文档** | 根 `SKILL.md` / outcome 表头对齐 1.2 |
+
+```bash
+python tools/quality_gate.py --resume r.md --jd j.md   # 量化缺画像不再硬拦
+python tools/tracker.py serve                          # 精确一行改状态
+```
+
 ## [1.2.0] — 2026-07-17
 
 ### 投前质量门禁 + AI/ATS 过筛 + 匹配归因

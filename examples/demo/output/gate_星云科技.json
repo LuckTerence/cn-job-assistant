@@ -1,0 +1,226 @@
+{
+  "gate_status": "PASS",
+  "ok": true,
+  "hard_reasons": [],
+  "soft_reasons": [],
+  "match": {
+    "score": 74.1,
+    "coverage": 81.0,
+    "verdict": "strong_match",
+    "still_missing": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "miss_core": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "miss_nice": [],
+    "salary": {
+      "verdict": "jd_only",
+      "signal": "·",
+      "label": "仅 JD",
+      "summary": "JD 约 25K–40K/月（原文 25-40K）；画像未填期望，无法对比。",
+      "expected_raw": "",
+      "offered_raw": "25-40K",
+      "expected_monthly": null,
+      "offered_monthly": {
+        "low": 25000.0,
+        "high": 40000.0
+      },
+      "expected_input": ""
+    }
+  },
+  "integrity": {
+    "ok": true,
+    "warning_count": 2,
+    "high_count": 0,
+    "warnings": [
+      {
+        "type": "metric_not_in_profile",
+        "severity": "medium",
+        "items": [
+          "10万",
+          "35%",
+          "3倍",
+          "40%",
+          "99.95%"
+        ],
+        "hint": "简历里的量化数字未在画像中出现——请人工确认是否真实，禁止为刷分编造。（不阻断投递；联系方式不一致仍会硬阻断。）"
+      },
+      {
+        "type": "years_only_in_resume",
+        "severity": "low",
+        "items": [
+          "2016",
+          "2020",
+          "2021"
+        ],
+        "hint": "多个年份只在简历出现——可能正常（格式差异），请扫一眼时间线。"
+      }
+    ],
+    "summary": "未发现高严重度不一致"
+  },
+  "ats": {
+    "status": "skip",
+    "ok": true,
+    "message": "skip: pdftotext not installed (brew install poppler)",
+    "checks": [
+      {
+        "id": "text_length",
+        "ok": true,
+        "detail": "448 non-space chars",
+        "hint": "文本过短可能是图片 PDF"
+      },
+      {
+        "id": "no_cid_garbage",
+        "ok": true,
+        "detail": "clean",
+        "hint": "换 Typst / 系统中文字体重导"
+      },
+      {
+        "id": "single_column_hint",
+        "ok": true,
+        "detail": "prefer classic/compact single-column templates",
+        "hint": "多栏/图表简历易打乱 ATS 阅读顺序"
+      }
+    ],
+    "source": "markdown_fallback"
+  },
+  "action_checklist": [
+    {
+      "priority": 1,
+      "term": "大模型",
+      "kind": "core",
+      "action": "若你确实用过「大模型」，在**某一段工作/项目经历**里补一句：动作 + 大模型 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+      "fiction_forbidden": true
+    },
+    {
+      "priority": 2,
+      "term": "llm",
+      "kind": "core",
+      "action": "若你确实用过「llm」，在**某一段工作/项目经历**里补一句：动作 + llm + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+      "fiction_forbidden": true
+    },
+    {
+      "priority": 3,
+      "term": "架构",
+      "kind": "core",
+      "action": "若你确实用过「架构」，在**某一段工作/项目经历**里补一句：动作 + 架构 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+      "fiction_forbidden": true
+    }
+  ],
+  "edit_top3": [
+    "[大模型] 若你确实用过「大模型」，在**某一段工作/项目经历**里补一句：动作 + 大模型 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+    "[llm] 若你确实用过「llm」，在**某一段工作/项目经历**里补一句：动作 + llm + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+    "[架构] 若你确实用过「架构」，在**某一段工作/项目经历**里补一句：动作 + 架构 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。"
+  ],
+  "brief_zh": {
+    "tone_open": "这份和你挺匹配的。",
+    "headline": "综合 74.1/100（匹配较强），关键词覆盖 81.0%",
+    "still_missing": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "miss_core": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "miss_nice": [],
+    "true_gap": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "synonym_hit": [],
+    "already_hit": [
+      "高并发",
+      "微服务",
+      "后端",
+      "高可用",
+      "数据结构",
+      "消息队列",
+      "ci/cd",
+      "docker"
+    ],
+    "cover_only": [],
+    "edit_top3": [
+      "[大模型] 若你确实用过「大模型」，在**某一段工作/项目经历**里补一句：动作 + 大模型 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+      "[llm] 若你确实用过「llm」，在**某一段工作/项目经历**里补一句：动作 + llm + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+      "[架构] 若你确实用过「架构」，在**某一段工作/项目经历**里补一句：动作 + 架构 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。"
+    ],
+    "action_checklist": [
+      {
+        "priority": 1,
+        "term": "大模型",
+        "kind": "core",
+        "action": "若你确实用过「大模型」，在**某一段工作/项目经历**里补一句：动作 + 大模型 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+        "fiction_forbidden": true
+      },
+      {
+        "priority": 2,
+        "term": "llm",
+        "kind": "core",
+        "action": "若你确实用过「llm」，在**某一段工作/项目经历**里补一句：动作 + llm + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+        "fiction_forbidden": true
+      },
+      {
+        "priority": 3,
+        "term": "架构",
+        "kind": "core",
+        "action": "若你确实用过「架构」，在**某一段工作/项目经历**里补一句：动作 + 架构 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+        "fiction_forbidden": true
+      }
+    ],
+    "action_by_band": "基本匹配，建议把上面「核心硬技能」里你确实会的补进简历；不会的别编。",
+    "salary": {
+      "verdict": "jd_only",
+      "signal": "·",
+      "label": "仅 JD",
+      "summary": "JD 约 25K–40K/月（原文 25-40K）；画像未填期望，无法对比。",
+      "expected_raw": "",
+      "offered_raw": "25-40K",
+      "expected_monthly": null,
+      "offered_monthly": {
+        "low": 25000.0,
+        "high": 40000.0
+      },
+      "expected_input": ""
+    },
+    "compliance": "不会的技能别硬写上去刷分。",
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。「同义词已对齐」≠ 简历写了 JD 原词；「真缺口」才是仍未覆盖的词。"
+  },
+  "deliverables": {
+    "resume_md": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md",
+    "jd": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md",
+    "cover": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/da-zhaohu_星云科技_后端.md",
+    "pdf": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/resume_星云科技.pdf",
+    "paste_ready": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md",
+    "profile": "/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/CLAUDE.zh.md"
+  },
+  "export_note": "",
+  "thresholds": {
+    "min_score": 40.0,
+    "min_coverage": 25.0
+  },
+  "compliance": "禁止为过门禁虚构技能或业绩；只会的才写进「改这 3 条」。",
+  "match_summary": {
+    "resume_score": 76.3,
+    "combined_score": 74.1,
+    "keyword_coverage_combined": 81.0,
+    "verdict": "strong_match",
+    "missing_count": 4,
+    "hit_count": 17,
+    "salary_verdict": "jd_only",
+    "salary_signal": "·"
+  }
+}

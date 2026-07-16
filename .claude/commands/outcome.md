@@ -38,11 +38,12 @@ Follow these steps **in order**.
    python tools/tracker.py init
    ```
 
-   Full header (18 columns; optional fields may be empty):
+   Full header (22 columns; optional fields may be empty):
 
    ```
    date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,
-   cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason
+   cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason,expected_salary,
+   match_score,match_coverage,match_verdict
    ```
 
 2. **With an argument:** match rows case-insensitively on company (and role, if given). One match → proceed. Several → list them and ask. None → application was made outside the workflow; collect company, role, date applied, channel, posting URL / `documents/zh/jd_*` path, then:

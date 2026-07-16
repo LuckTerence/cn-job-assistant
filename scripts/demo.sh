@@ -77,15 +77,18 @@ rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db" "$OUT/s
   --cv "examples/demo/resume_星云科技.md" \
   --cover "examples/demo/da-zhaohu_星云科技_后端.md" \
   --source "examples/demo/jd_星云科技_后端.md" \
+  --match-score 78 --match-coverage 80 --match-verdict strong_match \
   --notes "demo: 已生成材料，待手动投递"
 "$PY" tools/tracker.py --csv "$CSV" add \
   --company 青梧数据 --role 后端开发 --channel 智联 \
   --status interview --fit "demo" \
   --city 上海 --salary 30-45K \
+  --match-score 72 --match-coverage 65 --match-verdict moderate_match \
   --notes "demo: 二面中"
 "$PY" tools/tracker.py --csv "$CSV" add \
   --company 北岸出行 --role 服务端 --channel 猎聘 \
   --status rejected --city 北京 \
+  --match-score 55 --match-coverage 40 --match-verdict partial_match \
   --notes "demo: 已结束 → 可 /outcome 复盘 + match diff"
 # Phase 1：评估后不投（带 skip_reason，供 skip-stats / 看板「不投信号」）
 "$PY" tools/tracker.py --csv "$CSV" add \
@@ -116,13 +119,21 @@ rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db" "$OUT/s
   --company 字节示例 --role 后端开发 \
   --cv "$DEMO/resume_弱匹配.md" \
   --source "$DEMO/jd_星云科技_后端.md" || true
-"$PY" tools/tracker.py --csv "$CSV" rank --track internet | tee "$OUT/rank.txt"
+"$PY" tools/tracker.py --csv "$CSV" rank --track internet --write-fit | tee "$OUT/rank.txt"
 "$PY" tools/tracker.py --csv "$CSV" day-plan --limit 3 --track internet \
   --expected-salary '25-40K' | tee "$OUT/day_plan.txt"
 "$PY" tools/flow.py --csv "$CSV" shortlist --limit 3 --track internet \
   --expected '25-40K' 2>"$OUT/flow_shortlist.err" | tee "$OUT/flow_shortlist.txt" || true
 # shortlist without --jobs reuses existing CSV (import already done)
 "$PY" tools/tracker.py --csv "$CSV" funnel | tee "$OUT/funnel.txt"
+"$PY" tools/tracker.py --csv "$CSV" match-outcome | tee "$OUT/match_outcome.txt"
+"$PY" tools/quality_gate.py \
+  --resume "$DEMO/resume_星云科技.md" \
+  --jd "$DEMO/jd_星云科技_后端.md" \
+  --cover "$DEMO/da-zhaohu_星云科技_后端.md" \
+  --pdf "$OUT/resume_星云科技.pdf" \
+  --out "$OUT/gate_星云科技.json" \
+  --zh-only | tee "$OUT/gate_brief.txt" || true
 "$PY" tools/tracker.py --csv "$CSV" dashboard --out "$OUT/job_search_tracker.html"
 "$PY" tools/tracker.py --csv "$CSV" export --format sqlite --out "$OUT/job_search_tracker.db"
 

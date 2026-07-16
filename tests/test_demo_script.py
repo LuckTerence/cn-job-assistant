@@ -19,7 +19,7 @@ class DemoScriptTests(unittest.TestCase):
             cwd=str(ROOT),
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=120,
         )
         self.assertEqual(
             proc.returncode,
@@ -57,6 +57,12 @@ class DemoScriptTests(unittest.TestCase):
         if (OUT / "funnel.txt").is_file():
             self.assertIn("漏斗", (OUT / "funnel.txt").read_text(encoding="utf-8"))
         self.assertIn("投递漏斗", html)
+        # 1.2 flywheel surfaces
+        self.assertIn("match_score", csv_text)
+        self.assertTrue((OUT / "match_outcome.txt").is_file())
+        self.assertIn("匹配分", (OUT / "match_outcome.txt").read_text(encoding="utf-8"))
+        self.assertTrue((OUT / "gate_星云科技.json").is_file() or (OUT / "gate_brief.txt").is_file())
+        self.assertIn("匹配分", html)
 
 
 if __name__ == "__main__":

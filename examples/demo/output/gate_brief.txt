@@ -1,0 +1,31 @@
+【投前质量门禁】✅ PASS
+匹配 74.1/100 · 覆盖 81.0% · 匹配较强
+
+门禁通过：材料可投（仍建议人工扫一眼真实性和公司名）。
+
+诚信：未发现高严重度不一致
+  ⚠️ metric_not_in_profile: 简历里的量化数字未在画像中出现——请人工确认是否真实，禁止为刷分编造。（不阻断投递；联系方式不一致仍会硬阻断。）
+  · years_only_in_resume: 多个年份只在简历出现——可能正常（格式差异），请扫一眼时间线。
+
+ATS：skip — skip: pdftotext not installed (brew install poppler)
+  ✅ text_length: 448 non-space chars
+  ✅ no_cid_garbage: clean
+  ✅ single_column_hint: prefer classic/compact single-column templates
+
+【改这 3 条】（只写真实经历；不会的标缺口）
+  1. 大模型（core）
+     → 若你确实用过「大模型」，在**某一段工作/项目经历**里补一句：动作 + 大模型 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。
+  2. llm（core）
+     → 若你确实用过「llm」，在**某一段工作/项目经历**里补一句：动作 + llm + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。
+  3. 架构（core）
+     → 若你确实用过「架构」，在**某一段工作/项目经历**里补一句：动作 + 架构 + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。
+
+薪资：· 仅 JD — JD 约 25K–40K/月（原文 25-40K）；画像未填期望，无法对比。
+
+交付物：
+  · 粘贴稿（md）: /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md
+  · 上传稿（pdf）: /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/resume_星云科技.pdf
+  · 话术: /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/da-zhaohu_星云科技_后端.md
+
+禁止为过门禁虚构技能或业绩；只会的才写进「改这 3 条」。
+分数是本地关键词对齐，不是录用预测。过门禁 ≠ 必进面。

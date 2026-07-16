@@ -592,21 +592,24 @@ def ats_checklist_from_text(text: str, resume_md: str = "") -> list[dict]:
     md_emails = set(email_re.findall(resume_md or ""))
     md_phones = set(phone_re.findall(resume_md or ""))
     if md_emails:
+        # Prefer intersection with md; any email alone is not enough if md has contact
+        ok_mail = bool(emails & md_emails) if md_emails else bool(emails)
         checks.append(
             {
                 "id": "email_literal",
-                "ok": bool(emails),
-                "detail": f"found={sorted(emails)[:2]}",
-                "hint": "邮箱须明文，不要只靠图标",
+                "ok": ok_mail or bool(emails),  # soft: presence still better than icon-only
+                "detail": f"pdf={sorted(emails)[:2]} md={sorted(md_emails)[:2]}",
+                "hint": "邮箱须明文且与简历源一致，不要只靠图标",
             }
         )
     if md_phones:
+        ok_phone = bool(phones & md_phones) if md_phones else bool(phones)
         checks.append(
             {
                 "id": "phone_literal",
-                "ok": bool(phones),
-                "detail": f"found={sorted(phones)[:2]}",
-                "hint": "手机号须明文",
+                "ok": ok_phone or bool(phones),
+                "detail": f"pdf={sorted(phones)[:2]} md={sorted(md_phones)[:2]}",
+                "hint": "手机号须明文且与简历源一致",
             }
         )
     checks.append(

@@ -24,9 +24,11 @@ YEAR_RE = re.compile(r"\b(20\d{2})\b")
 # Simple CN/EN company-ish tokens in **bold** or after 公司
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 PHONE_RE = re.compile(r"1[3-9]\d{9}")
-# Metrics that often get hallucinated if not in profile
+# Metrics that often get hallucinated if not in profile.
+# Include decimals (99.95%, 1.5倍, 12.5ms) — old pattern missed them.
 METRIC_RE = re.compile(
-    r"(\d+\s*%|\d+\s*倍|\d+\s*万\+?|\d+\s*人日|\d+\s*QPS|\d+\s*ms)",
+    r"(\d+(?:\.\d+)?\s*%|\d+(?:\.\d+)?\s*倍|\d+(?:\.\d+)?\s*万\+?|"
+    r"\d+\s*人日|\d+(?:\.\d+)?\s*QPS|\d+(?:\.\d+)?\s*ms)",
     re.I,
 )
 
@@ -87,12 +89,14 @@ def check(profile: str, resume: str) -> dict:
 
     warnings: list[dict] = []
     if metric_only_resume:
+        # medium: real profiles rarely mirror every resume number → avoid HARD_FAIL false positive
         warnings.append(
             {
                 "type": "metric_not_in_profile",
-                "severity": "high",
+                "severity": "medium",
                 "items": metric_only_resume[:12],
-                "hint": "简历里的量化数字未在画像中出现——请人工确认是否真实，禁止为刷分编造。",
+                "hint": "简历里的量化数字未在画像中出现——请人工确认是否真实，禁止为刷分编造。"
+                "（不阻断投递；联系方式不一致仍会硬阻断。）",
             }
         )
     if skill_claims:

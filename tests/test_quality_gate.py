@@ -70,8 +70,8 @@ class QualityGateTests(unittest.TestCase):
         )
         self.assertEqual(rc, 0)
 
-    def test_integrity_hard_fail(self) -> None:
-        # Resume invents a metric and phone not in sparse profile
+    def test_integrity_hard_fail_on_contact(self) -> None:
+        # Phone/email mismatch stays HARD; metrics alone are medium (soft)
         with tempfile.TemporaryDirectory() as tmp:
             prof = Path(tmp) / "p.md"
             res = Path(tmp) / "r.md"
@@ -101,6 +101,27 @@ class QualityGateTests(unittest.TestCase):
             )
             self.assertEqual(rc, 2)
 
+    def test_metric_only_is_not_hard(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            prof = Path(tmp) / "p.md"
+            res = Path(tmp) / "r.md"
+            jd = Path(tmp) / "j.md"
+            prof.write_text("# 画像\nPython 后端\n邮箱 a@b.com\n手机 13900000000\n", encoding="utf-8")
+            res.write_text(
+                "# 测\na@b.com · 13900000000\nPython 后端 提升 50% QPS 1000\n",
+                encoding="utf-8",
+            )
+            jd.write_text("需要 Python 后端 高并发\n", encoding="utf-8")
+            result = qg.run_gate(
+                resume_path=res,
+                jd_path=jd,
+                profile_path=prof,
+            )
+            self.assertNotEqual(result["gate_status"], "HARD_FAIL")
+            types = {w["type"]: w["severity"] for w in result["integrity"]["warnings"]}
+            if "metric_not_in_profile" in types:
+                self.assertEqual(types["metric_not_in_profile"], "medium")
+
 
 class MatchOutcomeTests(unittest.TestCase):
     def test_compute_match_outcome_bands(self) -> None:
@@ -121,6 +142,76 @@ class MatchOutcomeTests(unittest.TestCase):
         self.assertEqual(bands["high"]["n"], 2)
         self.assertEqual(bands["high"]["positive"], 1)
         self.assertEqual(bands["low"]["skipped"], 1)
+
+    def test_match_rows_exact_and_channel(self) -> None:
+        import tracker  # noqa: E402
+
+        rows = [
+            {"company": "Acme", "role": "后端", "channel": "Boss"},
+            {"company": "Acme", "role": "高级后端", "channel": "智联"},
+            {"company": "Acme", "role": "后端", "channel": "智联"},
+        ]
+        sub = tracker.match_rows(rows, "Acme", "后端", exact=False)
+        self.assertEqual(len(sub), 3)  # substring hits 高级后端 too
+        exact = tracker.match_rows(rows, "Acme", "后端", exact=True)
+        self.assertEqual(len(exact), 2)
+        ch = tracker.match_rows(rows, "Acme", "后端", channel="Boss", exact=True)
+        self.assertEqual(len(ch), 1)
+
+    def test_write_fit_status_scoped(self) -> None:
+        import tracker  # noqa: E402
+
+        with tempfile.TemporaryDirectory() as tmp:
+            csv = Path(tmp) / "t.csv"
+            fix = ROOT / "tests" / "fixtures"
+            tracker.main(["--csv", str(csv), "init"])
+            tracker.main(
+                [
+                    "--csv",
+                    str(csv),
+                    "add",
+                    "--company",
+                    "Good",
+                    "--role",
+                    "BE",
+                    "--status",
+                    "to_apply",
+                    "--cv",
+                    str(fix / "resume_backend_good.md"),
+                    "--source",
+                    str(fix / "jd_backend_sample.md"),
+                ]
+            )
+            tracker.main(
+                [
+                    "--csv",
+                    str(csv),
+                    "add",
+                    "--company",
+                    "Good",
+                    "--role",
+                    "BE",
+                    "--channel",
+                    "other",
+                    "--status",
+                    "applied",
+                    "--cv",
+                    str(fix / "resume_backend_good.md"),
+                    "--source",
+                    str(fix / "jd_backend_sample.md"),
+                    "--force",
+                ]
+            )
+            rc = tracker.main(
+                ["--csv", str(csv), "rank", "--status", "to_apply", "--write-fit"]
+            )
+            self.assertEqual(rc, 0)
+            rows = tracker.read_rows(csv)
+            by_st = {r["status"]: r for r in rows}
+            self.assertTrue((by_st["to_apply"].get("match_score") or "").strip())
+            # applied same company/role different channel may share key with empty channel...
+            # channel "other" vs "" — different keys; applied should not be written
+            self.assertFalse((by_st["applied"].get("match_score") or "").strip())
 
 
 if __name__ == "__main__":

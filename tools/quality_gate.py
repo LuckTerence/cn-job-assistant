@@ -26,9 +26,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -64,106 +61,35 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def _ats_text_checks(text: str, resume_md: str = "") -> list[dict]:
-    """Structured ATS parseability signals from extracted PDF text (or md fallback)."""
-    checks: list[dict] = []
-    compact = re.sub(r"\s+", "", text or "")
-    checks.append(
-        {
-            "id": "text_length",
-            "ok": len(compact) >= 40,
-            "detail": f"{len(compact)} non-space chars",
-            "hint": "文本过短可能是图片 PDF，ATS 读不到",
-        }
-    )
-    has_cid = "cid:" in (text or "").lower() or "\ufffd" in (text or "")
-    checks.append(
-        {
-            "id": "no_cid_garbage",
-            "ok": not has_cid,
-            "detail": "cid/replacement found" if has_cid else "clean",
-            "hint": "出现 (cid:*) 或 � 时换 Typst/字体重导",
-        }
-    )
-    emails = set(cpr.EMAIL_RE.findall(text or ""))
-    phones = set(cpr.PHONE_RE.findall(text or ""))
-    md_emails = set(cpr.EMAIL_RE.findall(resume_md or ""))
-    md_phones = set(cpr.PHONE_RE.findall(resume_md or ""))
-    if md_emails:
-        checks.append(
-            {
-                "id": "email_literal",
-                "ok": bool(emails & md_emails) or bool(emails),
-                "detail": f"pdf={sorted(emails)[:2]} md={sorted(md_emails)[:2]}",
-                "hint": "邮箱须以明文出现在 PDF 文本层，不要只放图标",
-            }
-        )
-    if md_phones:
-        checks.append(
-            {
-                "id": "phone_literal",
-                "ok": bool(phones & md_phones) or bool(phones),
-                "detail": f"pdf={sorted(phones)[:2]} md={sorted(md_phones)[:2]}",
-                "hint": "手机号须以明文出现在 PDF 文本层",
-            }
-        )
-    # Single-column proxy: many form-feed + short lines can mean multi-col mess; soft only
-    lines = [ln for ln in (text or "").splitlines() if ln.strip()]
-    avg_len = (sum(len(ln) for ln in lines) / len(lines)) if lines else 0
-    checks.append(
-        {
-            "id": "readable_lines",
-            "ok": avg_len >= 8 or not lines,
-            "detail": f"avg_line_len={avg_len:.1f}, lines={len(lines)}",
-            "hint": "行过碎可能排版异常；优先单栏模板",
-        }
-    )
-    return checks
-
-
 def verify_ats(
     pdf_path: Path | None,
     resume_md: str = "",
 ) -> dict:
-    """Run ATS checks; skip gracefully if no PDF / no pdftotext."""
+    """Run ATS checks; skip gracefully if no PDF / no pdftotext.
+
+    Uses export_resume_pdf.ats_checklist_from_text (single implementation).
+    """
     if pdf_path is None or not pdf_path.is_file():
         return {
             "status": "skip",
             "ok": True,
             "message": "无 PDF，跳过文本层（可用 --export-pdf 或 --pdf）",
-            "checks": _ats_text_checks(resume_md, resume_md),
+            "checks": exp.ats_checklist_from_text(resume_md, resume_md),
             "source": "markdown_fallback",
         }
     ok_layer, msg = exp.verify_pdf_text_layer(pdf_path)
-    text = ""
-    bin_ = shutil.which("pdftotext")
-    if bin_:
-        try:
-            proc = subprocess.run(
-                [bin_, "-layout", str(pdf_path), "-"],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=False,
-            )
-            text = proc.stdout or ""
-        except (OSError, subprocess.TimeoutExpired):
-            text = ""
-    if msg.startswith("skip:"):
+    text, err = exp.extract_pdf_text(pdf_path)
+    if msg.startswith("skip:") or (err and err.startswith("skip:")):
         return {
             "status": "skip",
             "ok": True,
-            "message": msg,
-            "checks": _ats_text_checks(resume_md, resume_md),
+            "message": msg if msg.startswith("skip:") else err,
+            "checks": exp.ats_checklist_from_text(resume_md, resume_md),
             "source": "markdown_fallback",
         }
-    checks = _ats_text_checks(text, resume_md)
-    all_ok = ok_layer and all(c["ok"] for c in checks if c["id"] != "readable_lines")
-    # readable_lines is soft
+    checks = exp.ats_checklist_from_text(text, resume_md)
     hard_ids = {"text_length", "no_cid_garbage", "email_literal", "phone_literal"}
-    hard_ok = ok_layer and all(
-        c["ok"] for c in checks if c["id"] in hard_ids
-    )
+    hard_ok = ok_layer and all(c["ok"] for c in checks if c["id"] in hard_ids)
     return {
         "status": "pass" if hard_ok else "fail",
         "ok": hard_ok,
@@ -171,7 +97,7 @@ def verify_ats(
         "checks": checks,
         "source": "pdftotext",
         "layer_ok": ok_layer,
-        "all_checks_ok": all_ok,
+        "all_checks_ok": hard_ok and all(c["ok"] for c in checks),
     }
 
 
@@ -472,7 +398,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cover and (cover is None or not cover.is_file()):
         print(f"error: cover not found: {args.cover}", file=sys.stderr)
         return 3
-    profile = _resolve(args.profile) if args.profile else None
+    profile = None
+    if args.profile:
+        profile = _resolve(args.profile)
+        if profile is None or not profile.is_file():
+            print(f"error: profile not found: {args.profile}", file=sys.stderr)
+            return 3
     pdf = _resolve(args.pdf) if args.pdf else None
     # If --pdf given but missing and not exporting, warn later inside gate
 
@@ -480,7 +411,7 @@ def main(argv: list[str] | None = None) -> int:
         resume_path=resume,
         jd_path=jd,
         cover_path=cover if cover and cover.is_file() else None,
-        profile_path=profile if profile and profile.is_file() else None,
+        profile_path=profile,
         pdf_path=pdf if pdf and pdf.is_file() else (Path(args.pdf) if args.pdf else None),
         export_pdf=bool(args.export_pdf),
         template=args.template,

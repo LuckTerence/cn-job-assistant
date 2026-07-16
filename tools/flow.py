@@ -77,13 +77,17 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
 
 def cmd_report(args: argparse.Namespace) -> int:
-    """weekly-report then funnel (human cockpit)."""
+    """weekly-report + funnel + match-outcome (human cockpit)."""
     csv = args.csv or None
     rc = _run(_tracker(["weekly-report"], csv))
     if rc != 0:
         return rc
     print()
-    return _run(_tracker(["funnel"], csv))
+    rc = _run(_tracker(["funnel"], csv))
+    if rc != 0:
+        return rc
+    print()
+    return _run(_tracker(["match-outcome"], csv))
 
 
 def cmd_shortlist(args: argparse.Namespace) -> int:
@@ -107,7 +111,7 @@ def cmd_shortlist(args: argparse.Namespace) -> int:
         if rc != 0:
             return rc
         args.jobs = out
-    if args.jobs:
+    if args.jobs and not args.skip_import:
         jobs = str(Path(args.jobs))
         rc = _run(
             _tracker(
@@ -121,6 +125,11 @@ def cmd_shortlist(args: argparse.Namespace) -> int:
         )
         if rc != 0:
             return rc
+    elif args.jobs and args.skip_import:
+        print(
+            "note: --skip-import set; not importing --jobs (rank existing only)",
+            file=sys.stderr,
+        )
     elif not args.skip_import:
         print(
             "note: no --jobs; skipping import (rank existing to_apply only)",
