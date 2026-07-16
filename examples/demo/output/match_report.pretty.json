@@ -39,7 +39,8 @@
         "tob",
         "设计",
         "主导"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 21,
     "resume_token_count": 80,
@@ -78,6 +79,11 @@
       ],
       "extra": [
         "java/go"
+      ],
+      "synonym_hit": [
+        "消息队列",
+        "docker",
+        "kubernetes"
       ]
     },
     "jd_keyword_count": 21,
@@ -126,7 +132,8 @@
         "java/go",
         "设计",
         "主导"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 21,
     "resume_token_count": 100,
@@ -176,6 +183,13 @@
       "英语"
     ],
     "miss_nice": [],
+    "true_gap": [
+      "大模型",
+      "llm",
+      "架构",
+      "英语"
+    ],
+    "synonym_hit": [],
     "already_hit": [
       "高并发",
       "微服务",
@@ -211,7 +225,7 @@
       "expected_input": "25-40K"
     },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。「同义词已对齐」≠ 简历写了 JD 原词；「真缺口」才是仍未覆盖的词。"
   },
   "summary": {
     "resume_score": 76.3,

@@ -54,6 +54,9 @@ class DemoScriptTests(unittest.TestCase):
         self.assertIn("filter-status", html)
         if (OUT / "flow_shortlist.txt").is_file():
             self.assertIn("今日计划", (OUT / "flow_shortlist.txt").read_text(encoding="utf-8"))
+        if (OUT / "funnel.txt").is_file():
+            self.assertIn("漏斗", (OUT / "funnel.txt").read_text(encoding="utf-8"))
+        self.assertIn("投递漏斗", html)
 
 
 if __name__ == "__main__":

@@ -11,12 +11,34 @@
 ## Step 0: 解析输入
 
 - 若 `$ARGUMENTS` 是 URL，用 `WebFetch` 提取 岗位描述 正文；若是文本，直接使用。
+- **多岗粘贴**（一次贴了多个 JD，中间有 `---` 或多个 `#` 标题）：
+  ```bash
+  # 先落盘 pasted.txt，再拆分
+  python tools/split_jds.py -i pasted.txt -o documents/zh/inbox --resume <母版可选>
+  python tools/tracker.py import-jobs documents/zh/inbox/jobs_stub.json
+  python tools/tracker.py rank --track internet
+  python tools/tracker.py day-plan
+  ```
+  然后请用户**选 1 个公司/岗位**再继续本命令；不要一口气生成 N 份完整材料。
 - 抽取以下字段（记在心里，后续 Step 7 传给 tracker）：
   - **必填**：公司名、岗位名、渠道（Boss直聘/智联/51job/猎聘/拉勾）
   - **结构化可选**：城市、薪资区间（如 "25-40K"）、学历要求（如 "本科"）、经验要求（如 "3-5年"）
   - 内容字段：硬性技能、岗位职责
 - 若平台是 Boss直聘，标记为"短话术模式"；否则标记为"正式求职信模式"。
 - **落盘岗位描述**：写入 `documents/zh/jd_<company>_<role>.md`（纯文本即可；文件名里的 `jd_` 表示岗位描述）。
+
+### Step 0b: 短名单优先级（v0.13）
+
+若 `job_search_tracker.csv` 里已有多条 `to_apply`，**先**提示用户可看排序再决定本岗是否值得做材料：
+
+```bash
+python tools/tracker.py rank --track internet
+python tools/tracker.py day-plan --limit 5
+python tools/tracker.py funnel
+```
+
+- 若本岗不在 rank 前列且用户也认同「先放放」→ 可只 `skipped` + 原因，不必强行 `/apply-zh` 全套。
+- 若用户明确「就是要投这个」→ 继续 Step 1。
 
 ---
 
@@ -32,8 +54,11 @@
 
 ```bash
 python tools/match_resume.py report --zh-only \
-  --resume <母版> --jd documents/zh/jd_<company>_<role>.md
+  --resume <母版> --jd documents/zh/jd_<company>_<role>.md \
+  --profile CLAUDE.zh.md
 ```
+
+摘要里区分：**同义词已对齐** vs **真缺口**（不会的别编）。
 
 询问用户是否继续生成。
 

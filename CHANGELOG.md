@@ -3,6 +3,22 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定：  
 `0.x` 阶段允许在次版本加入能力；破坏性变更会在条目里标明。
 
+## [0.13.0] — 2026-07-17
+
+### 决策可信
+
+- **`tracker funnel`**：to_apply → 已投 → 面试 → Offer → 入职 快照漏斗；dashboard 卡片
+- **真缺口 vs 同义词已对齐**：`keywords.synonym_hit` + 中文摘要分块说明
+- **`tools/split_jds.py`**：多段粘贴 JD → 拆文件 + `jobs_stub.json` → `import-jobs`
+- **`/apply-zh`**：多岗粘贴引导；有短名单时先 `rank` / `day-plan` / `funnel` 再生成
+
+```bash
+python tools/split_jds.py -i pasted.txt -o documents/zh/inbox
+python tools/tracker.py import-jobs documents/zh/inbox/jobs_stub.json
+python tools/tracker.py funnel
+python tools/tracker.py rank && python tools/tracker.py day-plan
+```
+
 ## [0.12.0] — 2026-07-17
 
 ### 短名单丝滑

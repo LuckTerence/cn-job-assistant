@@ -575,6 +575,84 @@ def _week_start(d: date) -> date:
     return d - timedelta(days=d.weekday())
 
 
+# Funnel stage order for conversion display (v0.13)
+FUNNEL_STAGES: tuple[str, ...] = (
+    "to_apply",
+    "applied",
+    "screening",
+    "interview",
+    "offer",
+    "hired",
+)
+# Map fine-grained statuses into funnel buckets
+FUNNEL_BUCKET: dict[str, str] = {
+    "to_apply": "to_apply",
+    "applied": "applied",
+    "in_progress": "applied",
+    "screening": "screening",
+    "interview": "interview",
+    "interview_1": "interview",
+    "interview_2": "interview",
+    "interview_final": "interview",
+    "offer": "offer",
+    "hired": "hired",
+    "rejected": "rejected",
+    "no_response": "closed_other",
+    "withdrawn": "closed_other",
+    "offer_declined": "closed_other",
+    "interview_only": "closed_other",
+    "expired": "closed_other",
+    "skipped": "skipped",
+}
+
+
+def compute_funnel(rows: list[dict[str, str]]) -> dict:
+    """Pipeline counts + simple conversion rates (snapshot, not cohort)."""
+    counts: dict[str, int] = {s: 0 for s in FUNNEL_STAGES}
+    counts["rejected"] = 0
+    counts["skipped"] = 0
+    counts["closed_other"] = 0
+    counts["other"] = 0
+    for r in rows:
+        st = (r.get("status") or "").strip().lower()
+        bucket = FUNNEL_BUCKET.get(st, "other")
+        counts[bucket] = counts.get(bucket, 0) + 1
+
+    def rate(num: int, den: int) -> str:
+        if den <= 0:
+            return "—"
+        return f"{round(100.0 * num / den, 1)}%"
+
+    # Conversion: of rows that ever left to_apply pool (applied+), share that reached stage
+    applied_plus = (
+        counts["applied"]
+        + counts["screening"]
+        + counts["interview"]
+        + counts["offer"]
+        + counts["hired"]
+        + counts["rejected"]
+        + counts["closed_other"]
+    )
+    interview_plus = counts["interview"] + counts["offer"] + counts["hired"]
+    offer_plus = counts["offer"] + counts["hired"]
+    return {
+        "counts": counts,
+        "total": len(rows),
+        "rates": {
+            "to_apply_share": rate(counts["to_apply"], len(rows)),
+            "applied_of_active": rate(
+                counts["applied"] + counts["screening"] + interview_plus,
+                max(1, len(rows) - counts["skipped"]),
+            ),
+            "interview_of_applied": rate(interview_plus, applied_plus),
+            "offer_of_interview": rate(offer_plus, max(1, interview_plus)),
+            "hired_of_offer": rate(counts["hired"], max(1, offer_plus)),
+            "skip_share": rate(counts["skipped"], len(rows)),
+        },
+        "note": "快照漏斗（非同期群）；skipped 不计入 applied 转化分母旁路展示。",
+    }
+
+
 def compute_stats(rows: list[dict[str, str]], today: date | None = None) -> dict:
     """Compute positive-feedback stats for today/dashboard.
 
@@ -806,6 +884,7 @@ def export_html(csv_path: Path, html_path: Path) -> None:
     actions = build_action_items(rows, today)
     stats = compute_stats(rows, today)
     skip_stats = compute_skip_stats(rows)
+    funnel = compute_funnel(rows)
     open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
     closed_rows = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
     encouragement = _pick_encouragement(rows, today)
@@ -855,6 +934,38 @@ def export_html(csv_path: Path, html_path: Path) -> None:
             f"{signal}"
             '<div class="card-hint">枚举：salary_low / location / low_match / '
             "unknown_company / other · CLI: tracker.py skip-stats</div>"
+            "</div>"
+        )
+
+    def render_funnel() -> str:
+        if not rows:
+            return ""
+        c = funnel["counts"]
+        r = funnel["rates"]
+        stages = [
+            ("to_apply", "待投", c.get("to_apply", 0)),
+            ("applied", "已投", c.get("applied", 0) + c.get("screening", 0)),
+            ("interview", "面试", c.get("interview", 0)),
+            ("offer", "Offer", c.get("offer", 0)),
+            ("hired", "入职", c.get("hired", 0)),
+        ]
+        parts = []
+        for i, (_, lab, n) in enumerate(stages):
+            parts.append(
+                f'<div class="funnel-step"><span class="funnel-label">{esc(lab)}</span>'
+                f'<span class="funnel-n"><b>{n}</b></span></div>'
+            )
+            if i < len(stages) - 1:
+                parts.append('<div class="funnel-arrow">→</div>')
+        return (
+            '<div class="card card-funnel">'
+            '<div class="card-title">📉 投递漏斗（快照）</div>'
+            f'<div class="funnel-row">{"".join(parts)}</div>'
+            f'<div class="card-hint">面试/已投≈{esc(r["interview_of_applied"])} · '
+            f'Offer/面试≈{esc(r["offer_of_interview"])} · '
+            f'跳过 {c.get("skipped", 0)} · 拒绝 {c.get("rejected", 0)} · '
+            f'CLI: tracker.py funnel</div>'
+            f'<div class="card-hint">{esc(funnel["note"])}</div>'
             "</div>"
         )
 
@@ -911,6 +1022,9 @@ def export_html(csv_path: Path, html_path: Path) -> None:
                 '</div>'
             )
 
+        funnel_card = render_funnel()
+        if funnel_card:
+            cards.insert(0, funnel_card)
         skip_card = render_skip_signal()
         if skip_card:
             cards.append(skip_card)
@@ -1109,6 +1223,13 @@ def export_html(csv_path: Path, html_path: Path) -> None:
   .card-fu {{ border-left-color: var(--accent-fu); }}
   .card-rv {{ border-left-color: var(--accent-rv); }}
   .card-skip {{ border-left-color: #dc2626; }}
+  .card-funnel {{ border-left-color: #0d9488; }}
+  .funnel-row {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0.4rem 0; }}
+  .funnel-step {{ background: rgba(13,148,136,.12); padding: 0.35rem 0.6rem; border-radius: 8px;
+                  text-align: center; min-width: 3.2rem; }}
+  .funnel-label {{ display: block; font-size: 0.7rem; color: var(--muted); }}
+  .funnel-n b {{ font-size: 1.1rem; }}
+  .funnel-arrow {{ color: var(--muted); font-size: 0.9rem; }}
   .card-empty {{ border-left-color: var(--accent-empty); text-align: center; padding: 1.5rem; }}
   .card-title {{ font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem; }}
   .card ul {{ margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.7; }}
@@ -1448,6 +1569,35 @@ def cmd_rank(args: argparse.Namespace) -> int:
             encoding="utf-8",
         )
         print(f"Wrote → {args.out}", file=sys.stderr)
+    return 0
+
+
+def cmd_funnel(args: argparse.Namespace) -> int:
+    """Print application funnel snapshot (v0.13)."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    funnel = compute_funnel(rows)
+    if args.json:
+        print(json.dumps(funnel, ensure_ascii=False, indent=2))
+        return 0
+    if not rows:
+        print("还没有投递记录。")
+        return 0
+    c = funnel["counts"]
+    r = funnel["rates"]
+    print(f"【投递漏斗 · 快照】共 {funnel['total']} 条  ← {path}")
+    print("-" * 48)
+    print(f"  待投 to_apply     {c.get('to_apply', 0):>4}  （占全部 {r['to_apply_share']}）")
+    print(f"  已投 applied+     {c.get('applied', 0) + c.get('screening', 0):>4}")
+    print(f"  面试 interview+   {c.get('interview', 0):>4}  （/已投系 {r['interview_of_applied']}）")
+    print(f"  Offer             {c.get('offer', 0):>4}  （/面试系 {r['offer_of_interview']}）")
+    print(f"  入职 hired        {c.get('hired', 0):>4}")
+    print(f"  拒绝 rejected     {c.get('rejected', 0):>4}")
+    print(f"  不投 skipped      {c.get('skipped', 0):>4}  （{r['skip_share']}）")
+    print(f"  其他关闭          {c.get('closed_other', 0):>4}")
+    print("-" * 48)
+    print(funnel["note"])
+    print("看板卡片: python tools/tracker.py dashboard")
     return 0
 
 
@@ -2054,6 +2204,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="write score into fit_rating column for scored rows",
     )
     rank_p.set_defaults(func=cmd_rank)
+
+    fun_p = sub.add_parser(
+        "funnel",
+        help="v0.13: application funnel snapshot (to_apply→…→hired)",
+    )
+    fun_p.add_argument("--json", action="store_true")
+    fun_p.set_defaults(func=cmd_funnel)
 
     skip_p = sub.add_parser(
         "skip-stats",

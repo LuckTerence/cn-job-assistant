@@ -236,6 +236,8 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **短名单编排** | `python tools/flow.py shortlist --jobs …` |
 | **赛道同义词 + 语料 IDF** | `--track` · `config/idf.default.json` |
 | **薪资旗标** | `list --salary-flag` · 列 `expected_salary` |
+| **投递漏斗** | `tracker funnel` · 看板卡片 |
+| **粘贴多 JD** | `split_jds.py` → import → rank |
 | `/setup-zh` 粘贴旧简历 | 冷启动减负 |
 | 国产模型友好 | 见 MODELS.zh.md |
 | Issue 模板 | 赛道反馈 + **我在用** + **痛点多选** |
@@ -307,7 +309,8 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **决策层** | ✅ | 同义词表 + 期望 vs JD 薪资（本地解析） |
 | **0.11 今天投谁** | ✅ | `day-plan` · `rank` · 看板筛选 · `--track` |
 | **0.12 短名单丝滑** | ✅ | `flow shortlist` · 期望薪资列/旗标 · 语料 IDF · import 字段提示 |
-| **扩圈（有信号再开）** | ⏸ | boss 专用适配器加厚 / embedding catalog / 本地 Web —— 见优化方案 |
+| **0.13 决策可信** | ✅ | `funnel` 漏斗 · 真缺口/同义词分列 · `split_jds` 粘贴批拆 |
+| **扩圈（有信号再开）** | ⏸ | embedding catalog / 本地 Web / 1.0 用户验证 —— 见优化方案 |
 | **暂缓** | — | 自研爬虫、强制 SaaS、默认海投、未验证就上 embedding |
 
 ---

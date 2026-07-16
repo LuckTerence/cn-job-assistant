@@ -31,7 +31,8 @@
       "extra": [
         "excel",
         "运营"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 21,
     "resume_token_count": 11,
@@ -71,7 +72,8 @@
       "extra": [
         "excel",
         "运营"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 21,
     "resume_token_count": 11,
@@ -142,6 +144,17 @@
       "数据结构"
     ],
     "miss_nice": [],
+    "true_gap": [
+      "高并发",
+      "微服务",
+      "后端",
+      "高可用",
+      "大模型",
+      "数据结构",
+      "消息队列",
+      "ci/cd"
+    ],
+    "synonym_hit": [],
     "already_hit": [],
     "cover_only": [],
     "edit_top3": [
@@ -165,7 +178,7 @@
       "expected_input": ""
     },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。「同义词已对齐」≠ 简历写了 JD 原词；「真缺口」才是仍未覆盖的词。"
   },
   "summary": {
     "resume_score": 0.0,

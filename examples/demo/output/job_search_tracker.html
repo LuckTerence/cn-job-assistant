@@ -44,6 +44,13 @@
   .card-fu { border-left-color: var(--accent-fu); }
   .card-rv { border-left-color: var(--accent-rv); }
   .card-skip { border-left-color: #dc2626; }
+  .card-funnel { border-left-color: #0d9488; }
+  .funnel-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0.4rem 0; }
+  .funnel-step { background: rgba(13,148,136,.12); padding: 0.35rem 0.6rem; border-radius: 8px;
+                  text-align: center; min-width: 3.2rem; }
+  .funnel-label { display: block; font-size: 0.7rem; color: var(--muted); }
+  .funnel-n b { font-size: 1.1rem; }
+  .funnel-arrow { color: var(--muted); font-size: 0.9rem; }
   .card-empty { border-left-color: var(--accent-empty); text-align: center; padding: 1.5rem; }
   .card-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem; }
   .card ul { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.7; }
@@ -103,7 +110,7 @@
     <div class="stat stat-pos"><b>1</b><span>面试次数</span></div>
     <div class="stat stat-pos"><b>33.3%</b><span>面试率</span></div>
   </div>
-  <div class="actions-grid"><div class="card card-iv"><div class="card-title">📅 进行中的面试</div><ul><li><span class="badge badge-iv">interview</span> <b>青梧数据</b> / 后端开发 · 智联 · 上海</li></ul><div class="card-hint">准备面试跑 /interview；状态变了用 tracker update</div></div><div class="card card-rv"><div class="card-title">📝 建议复盘（近30天结束）</div><ul><li><span class="badge badge-rv">rejected</span> <b>北岸出行</b> / 服务端 · 2026-07-17</li></ul><div class="card-hint">跑 /outcome 总结经验，改完简历用 diff 对比改进</div></div><div class="card card-skip"><div class="card-title">🚫 不投信号（3）</div><ul><li><code>location</code> · 地点不合适 · <b>1</b>（33%）</li><li><code>low_match</code> · 匹配度低 · <b>1</b>（33%）</li><li><code>salary_low</code> · 薪资偏低 · <b>1</b>（33%）</li></ul><div class="card-hint">枚举：salary_low / location / low_match / unknown_company / other · CLI: tracker.py skip-stats</div></div></div>
+  <div class="actions-grid"><div class="card card-funnel"><div class="card-title">📉 投递漏斗（快照）</div><div class="funnel-row"><div class="funnel-step"><span class="funnel-label">待投</span><span class="funnel-n"><b>3</b></span></div><div class="funnel-arrow">→</div><div class="funnel-step"><span class="funnel-label">已投</span><span class="funnel-n"><b>1</b></span></div><div class="funnel-arrow">→</div><div class="funnel-step"><span class="funnel-label">面试</span><span class="funnel-n"><b>1</b></span></div><div class="funnel-arrow">→</div><div class="funnel-step"><span class="funnel-label">Offer</span><span class="funnel-n"><b>0</b></span></div><div class="funnel-arrow">→</div><div class="funnel-step"><span class="funnel-label">入职</span><span class="funnel-n"><b>0</b></span></div></div><div class="card-hint">面试/已投≈33.3% · Offer/面试≈0.0% · 跳过 3 · 拒绝 1 · CLI: tracker.py funnel</div><div class="card-hint">快照漏斗（非同期群）；skipped 不计入 applied 转化分母旁路展示。</div></div><div class="card card-iv"><div class="card-title">📅 进行中的面试</div><ul><li><span class="badge badge-iv">interview</span> <b>青梧数据</b> / 后端开发 · 智联 · 上海</li></ul><div class="card-hint">准备面试跑 /interview；状态变了用 tracker update</div></div><div class="card card-rv"><div class="card-title">📝 建议复盘（近30天结束）</div><ul><li><span class="badge badge-rv">rejected</span> <b>北岸出行</b> / 服务端 · 2026-07-17</li></ul><div class="card-hint">跑 /outcome 总结经验，改完简历用 diff 对比改进</div></div><div class="card card-skip"><div class="card-title">🚫 不投信号（3）</div><ul><li><code>location</code> · 地点不合适 · <b>1</b>（33%）</li><li><code>low_match</code> · 匹配度低 · <b>1</b>（33%）</li><li><code>salary_low</code> · 薪资偏低 · <b>1</b>（33%）</li></ul><div class="card-hint">枚举：salary_low / location / low_match / unknown_company / other · CLI: tracker.py skip-stats</div></div></div>
   
   
   

@@ -7,7 +7,10 @@ Tokens:             résumé=11  jd=50
 HIT (0):
   (none)
 
-MISS (21):
+SYNONYM HIT (0):
+  (none)
+
+TRUE GAP / MISS (21):
   高并发, 微服务, 后端, 高可用, 大模型, 数据结构, 消息队列, ci/cd, docker, go, java, kafka, kubernetes, llm, mysql, redis, spring boot, 中间件, 架构, 算法, 英语
 
 EXTRA on résumé (signal, not in 岗位描述 top):

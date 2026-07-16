@@ -21,7 +21,8 @@
         "git",
         "oa",
         "设计"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 6,
     "resume_token_count": 29,
@@ -43,7 +44,8 @@
         "英语",
         "运维"
       ],
-      "extra": []
+      "extra": [],
+      "synonym_hit": []
     },
     "jd_keyword_count": 6,
     "resume_token_count": 12,
@@ -72,7 +74,8 @@
         "git",
         "oa",
         "设计"
-      ]
+      ],
+      "synonym_hit": []
     },
     "jd_keyword_count": 6,
     "resume_token_count": 41,
@@ -111,6 +114,11 @@
       "运维"
     ],
     "miss_nice": [],
+    "true_gap": [
+      "中间件",
+      "运维"
+    ],
+    "synonym_hit": [],
     "already_hit": [
       "java",
       "党员",
@@ -136,7 +144,7 @@
       "expected_input": ""
     },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。「同义词已对齐」≠ 简历写了 JD 原词；「真缺口」才是仍未覆盖的词。"
   },
   "summary": {
     "resume_score": 39.2,

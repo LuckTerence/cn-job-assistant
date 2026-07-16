@@ -1,6 +1,6 @@
 ---
 name: application-tracker
-version: 2.4.0
+version: 2.5.0
 description: >
   本地投递状态追踪与求职看板。以 job_search_tracker.csv 为权威源，通过
   tools/tracker.py（stdlib：CSV / 可选 SQLite / 单文件 HTML）读写，零 Docker。
@@ -87,6 +87,11 @@ python tools/tracker.py rank --write-fit   # 把分数写入 fit_rating
 # v0.12 薄编排 + 薪资旗标
 python tools/flow.py shortlist --jobs path/to/jobs.json --track internet --limit 3
 python tools/tracker.py list --open-only --salary-flag --expected-salary '25-40K'
+
+# v0.13 漏斗 + 多岗粘贴
+python tools/tracker.py funnel
+python tools/split_jds.py -i pasted.txt -o documents/zh/inbox
+python tools/tracker.py import-jobs documents/zh/inbox/jobs_stub.json
 
 # 不投原因分布（Phase 1 产品信号）
 python tools/tracker.py skip-stats

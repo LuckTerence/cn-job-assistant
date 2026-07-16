@@ -34,7 +34,9 @@ python tools/tracker.py rank --track internet   # to_apply 批打分排序
 python tools/tracker.py day-plan                # 今天投谁
 python tools/flow.py shortlist --jobs examples/demo/jobs_sample.json --track internet
 python tools/tracker.py list --open-only --salary-flag --expected-salary '25-40K'
-python tools/tracker.py dashboard               # 看板含状态/城市筛选
+python tools/tracker.py funnel                  # 投递漏斗快照
+python tools/split_jds.py -i pasted.txt -o documents/zh/inbox   # 多岗粘贴拆分
+python tools/tracker.py dashboard               # 看板：漏斗 + 筛选
 ```
 
 ## 合规三句话

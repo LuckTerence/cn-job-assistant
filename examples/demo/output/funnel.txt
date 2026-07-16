@@ -1,0 +1,13 @@
+【投递漏斗 · 快照】共 9 条  ← /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/job_search_tracker.csv
+------------------------------------------------
+  待投 to_apply        3  （占全部 33.3%）
+  已投 applied+        1
+  面试 interview+      1  （/已投系 33.3%）
+  Offer                0  （/面试系 0.0%）
+  入职 hired           0
+  拒绝 rejected        1
+  不投 skipped         3  （33.3%）
+  其他关闭             0
+------------------------------------------------
+快照漏斗（非同期群）；skipped 不计入 applied 转化分母旁路展示。
+看板卡片: python tools/tracker.py dashboard

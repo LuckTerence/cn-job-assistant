@@ -778,8 +778,10 @@ def extract_jd_keywords(jd_text: str, top_k: int = 40) -> list[tuple[str, float]
 @dataclass
 class KeywordBreakdown:
     hit: list[str] = field(default_factory=list)
-    miss: list[str] = field(default_factory=list)
+    miss: list[str] = field(default_factory=list)  # true gaps (even with synonyms)
     extra: list[str] = field(default_factory=list)  # in résumé but not 岗位描述 (top signal)
+    # v0.13: JD terms hit only via synonym expansion (not exact token)
+    synonym_hit: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -828,9 +830,26 @@ def match_texts(
     jd_kw = extract_jd_keywords(jd_text, top_k=top_k)
     jd_terms = [t for t, _ in jd_kw]
     r_set = set(r_tokens)
+    r_set_norm = r_set | {t.lower() for t in r_set}
     r_expanded = expand_resume_coverage(resume_text, r_set, synonym_map)
-    hit = [t for t in jd_terms if term_covered(t, r_expanded, synonym_map)]
-    miss = [t for t in jd_terms if not term_covered(t, r_expanded, synonym_map)]
+
+    def _exact_in_resume(term: str) -> bool:
+        return term in r_set_norm or term.lower() in r_set_norm or term in r_set
+
+    hit: list[str] = []
+    miss: list[str] = []
+    synonym_hit: list[str] = []
+    for t in jd_terms:
+        if term_covered(t, r_expanded, synonym_map):
+            hit.append(t)
+            if not _exact_in_resume(t):
+                # surface form may still be exact substring; only flag pure synonym rescue
+                # if term not as token AND not exact substring of resume
+                tl = t.lower()
+                if tl not in resume_text.lower() and t not in resume_text:
+                    synonym_hit.append(t)
+        else:
+            miss.append(t)
     # extra: high-freq résumé skill-like tokens not in 岗位描述
     jd_expanded = expand_resume_coverage(jd_text, set(jd_terms), synonym_map)
     extra_candidates = [
@@ -849,7 +868,9 @@ def match_texts(
         score=score,
         cosine=round(cos, 4),
         keyword_coverage=coverage,
-        keywords=KeywordBreakdown(hit=hit, miss=miss, extra=extra_candidates),
+        keywords=KeywordBreakdown(
+            hit=hit, miss=miss, extra=extra_candidates, synonym_hit=synonym_hit
+        ),
         jd_keyword_count=len(jd_terms),
         resume_token_count=len(r_tokens),
         jd_token_count=len(j_tokens),
@@ -1052,6 +1073,7 @@ def build_zh_brief(
     if len(edit_tips) < 3:
         edit_tips.append("经历里尽量带数字，比空泛形容词好用。")
 
+    synonym_hit = list(combined_result.keywords.synonym_hit[:8])
     return {
         "tone_open": tone,
         "headline": (
@@ -1061,13 +1083,18 @@ def build_zh_brief(
         "still_missing": top_miss,
         "miss_core": miss_core,
         "miss_nice": miss_nice,
+        "true_gap": top_miss,  # alias: gaps remaining after synonym expansion
+        "synonym_hit": synonym_hit,  # JD terms matched only via synonym/surface cluster
         "already_hit": top_hit,
         "cover_only": cover_only[:5],
         "edit_top3": edit_tips[:3],
         "action_by_band": action,
         "salary": salary,
         "compliance": "不会的技能别硬写上去刷分。",
-        "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。",
+        "score_note": (
+            "分数只是本地关键词对齐程度，不代表能不能拿到面试。"
+            "「同义词已对齐」≠ 简历写了 JD 原词；「真缺口」才是仍未覆盖的词。"
+        ),
     }
 
 
@@ -1080,8 +1107,13 @@ def format_zh_brief(brief: dict) -> str:
         "已经对上的词：",
         "  " + ("、".join(brief.get("already_hit") or []) or "（没有）"),
         "",
-        "JD 提到但你简历没写的词（不会的别硬编）：",
     ]
+    syn_hit = brief.get("synonym_hit") or []
+    if syn_hit:
+        lines.append("同义词已对齐（简历用了等价表述，不是 JD 原词）：")
+        lines.append("  " + "、".join(syn_hit))
+        lines.append("")
+    lines.append("真缺口 · JD 提到且同义词也没对上（不会的别硬编）：")
     miss_core = brief.get("miss_core") or []
     miss_nice = brief.get("miss_nice") or []
     if miss_core or miss_nice:
@@ -1177,7 +1209,15 @@ def format_score_human(result: MatchResult, title: str = "Match report") -> str:
         f"HIT ({len(result.keywords.hit)}):",
         "  " + (", ".join(result.keywords.hit) if result.keywords.hit else "(none)"),
         "",
-        f"MISS ({len(result.keywords.miss)}):",
+        f"SYNONYM HIT ({len(result.keywords.synonym_hit)}):",
+        "  "
+        + (
+            ", ".join(result.keywords.synonym_hit)
+            if result.keywords.synonym_hit
+            else "(none)"
+        ),
+        "",
+        f"TRUE GAP / MISS ({len(result.keywords.miss)}):",
         "  " + (", ".join(result.keywords.miss) if result.keywords.miss else "(none)"),
         "",
         f"EXTRA on résumé (signal, not in 岗位描述 top):",
