@@ -3,6 +3,16 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.0.2] — 2026-07-17
+
+### 发版与仓库卫生
+
+- `tools/check_release_ready.py` + `make release-ready`：版本/文档清单门禁  
+- `scripts/publish_github_release.sh`：`gh auth login` 后一键建 Release  
+- `dist/`、打包 zip 写入 `.gitignore`  
+- README 文档地图与路线图收口到 1.0 验证期叙事  
+- `make check` 含 release-ready  
+
 ## [1.0.1] — 2026-07-17
 
 ### 新人路径与验证期收口

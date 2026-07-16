@@ -23,6 +23,9 @@ echo "▶ CLI help surfaces"
 "$PY" tools/split_jds.py --help >/dev/null
 "$PY" tools/apply_assist.py explain >/dev/null
 
+echo "▶ release packaging assert"
+"$PY" tools/check_release_ready.py
+
 echo "▶ linters (domestic surface)"
 "$PY" tools/lint_zh_refs.py
 "$PY" tools/lint_skill_surface.py

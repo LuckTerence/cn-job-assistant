@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
   <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
   <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
-  <img src="https://img.shields.io/badge/version-1.0.1-blue.svg" alt="1.0.1">
+  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="1.0.2">
 </p>
 
 <p align="center">
@@ -322,14 +322,18 @@ python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track 
 
 | 文档 | 什么时候看 |
 |------|------------|
-| **本页** | 了解产品、上手 |
-| [ARCHITECTURE.zh.md](./ARCHITECTURE.zh.md) | 核心 skill 面 vs 可选 catalog |
-| [MODELS.zh.md](./MODELS.zh.md) | DeepSeek / 智谱 / 通义 … 怎么接 |
-| [integrations/catalog/README.md](./integrations/catalog/README.md) | 模拟面试 / Reactive-Resume 等真实成本 |
-| [SETUP.md](./SETUP.md) | 上游英文 / LaTeX 环境 |
-| [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) | 多轮对标与决策记录 |
-| [docs/resume-pdf-reuse.zh.md](./docs/resume-pdf-reuse.zh.md) | 简历 PDF 开源复用（10 项目） |
-| [CHANGELOG.md](./CHANGELOG.md) | 版本变更与发版说明 |
+| **本页** | 了解产品 |
+| [docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md) | **15 分钟上手（推荐）** |
+| [docs/AGENT_PROMPT.zh.md](./docs/AGENT_PROMPT.zh.md) | 没有 slash 命令时 |
+| [docs/RELEASE-1.0.zh.md](./docs/RELEASE-1.0.zh.md) | 1.0 承诺与边界 |
+| [docs/github-release-v1.0.0.md](./docs/github-release-v1.0.0.md) | 粘贴到 GitHub Release |
+| [docs/dist-notes-1.0.zh.md](./docs/dist-notes-1.0.zh.md) | 发文/小红书素材 |
+| [docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md) | Claude / Cursor 安装 |
+| [ARCHITECTURE.zh.md](./ARCHITECTURE.zh.md) | 核心 skill vs catalog |
+| [MODELS.zh.md](./MODELS.zh.md) | DeepSeek / 智谱 / 通义 |
+| [integrations/catalog/README.md](./integrations/catalog/README.md) | 可选重依赖真实成本 |
+| [CHANGELOG.md](./CHANGELOG.md) | 版本变更 |
+| [SETUP.md](./SETUP.md) | 上游英文 / LaTeX |
 
 ---
 
@@ -337,18 +341,12 @@ python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track 
 
 | 阶段 | 状态 | 内容 |
 |------|------|------|
-| 工程 Phase 1–3 | ✅ | 搜岗安装器 · 匹配 · Tracker · Catalog 治理 · Demo |
-| **投递三档** | ✅ | `apply_assist.py`：manual / semi / auto（选择权在用户） |
-| **闭环收尾** | ✅ | `/apply-zh` 确认写 tracker · 看板待办 · city/salary 列 |
-| **验证期** | 🔄 | 用户故事 · Issue 反馈 · `skip_reason` / `skip-stats` · `/outcome` 飞轮 |
-| **搜岗入库** | ✅ | `tracker import-jobs`（搜岗 JSON → `to_apply`，去重） |
-| **决策层** | ✅ | 同义词表 + 期望 vs JD 薪资（本地解析） |
-| **0.11 今天投谁** | ✅ | `day-plan` · `rank` · 看板筛选 · `--track` |
-| **0.12 短名单丝滑** | ✅ | `flow shortlist` · 期望薪资列/旗标 · 语料 IDF · import 字段提示 |
-| **0.13 决策可信** | ✅ | `funnel` · 真缺口/同义词分列 · `split_jds` |
-| **1.0 可靠闭环** | ✅ | `smoke_cn` 门禁 · [发版说明](./docs/RELEASE-1.0.zh.md) · 能力面稳定 |
-| **1.x 信号驱动** | ⏸ | embedding catalog / 本地 Web / 社区规模 —— Issue 痛点票 |
-| **暂缓** | — | 自研爬虫、强制 SaaS、默认海投、未验证就上 embedding |
+| **1.0 / 1.0.1** | ✅ | 可靠闭环 + 门禁 + 新人路径/提示词包 |
+| 0.10～0.13 能力火车 | ✅ | import · 薪资/同义词 · day-plan/rank · flow · funnel · split_jds |
+| 投递三档 | ✅ | 默认 **manual**；semi / auto 显式开启 |
+| **验证期（现在）** | 🔄 | 分发 + Issue「我在用/痛点」+ dogfood；**暂不加功能** |
+| **1.1** | ⏸ | 仅当同一痛点 ≥3 票：加厚 **一条** MVP |
+| **明确不做** | — | 默认海投 · 强制 SaaS · 默认 embedding · 自研爬虫 |
 
 ---
 

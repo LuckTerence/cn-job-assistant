@@ -77,6 +77,11 @@ job_search_tracker_export.csv
 # Vendored domestic search backends (cloned by install_domestic_search.py)
 third_party/
 
+# Packaging outputs (regenerate with scripts/package_for_redskill.sh)
+dist/
+*.zip
+cn-job-assistant-redskill.zip
+
 # Local apply mode (may contain risk acknowledgements; never commit)
 config/apply_mode.yaml
 # Local synonym overrides (optional; default groups ship as synonyms.default.json)
