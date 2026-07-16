@@ -5,6 +5,6 @@ date,company,sector,role,role_type,channel,status,contact_person,fit_rating,note
 2026-07-17,远航金融,,后端,,Boss直聘,skipped,,,demo: 薪资低于预期,,,,15-20K,北京,,,salary_low
 2026-07-17,南山制造,,后端,,智联,skipped,,,demo: 地点不合适,,,,,东莞,,,location
 2026-07-17,极简创业,,全栈,,Boss直聘,skipped,,,demo: 匹配度低，材料生成后选择不投,,,,,,,,low_match
-2026-07-17,云梯科技,,Java 后端工程师,,Boss直聘,to_apply,,,security_id=demo_sec_yunti,,,https://www.zhipin.com/job_detail/demo_yunti.html,20-35K,杭州,,,
-2026-07-17,字节示例,,后端开发,,Boss直聘,to_apply,,,,,,https://www.zhipin.com/job_detail/demo_byted.html,30-50K,上海,,,
+2026-07-17,云梯科技,,Java 后端工程师,,Boss直聘,to_apply,,,security_id=demo_sec_yunti,/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md,,/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md,20-35K,杭州,,,
+2026-07-17,字节示例,,后端开发,,Boss直聘,to_apply,,,,/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_弱匹配.md,,/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md,30-50K,上海,,,
 2026-07-17,本地生活示范,,服务端开发,,智联,to_apply,,,,,,,25-40K,北京,,,

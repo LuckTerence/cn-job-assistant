@@ -107,6 +107,18 @@ rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db" "$OUT/s
 # 搜岗 → tracker：批量导入样例（默认 to_apply，去重）
 "$PY" tools/tracker.py --csv "$CSV" import-jobs "$DEMO/jobs_sample.json" \
   | tee "$OUT/import_jobs.txt"
+# v0.11：给两条 to_apply 挂上可打分的本地简历/JD，再 rank + day-plan
+"$PY" tools/tracker.py --csv "$CSV" update \
+  --company 云梯科技 --role "Java 后端工程师" \
+  --cv "$DEMO/resume_星云科技.md" \
+  --source "$DEMO/jd_星云科技_后端.md" || true
+"$PY" tools/tracker.py --csv "$CSV" update \
+  --company 字节示例 --role 后端开发 \
+  --cv "$DEMO/resume_弱匹配.md" \
+  --source "$DEMO/jd_星云科技_后端.md" || true
+"$PY" tools/tracker.py --csv "$CSV" rank --track internet | tee "$OUT/rank.txt"
+"$PY" tools/tracker.py --csv "$CSV" day-plan --limit 3 --track internet \
+  | tee "$OUT/day_plan.txt"
 "$PY" tools/tracker.py --csv "$CSV" dashboard --out "$OUT/job_search_tracker.html"
 "$PY" tools/tracker.py --csv "$CSV" export --format sqlite --out "$OUT/job_search_tracker.db"
 
@@ -194,6 +206,8 @@ echo "  薪资对照: $OUT/salary_compare.txt"
 echo "  今日工作台: $OUT/tracker_today.txt"
 echo "  不投信号: $OUT/skip_stats.txt"
 echo "  搜岗导入: $OUT/import_jobs.txt  (源: examples/demo/jobs_sample.json)"
+echo "  批打分:   $OUT/rank.txt"
+echo "  今日计划: $OUT/day_plan.txt"
 echo "  赛道对比: $OUT/track_internet_brief.txt  vs  $OUT/track_soe_brief.txt"
 echo "  飞轮 diff: $OUT/match_diff_v1_v2.txt"
 echo

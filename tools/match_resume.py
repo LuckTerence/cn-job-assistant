@@ -133,16 +133,60 @@ def _norm_syn_term(t: str) -> str:
     return re.sub(r"\s+", " ", (t or "").strip().lower())
 
 
-def load_synonym_map(extra_paths: list[Path] | None = None) -> dict[str, set[str]]:
+KNOWN_TRACKS = frozenset({"internet", "soe", "foreign", "civil", "freshgrad"})
+
+
+def _collect_groups_from_data(data: object, track: str | None = None) -> list[list[str]]:
+    """Extract synonym groups from a JSON object; optionally merge track-specific groups."""
+    groups: list[list[str]] = []
+
+    def add_raw(raw_groups: object) -> None:
+        if not isinstance(raw_groups, list):
+            return
+        for g in raw_groups:
+            if isinstance(g, list) and len(g) >= 2:
+                terms = [_norm_syn_term(str(x)) for x in g if str(x).strip()]
+                terms = [t for t in terms if t]
+                if len(terms) >= 2:
+                    groups.append(terms)
+
+    if isinstance(data, list):
+        add_raw(data)
+        return groups
+    if not isinstance(data, dict):
+        return groups
+    add_raw(data.get("groups"))
+    if track:
+        tracks = data.get("tracks") or {}
+        if isinstance(tracks, dict):
+            add_raw(tracks.get(track) or tracks.get(track.lower()))
+    return groups
+
+
+def load_synonym_map(
+    extra_paths: list[Path] | None = None,
+    track: str | None = None,
+) -> dict[str, set[str]]:
     """Build term → full synonym cluster (including self).
 
     Loads default + optional user override + any --synonyms paths.
+    If track is set (internet/soe/…), merges tracks[track] from those files and
+    optional config/synonyms.track.<track>.json.
     """
+    track_key = (track or "").strip().lower() or None
+    if track_key and track_key not in KNOWN_TRACKS:
+        # Allow unknown track names if user file defines them; still try load.
+        pass
+
     paths: list[Path] = []
     if DEFAULT_SYNONYMS.is_file():
         paths.append(DEFAULT_SYNONYMS)
     if USER_SYNONYMS.is_file():
         paths.append(USER_SYNONYMS)
+    if track_key:
+        track_file = ROOT / "config" / f"synonyms.track.{track_key}.json"
+        if track_file.is_file():
+            paths.append(track_file)
     if extra_paths:
         paths.extend(extra_paths)
 
@@ -152,15 +196,7 @@ def load_synonym_map(extra_paths: list[Path] | None = None) -> dict[str, set[str
             data = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        raw_groups = data.get("groups") if isinstance(data, dict) else data
-        if not isinstance(raw_groups, list):
-            continue
-        for g in raw_groups:
-            if isinstance(g, list) and len(g) >= 2:
-                terms = [_norm_syn_term(str(x)) for x in g if str(x).strip()]
-                terms = [t for t in terms if t]
-                if len(terms) >= 2:
-                    groups.append(terms)
+        groups.extend(_collect_groups_from_data(data, track=track_key))
 
     syn: dict[str, set[str]] = {}
     for terms in groups:
@@ -1149,7 +1185,8 @@ def _synonym_map_from_args(args: argparse.Namespace) -> dict[str, set[str]]:
         extra.append(Path(path))
     if getattr(args, "no_synonyms", False):
         return {}
-    return load_synonym_map(extra or None)
+    track = getattr(args, "track", None) or None
+    return load_synonym_map(extra or None, track=track)
 
 
 def cmd_score(args: argparse.Namespace) -> int:
@@ -1251,6 +1288,125 @@ def cmd_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_batch(args: argparse.Namespace) -> int:
+    """Score many resume/jd pairs from a JSON manifest (for rank / CI)."""
+    path = Path(args.manifest)
+    if not path.is_file():
+        print(f"error: manifest not found: {path}", file=sys.stderr)
+        return 2
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        items = data.get("items") or data.get("jobs") or data.get("pairs") or []
+    else:
+        items = data
+    if not isinstance(items, list) or not items:
+        print("error: manifest must be a non-empty list or {items:[…]}", file=sys.stderr)
+        return 2
+
+    syn = _synonym_map_from_args(args)
+    results: list[dict] = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            continue
+        rid = str(item.get("id") or item.get("company") or i)
+        resume_src = item.get("resume") or item.get("cv") or item.get("cv_file") or ""
+        jd_src = item.get("jd") or item.get("source") or item.get("job") or ""
+        if not resume_src or not jd_src:
+            results.append(
+                {
+                    "id": rid,
+                    "score": None,
+                    "error": "missing resume or jd path",
+                    "company": item.get("company", ""),
+                    "role": item.get("role", ""),
+                }
+            )
+            continue
+        try:
+            resume = read_text(str(resume_src))
+            jd = read_text(str(jd_src))
+            # If source is a URL-only path that isn't a file, read_text returns the string —
+            # skip scoring empty-ish non-files that look like URLs without body.
+            if resume.startswith("http") and len(resume) < 200 and not Path(str(resume_src)).is_file():
+                results.append(
+                    {
+                        "id": rid,
+                        "score": None,
+                        "error": "resume path not a local file",
+                        "company": item.get("company", ""),
+                        "role": item.get("role", ""),
+                    }
+                )
+                continue
+            if jd.startswith("http") and len(jd) < 200 and not Path(str(jd_src)).is_file():
+                # Prefer local jd file; URL-only cannot be scored offline
+                results.append(
+                    {
+                        "id": rid,
+                        "score": None,
+                        "error": "jd is URL without local file; save JD text first",
+                        "company": item.get("company", ""),
+                        "role": item.get("role", ""),
+                    }
+                )
+                continue
+            m = match_texts(resume, jd, top_k=args.top_k, synonym_map=syn)
+            results.append(
+                {
+                    "id": rid,
+                    "company": item.get("company", ""),
+                    "role": item.get("role", ""),
+                    "score": m.score,
+                    "keyword_coverage": m.keyword_coverage,
+                    "verdict": m.verdict,
+                    "miss_top": m.keywords.miss[:5],
+                    "resume": str(resume_src),
+                    "jd": str(jd_src),
+                }
+            )
+        except OSError as e:
+            results.append(
+                {
+                    "id": rid,
+                    "score": None,
+                    "error": str(e),
+                    "company": item.get("company", ""),
+                    "role": item.get("role", ""),
+                }
+            )
+
+    scored = [r for r in results if r.get("score") is not None]
+    scored.sort(key=lambda r: float(r["score"] or 0), reverse=True)
+    unscored = [r for r in results if r.get("score") is None]
+    ordered = scored + unscored
+
+    if args.json:
+        print(json.dumps({"results": ordered}, ensure_ascii=False, indent=2))
+    else:
+        print(f"{'#':>3}  {'score':>6}  {'cov%':>5}  {'verdict':16}  company / role")
+        print("-" * 72)
+        for i, r in enumerate(ordered, 1):
+            if r.get("score") is None:
+                print(
+                    f"{i:>3}  {'—':>6}  {'—':>5}  {'unscored':16}  "
+                    f"{r.get('company','')} / {r.get('role','')}  ({r.get('error','')})"
+                )
+            else:
+                print(
+                    f"{i:>3}  {r['score']:6.1f}  {r['keyword_coverage']:5.1f}  "
+                    f"{str(r.get('verdict',''))[:16]:16}  "
+                    f"{r.get('company','') or r.get('id')} / {r.get('role','')}"
+                )
+        print(f"\n{len(scored)} scored, {len(unscored)} unscored")
+    if args.out:
+        Path(args.out).write_text(
+            json.dumps({"results": ordered}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"Wrote → {args.out}", file=sys.stderr)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="match_resume",
@@ -1270,6 +1426,11 @@ def build_parser() -> argparse.ArgumentParser:
             "--no-synonyms",
             action="store_true",
             help="disable synonym expansion (debug / A-B)",
+        )
+        sp.add_argument(
+            "--track",
+            default="",
+            help="synonym track: internet|soe|foreign|civil|freshgrad (merges track groups)",
         )
 
     sc = sub.add_parser("score", help="score résumé against 岗位描述 (job posting)")
@@ -1326,6 +1487,19 @@ def build_parser() -> argparse.ArgumentParser:
     df.add_argument("--json", action="store_true")
     df.add_argument("--out", default="")
     df.set_defaults(func=cmd_diff)
+
+    bat = sub.add_parser(
+        "batch",
+        help="score many resume/jd pairs from JSON manifest (rank / CI)",
+    )
+    add_common(bat)
+    bat.add_argument(
+        "--manifest",
+        required=True,
+        help='JSON list of {id,resume,jd} or {items:[…]}',
+    )
+    bat.add_argument("--out", default="", help="write ranked JSON results")
+    bat.set_defaults(func=cmd_batch)
 
     return p
 

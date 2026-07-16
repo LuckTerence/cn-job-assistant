@@ -1,6 +1,6 @@
 ---
 name: application-tracker
-version: 2.2.0
+version: 2.3.0
 description: >
   本地投递状态追踪与求职看板。以 job_search_tracker.csv 为权威源，通过
   tools/tracker.py（stdlib：CSV / 可选 SQLite / 单文件 HTML）读写，零 Docker。
@@ -76,6 +76,13 @@ python tools/tracker.py list --status interview
 
 # 每日工作台（面试 / 跟进≥7天 / 复盘 / 不投信号）
 python tools/tracker.py today
+
+# v0.11 今日计划：面试 → 跟进 → top N 条 to_apply（默认可打分）
+python tools/tracker.py day-plan --limit 3 --track internet
+
+# v0.11 批打分排序（cv_file + source 需为本地文件）
+python tools/tracker.py rank --status to_apply --track internet
+python tools/tracker.py rank --write-fit   # 把分数写入 fit_rating
 
 # 不投原因分布（Phase 1 产品信号）
 python tools/tracker.py skip-stats

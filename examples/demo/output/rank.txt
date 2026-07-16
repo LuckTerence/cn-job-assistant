@@ -1,0 +1,10 @@
+【批打分排序 · status=to_apply · 3 条】
+  #   score   cov%  verdict           company / role
+------------------------------------------------------------------------------
+  1    55.9   81.0  moderate_match    云梯科技 / Java 后端工程师 · 杭州
+  2     0.0    0.0  weak_match        字节示例 / 后端开发 · 上海
+  3       —      —  unscored          本地生活示范 / 服务端开发  (need local cv_file + source (JD file))
+
+已打分 2 · 未打分 1
+提示: cv_file 与 source 需为本地简历/JD 路径才能打分；URL 请先落盘。
+今日短名单: python tools/tracker.py day-plan

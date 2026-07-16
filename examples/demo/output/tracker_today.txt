@@ -28,6 +28,8 @@
   （复盘可以用 /outcome，旧记录别删）
 
 常用：
+  python tools/tracker.py day-plan    # 今天投谁（短名单）
+  python tools/tracker.py rank        # to_apply 批打分排序
   python tools/tracker.py list --open-only
   python tools/tracker.py dashboard   # 打开 HTML 看板看待办卡片
   python tools/tracker.py skip-stats  # 不投原因分布（产品信号）

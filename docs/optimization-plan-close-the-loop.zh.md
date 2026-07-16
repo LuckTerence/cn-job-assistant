@@ -1,8 +1,8 @@
 # 优化方案：先把闭环做透（Phase 0 → 1 → 2）
 
-> **状态**：Phase 0 收尾已落地；**Phase 1 验证工具已齐**（2026-07-16～17）：  
-> `skip_reason` + `skip-stats`、Issue「我在用 / 痛点」、README 用户故事、  
-> `/outcome` 串联 skipped/飞轮、demo 含不投样例。  
+> **状态**：Phase 0–1 与决策层已齐；**v0.11「今天投谁」已落地**（2026-07-17）：  
+> `day-plan` / `rank`、看板筛选、`--track` 赛道同义词、黄金回归。  
+> 仍建议并行分发验证；0.12 再考虑薄 flow / 轻 IDF / boss 适配。  
 > **原则**：产品成熟度 = 闭环完成度 × 用户反馈验证数，不是功能数。  
 > **定位**：Agent 可读可跑的本地求职工作流（非 SaaS、默认不自动投）。  
 > **相关**：[`pm-review-2026-07-10.zh.md`](./pm-review-2026-07-10.zh.md)、[`ARCHITECTURE.zh.md`](../ARCHITECTURE.zh.md)、  

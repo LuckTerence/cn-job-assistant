@@ -48,6 +48,10 @@ class DemoScriptTests(unittest.TestCase):
         self.assertIn("薪资对照", salary_out)
         brief = (OUT / "match_brief_zh.txt").read_text(encoding="utf-8")
         self.assertIn("薪资对照", brief)
+        self.assertTrue((OUT / "rank.txt").is_file())
+        self.assertTrue((OUT / "day_plan.txt").is_file())
+        self.assertIn("今日计划", (OUT / "day_plan.txt").read_text(encoding="utf-8"))
+        self.assertIn("filter-status", html)
 
 
 if __name__ == "__main__":

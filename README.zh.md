@@ -30,7 +30,9 @@ python tools/tracker.py suggest-add --company … --role … --channel Boss直�
 python tools/tracker.py today
 python tools/tracker.py skip-stats   # 不投原因分布（Phase 1 信号）
 python tools/tracker.py import-jobs examples/demo/jobs_sample.json  # 搜岗 JSON → to_apply
-python tools/tracker.py dashboard
+python tools/tracker.py rank --track internet   # to_apply 批打分排序
+python tools/tracker.py day-plan                # 今天投谁
+python tools/tracker.py dashboard               # 看板含状态/城市筛选
 ```
 
 ## 合规三句话

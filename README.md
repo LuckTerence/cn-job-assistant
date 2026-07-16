@@ -232,6 +232,8 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | Tracker + **每日工作台** | `tracker.py today` / `suggest-add` 挂钩 apply-zh |
 | **不投原因（skip_reason）** | `skipped` 必填枚举；`skip-stats` 看分布（Phase 1 信号） |
 | **搜岗 → tracker** | `import-jobs`：JSON/NDJSON/CSV 批量入库，默认 `to_apply` + 去重 |
+| **今日计划 / 批打分** | `day-plan` · `rank`（to_apply 按匹配分排序） |
+| **赛道同义词** | `match_resume --track internet|soe|…` |
 | `/setup-zh` 粘贴旧简历 | 冷启动减负 |
 | 国产模型友好 | 见 MODELS.zh.md |
 | Issue 模板 | 赛道反馈 + **我在用** + **痛点多选** |
@@ -301,7 +303,8 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **验证期** | 🔄 | 用户故事 · Issue 反馈 · `skip_reason` / `skip-stats` · `/outcome` 飞轮 |
 | **搜岗入库** | ✅ | `tracker import-jobs`（搜岗 JSON → `to_apply`，去重） |
 | **决策层** | ✅ | 同义词表 + 期望 vs JD 薪资（本地解析） |
-| **扩圈（有信号再开）** | ⏸ | HTML 增强 / 薄 `flow.py` / embedding catalog —— 见 [优化方案](./docs/optimization-plan-close-the-loop.zh.md) |
+| **0.11 今天投谁** | ✅ | `day-plan` · `rank` 批打分 · 看板筛选 · `--track` 赛道同义词 |
+| **扩圈（有信号再开）** | ⏸ | 薄 `flow.py` / 轻 IDF / embedding catalog —— 见 [优化方案](./docs/optimization-plan-close-the-loop.zh.md) |
 | **暂缓** | — | 自研爬虫、强制 SaaS、默认海投、未验证就上 embedding |
 
 ---

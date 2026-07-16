@@ -1,0 +1,15 @@
+【今日计划 · 2026-07-17】
+
+1) 面试相关（1）
+  [interview] 青梧数据 / 后端开发 · 智联 · 上海 · 30-45K
+
+2) 建议跟进 ≥7 天（0）
+  暂无
+
+3) 建议今天推进的待投 to_apply（展示 3 / 共 3）
+  1. 云梯科技 / Java 后端工程师 · Boss直聘 · 杭州 · 20-35K  分=55.9
+  2. 字节示例 / 后端开发 · Boss直聘 · 上海 · 30-50K  分=0.0
+  3. 本地生活示范 / 服务端开发 · 智联 · 北京 · 25-40K  （缺本地简历/JD，无法打分）
+
+投完用 /outcome 或 tracker update；不投: --status skipped --skip-reason …
+看板: python tools/tracker.py dashboard

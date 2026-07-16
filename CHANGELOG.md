@@ -3,6 +3,29 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定：  
 `0.x` 阶段允许在次版本加入能力；破坏性变更会在条目里标明。
 
+## [0.11.0] — 2026-07-17
+
+### 今天投谁（体验 + 管道）
+
+- **`tracker day-plan`**：面试 → 建议跟进 → 今日 top N 条 `to_apply`（默认可带匹配分）
+- **`tracker rank`**：对 `to_apply`（可改 `--status`）批打分排序；可选 `--write-fit` 写回 `fit_rating`
+- 需本地 `cv_file` + `source`（JD 文件）；纯 URL 会标 unscored 并提示先落盘
+
+### 匹配
+
+- **`--track`**：`internet|soe|foreign|civil|freshgrad` 叠加赛道同义词簇  
+  （见 `config/synonyms.default.json` → `tracks`）
+- **`match_resume batch`**：JSON manifest 多对简历/JD 批打分（CI / 外部编排）
+
+### 看板
+
+- HTML **状态 / 城市筛选**（纯前端，无服务端）
+- 城市分布 chips；文案链到 `day-plan` / `rank`
+
+### 工程
+
+- 黄金回归：`tests/test_golden_v011.py`（薪资、同义词、batch、day-plan、rank、filter）
+
 ## [0.10.0] — 2026-07-17
 
 ### 决策层（零爬虫 / 零 embedding）

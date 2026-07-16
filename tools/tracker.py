@@ -17,7 +17,9 @@ Usage (from repo root):
   python tools/tracker.py export --format html|sqlite|csv
   python tools/tracker.py dashboard   # writes job_search_tracker.html
   python tools/tracker.py today       # daily cockpit
-  python tools/tracker.py skip-stats  # Phase 1: 不投原因分布（产品信号）
+  python tools/tracker.py day-plan    # 今天投谁：面试 / 跟进 / to_apply 短名单
+  python tools/tracker.py rank        # 对 to_apply 批打分排序（需 cv_file + source 本地文件）
+  python tools/tracker.py skip-stats  # 不投原因分布（产品信号）
   python tools/tracker.py import-jobs jobs.json   # 搜岗结果批量入库（默认 to_apply）
   python tools/tracker.py suggest-add --company X --role Y ...
 """
@@ -585,6 +587,164 @@ def compute_stats(rows: list[dict[str, str]], today: date | None = None) -> dict
     }
 
 
+def _resolve_local_path(raw: str) -> Path | None:
+    """Return Path if raw points to an existing local file (cwd or repo root)."""
+    s = (raw or "").strip()
+    if not s or s.startswith("http://") or s.startswith("https://"):
+        return None
+    p = Path(s)
+    if p.is_file():
+        return p
+    alt = ROOT / s
+    if alt.is_file():
+        return alt
+    return None
+
+
+def _load_match_resume():
+    tools_dir = Path(__file__).resolve().parent
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    import match_resume as m  # noqa: WPS433
+
+    return m
+
+
+def score_tracker_rows(
+    rows: list[dict[str, str]],
+    *,
+    status_filter: str = "to_apply",
+    track: str | None = None,
+    limit: int = 0,
+) -> list[dict]:
+    """Score rows that have local cv_file + source; return ranked dicts."""
+    m = _load_match_resume()
+    syn = m.load_synonym_map(track=track)
+    want = (status_filter or "").strip().lower()
+    candidates = [
+        r
+        for r in rows
+        if not want or (r.get("status") or "").lower() == want
+    ]
+    results: list[dict] = []
+    for r in candidates:
+        company = r.get("company", "")
+        role = r.get("role", "")
+        cv_p = _resolve_local_path(r.get("cv_file", ""))
+        jd_p = _resolve_local_path(r.get("source", ""))
+        base = {
+            "company": company,
+            "role": role,
+            "channel": r.get("channel", ""),
+            "city": r.get("city", ""),
+            "salary": r.get("salary", ""),
+            "status": r.get("status", ""),
+            "cv_file": r.get("cv_file", ""),
+            "source": r.get("source", ""),
+            "fit_rating": r.get("fit_rating", ""),
+        }
+        if not cv_p or not jd_p:
+            results.append(
+                {
+                    **base,
+                    "score": None,
+                    "keyword_coverage": None,
+                    "verdict": "unscored",
+                    "error": "need local cv_file + source (JD file)",
+                }
+            )
+            continue
+        try:
+            result = m.match_texts(
+                cv_p.read_text(encoding="utf-8", errors="replace"),
+                jd_p.read_text(encoding="utf-8", errors="replace"),
+                synonym_map=syn,
+            )
+            results.append(
+                {
+                    **base,
+                    "score": result.score,
+                    "keyword_coverage": result.keyword_coverage,
+                    "verdict": result.verdict,
+                    "miss_top": result.keywords.miss[:5],
+                    "error": "",
+                }
+            )
+        except OSError as e:
+            results.append(
+                {
+                    **base,
+                    "score": None,
+                    "keyword_coverage": None,
+                    "verdict": "unscored",
+                    "error": str(e),
+                }
+            )
+    scored = [x for x in results if x.get("score") is not None]
+    unscored = [x for x in results if x.get("score") is None]
+    scored.sort(key=lambda x: float(x["score"] or 0), reverse=True)
+    ordered = scored + unscored
+    if limit and limit > 0:
+        ordered = ordered[:limit]
+    return ordered
+
+
+def build_day_plan(
+    rows: list[dict[str, str]],
+    *,
+    today: date | None = None,
+    apply_limit: int = 3,
+    track: str | None = None,
+    with_scores: bool = True,
+) -> dict:
+    """Build today's plan: interviews, follow-ups, top to_apply (optionally ranked)."""
+    today = today or date.today()
+    actions = build_action_items(rows, today)
+    to_apply = [r for r in rows if (r.get("status") or "").lower() == "to_apply"]
+    ranked: list[dict] = []
+    if with_scores and to_apply:
+        ranked = score_tracker_rows(to_apply, status_filter="to_apply", track=track)
+        # Prefer scored order; pad with unscored to_apply
+        pick: list[dict] = []
+        seen: set[tuple[str, str, str]] = set()
+        for item in ranked:
+            key = (
+                item.get("company", "").lower(),
+                item.get("role", "").lower(),
+                item.get("channel", "").lower(),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            pick.append(item)
+            if len(pick) >= apply_limit:
+                break
+        focus_apply = pick
+    else:
+        focus_apply = [
+            {
+                "company": r.get("company", ""),
+                "role": r.get("role", ""),
+                "channel": r.get("channel", ""),
+                "city": r.get("city", ""),
+                "salary": r.get("salary", ""),
+                "status": r.get("status", ""),
+                "score": None,
+                "verdict": "",
+                "error": "",
+            }
+            for r in to_apply[:apply_limit]
+        ]
+    return {
+        "date": today.isoformat(),
+        "interviews": actions["interviews"],
+        "follow_ups": actions["follow_ups"],
+        "reviews": actions["reviews"],
+        "focus_apply": focus_apply,
+        "to_apply_total": len(to_apply),
+    }
+
+
 def export_html(csv_path: Path, html_path: Path) -> None:
     rows = read_rows(csv_path)
     today = date.today()
@@ -594,6 +754,18 @@ def export_html(csv_path: Path, html_path: Path) -> None:
     open_rows = [r for r in rows if r["status"].lower() not in CLOSED_STATUSES]
     closed_rows = [r for r in rows if r["status"].lower() in CLOSED_STATUSES]
     encouragement = _pick_encouragement(rows, today)
+
+    # City histogram for open rows (decision glance)
+    city_counts: dict[str, int] = {}
+    status_counts: dict[str, int] = {}
+    for r in rows:
+        st = (r.get("status") or "unknown").strip() or "unknown"
+        status_counts[st] = status_counts.get(st, 0) + 1
+    for r in open_rows:
+        c = (r.get("city") or "（未填城市）").strip() or "（未填城市）"
+        city_counts[c] = city_counts.get(c, 0) + 1
+    cities_sorted = sorted(city_counts.items(), key=lambda x: (-x[1], x[0]))[:12]
+    statuses_sorted = sorted(status_counts.items(), key=lambda x: (-x[1], x[0]))
 
     visible_cols = [c for c in HEADER if any(r.get(c, "").strip() for r in rows)] or HEADER
 
@@ -704,14 +876,17 @@ def export_html(csv_path: Path, html_path: Path) -> None:
         for r in subset:
             cells = "".join(f"<td>{esc(r.get(c, ''))}</td>" for c in visible_cols)
             st = r.get("status", "").lower()
-            cls = ""
+            city = (r.get("city") or "").strip()
+            cls = "data-row"
             if st in INTERVIEW_STATUSES:
-                cls = ' class="row-iv"'
+                cls += " row-iv"
             elif st in REVIEW_STATUSES or st in CLOSED_STATUSES:
-                cls = ' class="row-closed"'
-            body_parts.append(f"<tr{cls}>{cells}</tr>")
+                cls += " row-closed"
+            body_parts.append(
+                f'<tr class="{cls}" data-status="{esc(st)}" data-city="{esc(city)}">{cells}</tr>'
+            )
         table_html = (
-            f"<table><thead><tr>{head}</tr></thead>"
+            f'<table class="jobs-table"><thead><tr>{head}</tr></thead>'
             f"<tbody>{''.join(body_parts)}</tbody></table>"
         )
         if closed:
@@ -726,6 +901,74 @@ def export_html(csv_path: Path, html_path: Path) -> None:
             f"<h2>{esc(title)} ({len(subset)})</h2>"
             f"{table_html}"
         )
+
+    def render_filter_bar() -> str:
+        if not rows:
+            return ""
+        status_opts = "".join(
+            f'<option value="{esc(s)}">{esc(s)} ({n})</option>'
+            for s, n in statuses_sorted
+        )
+        city_opts = "".join(
+            f'<option value="{esc(c)}">{esc(c)} ({n})</option>'
+            for c, n in cities_sorted
+        )
+        city_chips = "".join(
+            f'<span class="chip">{esc(c)} <b>{n}</b></span>' for c, n in cities_sorted[:8]
+        )
+        return f"""
+  <div class="filter-bar">
+    <div class="filter-row">
+      <label>状态
+        <select id="filter-status">
+          <option value="">全部状态</option>
+          {status_opts}
+        </select>
+      </label>
+      <label>城市
+        <select id="filter-city">
+          <option value="">全部城市</option>
+          {city_opts}
+        </select>
+      </label>
+      <button type="button" id="filter-reset" class="btn-reset">重置</button>
+      <span class="filter-meta" id="filter-count"></span>
+    </div>
+    <div class="city-chips" title="进行中岗位的城市分布">{city_chips or '<span class="chip muted">暂无城市字段</span>'}</div>
+  </div>
+  <script>
+  (function() {{
+    const st = document.getElementById('filter-status');
+    const ct = document.getElementById('filter-city');
+    const reset = document.getElementById('filter-reset');
+    const countEl = document.getElementById('filter-count');
+    function apply() {{
+      const sv = (st && st.value || '').toLowerCase();
+      const cv = (ct && ct.value || '');
+      let vis = 0, total = 0;
+      document.querySelectorAll('tr.data-row').forEach(function(tr) {{
+        total++;
+        const rs = (tr.getAttribute('data-status') || '').toLowerCase();
+        const rc = tr.getAttribute('data-city') || '';
+        const okS = !sv || rs === sv;
+        const okC = !cv || rc === cv;
+        const show = okS && okC;
+        tr.style.display = show ? '' : 'none';
+        if (show) vis++;
+      }});
+      if (countEl) countEl.textContent = '显示 ' + vis + ' / ' + total + ' 行';
+    }}
+    if (st) st.addEventListener('change', apply);
+    if (ct) ct.addEventListener('change', apply);
+    if (reset) reset.addEventListener('click', function() {{
+      if (st) st.value = '';
+      if (ct) ct.value = '';
+      apply();
+    }});
+    apply();
+  }})();
+  </script>
+"""
 
     encourage_html = ""
     if encouragement:
@@ -838,17 +1081,33 @@ def export_html(csv_path: Path, html_path: Path) -> None:
   .row-iv td {{ border-left: 3px solid var(--accent-iv); }}
   .row-closed td {{ opacity: 0.6; }}
   code {{ background: rgba(128,128,128,.12); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }}
+  .filter-bar {{ background: var(--card-bg); padding: 0.85rem 1rem; border-radius: 10px;
+                 box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 1.25rem; }}
+  .filter-row {{ display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }}
+  .filter-row label {{ font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 0.25rem; }}
+  .filter-row select {{ min-width: 9rem; padding: 0.35rem 0.5rem; border-radius: 6px;
+                        border: 1px solid var(--border); background: var(--bg); color: inherit; }}
+  .btn-reset {{ padding: 0.4rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+                background: transparent; color: inherit; cursor: pointer; font-size: 0.85rem; }}
+  .filter-meta {{ font-size: 0.8rem; color: var(--muted); margin-left: auto; }}
+  .city-chips {{ display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }}
+  .chip {{ font-size: 0.75rem; padding: 0.2rem 0.55rem; border-radius: 999px;
+           background: rgba(128,128,128,.12); }}
+  .chip b {{ margin-left: 0.2rem; }}
+  .chip.muted {{ color: var(--muted); }}
 </style>
 </head>
 <body>
   <h1>求职投递看板</h1>
   <p class="meta">Source of truth: <code>{esc(str(csv_path.name))}</code>
      · generated {esc(today.isoformat())} by <code>tools/tracker.py dashboard</code>
-     · do not commit (personal data)</p>
+     · do not commit (personal data)
+     · 今日清单: <code>tracker.py day-plan</code> · 批打分: <code>tracker.py rank</code></p>
   {stats_html}
   {body_content}
   {weekend_hint}
   {encourage_html}
+  {render_filter_bar() if rows else ""}
   {tables_html}
 </body>
 </html>
@@ -979,9 +1238,156 @@ def cmd_today(args: argparse.Namespace) -> int:
         dump(f"📝 最近结束的（近{REVIEW_DAYS}天）", actions["reviews"], "复盘可以用 /outcome，旧记录别删")
 
     print("常用：")
+    print("  python tools/tracker.py day-plan    # 今天投谁（短名单）")
+    print("  python tools/tracker.py rank        # to_apply 批打分排序")
     print("  python tools/tracker.py list --open-only")
     print("  python tools/tracker.py dashboard   # 打开 HTML 看板看待办卡片")
     print("  python tools/tracker.py skip-stats  # 不投原因分布（产品信号）")
+    return 0
+
+
+def cmd_day_plan(args: argparse.Namespace) -> int:
+    """Print today's focus list: interviews → follow-ups → top to_apply."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    if not rows:
+        print("还没有投递记录。先 import-jobs 或 /apply-zh，再来 day-plan。")
+        return 0
+
+    limit = args.limit if args.limit and args.limit > 0 else 3
+    track = (args.track or "").strip() or None
+    plan = build_day_plan(
+        rows,
+        apply_limit=limit,
+        track=track,
+        with_scores=not args.no_score,
+    )
+
+    print(f"【今日计划 · {plan['date']}】")
+    print()
+
+    def line_row(r: dict, prefix: str = "") -> None:
+        extra = ""
+        if r.get("city"):
+            extra += f" · {r['city']}"
+        if r.get("salary"):
+            extra += f" · {r['salary']}"
+        score = r.get("score")
+        score_s = f"  分={score}" if score is not None else ""
+        if r.get("error") and score is None and r.get("status") == "to_apply":
+            score_s = "  （缺本地简历/JD，无法打分）"
+        print(
+            f"  {prefix}{r.get('company','')} / {r.get('role','')}"
+            f" · {r.get('channel') or '渠道未填'}{extra}{score_s}"
+        )
+
+    print(f"1) 面试相关（{len(plan['interviews'])}）")
+    if plan["interviews"]:
+        for r in plan["interviews"]:
+            line_row(r, prefix=f"[{r.get('status','')}] ")
+    else:
+        print("  暂无")
+    print()
+
+    print(f"2) 建议跟进 ≥{FOLLOW_UP_DAYS} 天（{len(plan['follow_ups'])}）")
+    if plan["follow_ups"]:
+        for r in plan["follow_ups"]:
+            line_row(r)
+    else:
+        print("  暂无")
+    print()
+
+    print(
+        f"3) 建议今天推进的待投 to_apply"
+        f"（展示 {len(plan['focus_apply'])} / 共 {plan['to_apply_total']}）"
+    )
+    if plan["focus_apply"]:
+        for i, r in enumerate(plan["focus_apply"], 1):
+            line_row(r, prefix=f"{i}. ")
+    else:
+        print("  暂无 to_apply。可用 import-jobs 入库或 /apply-zh 生成后记 to_apply。")
+    print()
+
+    if plan["to_apply_total"] > limit:
+        print(f"其余 to_apply 用: python tools/tracker.py rank --limit {limit * 3}")
+    print("投完用 /outcome 或 tracker update；不投: --status skipped --skip-reason …")
+    print("看板: python tools/tracker.py dashboard")
+    return 0
+
+
+def cmd_rank(args: argparse.Namespace) -> int:
+    """Batch-score tracker rows (default: to_apply) and print ranking."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    status = (args.status or "to_apply").strip()
+    track = (args.track or "").strip() or None
+    limit = args.limit if args.limit and args.limit > 0 else 0
+    ranked = score_tracker_rows(
+        rows, status_filter=status, track=track, limit=limit
+    )
+    if not ranked:
+        print(f"没有 status={status} 的记录。")
+        print("先: python tools/tracker.py import-jobs jobs.json")
+        return 0
+
+    if args.json:
+        print(json.dumps({"results": ranked}, ensure_ascii=False, indent=2))
+    else:
+        print(f"【批打分排序 · status={status} · {len(ranked)} 条】")
+        print(f"{'#':>3}  {'score':>6}  {'cov%':>5}  {'verdict':16}  company / role")
+        print("-" * 78)
+        for i, r in enumerate(ranked, 1):
+            if r.get("score") is None:
+                print(
+                    f"{i:>3}  {'—':>6}  {'—':>5}  {'unscored':16}  "
+                    f"{r.get('company')} / {r.get('role')}  "
+                    f"({r.get('error','')})"
+                )
+            else:
+                print(
+                    f"{i:>3}  {float(r['score']):6.1f}  "
+                    f"{float(r.get('keyword_coverage') or 0):5.1f}  "
+                    f"{str(r.get('verdict',''))[:16]:16}  "
+                    f"{r.get('company')} / {r.get('role')}"
+                    f"{' · ' + r['city'] if r.get('city') else ''}"
+                )
+        scored_n = sum(1 for r in ranked if r.get("score") is not None)
+        print()
+        print(f"已打分 {scored_n} · 未打分 {len(ranked) - scored_n}")
+        print("提示: cv_file 与 source 需为本地简历/JD 路径才能打分；URL 请先落盘。")
+        print("今日短名单: python tools/tracker.py day-plan")
+
+    if args.write_fit:
+        # Write numeric score into fit_rating for scored rows
+        by_key = {
+            (
+                (r.get("company") or "").lower(),
+                (r.get("role") or "").lower(),
+                (r.get("channel") or "").lower(),
+            ): r
+            for r in ranked
+            if r.get("score") is not None
+        }
+        changed = 0
+        for row in rows:
+            key = (
+                row.get("company", "").lower(),
+                row.get("role", "").lower(),
+                row.get("channel", "").lower(),
+            )
+            hit = by_key.get(key)
+            if hit:
+                row["fit_rating"] = str(hit["score"])
+                changed += 1
+        if changed:
+            write_rows(path, rows)
+            print(f"已写入 fit_rating ← 匹配分（{changed} 行）→ {path}", file=sys.stderr)
+    if args.out:
+        Path(args.out).write_text(
+            json.dumps({"results": ranked}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"Wrote → {args.out}", file=sys.stderr)
     return 0
 
 
@@ -1510,6 +1916,39 @@ def build_parser() -> argparse.ArgumentParser:
 
     today_p = sub.add_parser("today", help="daily cockpit: interviews / follow-ups / closed")
     today_p.set_defaults(func=cmd_today)
+
+    day_p = sub.add_parser(
+        "day-plan",
+        help="v0.11: today's focus — interviews / follow-ups / top to_apply",
+    )
+    day_p.add_argument("--limit", type=int, default=3, help="how many to_apply to show (default 3)")
+    day_p.add_argument(
+        "--track",
+        default="",
+        help="synonym track for scoring: internet|soe|foreign|civil|freshgrad",
+    )
+    day_p.add_argument(
+        "--no-score",
+        action="store_true",
+        help="do not call match_resume (faster; order = CSV order)",
+    )
+    day_p.set_defaults(func=cmd_day_plan)
+
+    rank_p = sub.add_parser(
+        "rank",
+        help="v0.11: batch-score rows (default to_apply) via match_resume",
+    )
+    rank_p.add_argument("--status", default="to_apply", help="status filter (default to_apply)")
+    rank_p.add_argument("--track", default="", help="synonym track for scoring")
+    rank_p.add_argument("--limit", type=int, default=0, help="max rows to show (0=all)")
+    rank_p.add_argument("--json", action="store_true")
+    rank_p.add_argument("--out", default="", help="write ranked JSON")
+    rank_p.add_argument(
+        "--write-fit",
+        action="store_true",
+        help="write score into fit_rating column for scored rows",
+    )
+    rank_p.set_defaults(func=cmd_rank)
 
     skip_p = sub.add_parser(
         "skip-stats",

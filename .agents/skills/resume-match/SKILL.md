@@ -1,6 +1,6 @@
 ---
 name: resume-match
-version: 2.1.0
+version: 2.2.0
 description: >
   本地轻量简历↔岗位描述 匹配与生成质量报告。使用 tools/match_resume.py（stdlib：TF–IDF 余弦
   + 关键词命中/缺失 + 同义词表 + 期望薪资 vs JD 区间，无 embedding 下载）。触发词：匹配度、
@@ -64,13 +64,20 @@ python tools/match_resume.py diff \
 # JSON（agent 可读）
 python tools/match_resume.py score --resume … --jd … --json
 # 关闭同义词（A/B）：加 --no-synonyms
+# 赛道同义词：--track internet|soe|foreign|civil|freshgrad
+
+# 多对批打分（manifest JSON）
+python tools/match_resume.py batch --manifest pairs.json --track internet --out ranked.json
 ```
 
 ## 同义词
 
 - 默认：`config/synonyms.default.json`（高并发↔大流量、微服务↔分布式架构 …）
+- **赛道**：同文件 `tracks.internet` / `tracks.soe` … 或 `config/synonyms.track.<name>.json`
 - 本地覆盖：复制 `config/synonyms.example.json` → `config/synonyms.json`（gitignore）
 - 簇内任一词出现在简历原文或 token 中，JD 同簇词计为 **hit**
+
+短名单批打分也可：`python tools/tracker.py rank`（读 tracker 的 cv_file + source）。
 
 ## 输出字段（摘要）
 
