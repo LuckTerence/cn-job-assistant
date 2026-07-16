@@ -878,7 +878,28 @@ def build_day_plan(
     }
 
 
-def export_html(csv_path: Path, html_path: Path) -> None:
+STATUS_EDIT_OPTIONS = (
+    "to_apply",
+    "applied",
+    "screening",
+    "interview",
+    "interview_1",
+    "interview_2",
+    "offer",
+    "hired",
+    "rejected",
+    "no_response",
+    "skipped",
+    "withdrawn",
+)
+
+
+def export_html(csv_path: Path, html_path: Path, *, live: bool = False) -> None:
+    """Write dashboard HTML.
+
+    live=True: for tracker serve — status select POSTs to /api/update.
+    live=False: offline file — select copies update command to clipboard.
+    """
     rows = read_rows(csv_path)
     today = date.today()
     actions = build_action_items(rows, today)
@@ -1037,13 +1058,34 @@ def export_html(csv_path: Path, html_path: Path) -> None:
             )
         return '<div class="actions-grid">' + "".join(cards) + '</div>'
 
+    def status_select(r: dict[str, str]) -> str:
+        st = (r.get("status") or "").strip()
+        opts = []
+        seen = set()
+        for s in STATUS_EDIT_OPTIONS:
+            seen.add(s)
+            sel = " selected" if s == st.lower() or s == st else ""
+            opts.append(f'<option value="{esc(s)}"{sel}>{esc(s)}</option>')
+        if st and st.lower() not in seen:
+            opts.insert(0, f'<option value="{esc(st)}" selected>{esc(st)}</option>')
+        return (
+            f'<select class="status-edit" '
+            f'data-company="{esc(r.get("company", ""))}" '
+            f'data-role="{esc(r.get("role", ""))}" '
+            f'data-channel="{esc(r.get("channel", ""))}" '
+            f'title="改状态">'
+            f'{"".join(opts)}</select>'
+        )
+
     def render_table(title: str, subset: list[dict[str, str]], *, closed: bool = False) -> str:
         if not subset:
             return ""
         head = "".join(f"<th>{esc(h)}</th>" for h in visible_cols)
+        head += "<th>改状态</th>"
         body_parts = []
         for r in subset:
             cells = "".join(f"<td>{esc(r.get(c, ''))}</td>" for c in visible_cols)
+            cells += f"<td class=\"td-action\">{status_select(r)}</td>"
             st = r.get("status", "").lower()
             city = (r.get("city") or "").strip()
             cls = "data-row"
@@ -1135,6 +1177,67 @@ def export_html(csv_path: Path, html_path: Path) -> None:
       apply();
     }});
     apply();
+  }})();
+  </script>
+"""
+
+    def render_status_editor_js() -> str:
+        live_js = "true" if live else "false"
+        return f"""
+  <div id="toast" class="toast" hidden></div>
+  <script>
+  (function() {{
+    const LIVE = {live_js};
+    const toast = document.getElementById('toast');
+    function showToast(msg, ok) {{
+      if (!toast) return;
+      toast.hidden = false;
+      toast.textContent = msg;
+      toast.className = 'toast ' + (ok ? 'ok' : 'err');
+      setTimeout(function() {{ toast.hidden = true; }}, 2800);
+    }}
+    function buildCmd(company, role, channel, status) {{
+      let c = 'python tools/tracker.py update --company ' + JSON.stringify(company)
+        + ' --role ' + JSON.stringify(role)
+        + ' --status ' + status;
+      if (channel) c += ' --channel ' + JSON.stringify(channel);
+      if (status === 'skipped') c += ' --skip-reason other';
+      return c;
+    }}
+    document.querySelectorAll('select.status-edit').forEach(function(sel) {{
+      sel.addEventListener('change', function() {{
+        const company = sel.getAttribute('data-company') || '';
+        const role = sel.getAttribute('data-role') || '';
+        const channel = sel.getAttribute('data-channel') || '';
+        const status = sel.value;
+        if (LIVE) {{
+          fetch('/api/update', {{
+            method: 'POST',
+            headers: {{'Content-Type': 'application/json'}},
+            body: JSON.stringify({{company: company, role: role, channel: channel, status: status}})
+          }}).then(function(r) {{ return r.json().then(function(j) {{ return {{ok: r.ok, j: j}}; }}); }})
+            .then(function(x) {{
+              if (x.ok) {{
+                showToast('已更新: ' + company + ' → ' + status, true);
+                setTimeout(function() {{ location.reload(); }}, 500);
+              }} else {{
+                showToast((x.j && x.j.error) || '更新失败', false);
+              }}
+            }}).catch(function(e) {{ showToast(String(e), false); }});
+        }} else {{
+          const cmd = buildCmd(company, role, channel, status);
+          if (navigator.clipboard && navigator.clipboard.writeText) {{
+            navigator.clipboard.writeText(cmd).then(function() {{
+              showToast('已复制 update 命令，到终端粘贴执行', true);
+            }}).catch(function() {{
+              prompt('复制此命令到终端执行:', cmd);
+            }});
+          }} else {{
+            prompt('复制此命令到终端执行:', cmd);
+          }}
+        }}
+      }});
+    }});
   }})();
   </script>
 """
@@ -1271,20 +1374,34 @@ def export_html(csv_path: Path, html_path: Path) -> None:
            background: rgba(128,128,128,.12); }}
   .chip b {{ margin-left: 0.2rem; }}
   .chip.muted {{ color: var(--muted); }}
+  .td-action {{ white-space: nowrap; min-width: 7.5rem; }}
+  select.status-edit {{ max-width: 9rem; padding: 0.25rem 0.35rem; border-radius: 6px;
+                        border: 1px solid var(--border); background: var(--bg); color: inherit;
+                        font-size: 0.78rem; }}
+  .toast {{ position: fixed; bottom: 1.2rem; right: 1.2rem; z-index: 50;
+            padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.85rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,.18); max-width: 22rem; }}
+  .toast.ok {{ background: #065f46; color: #ecfdf5; }}
+  .toast.err {{ background: #991b1b; color: #fef2f2; }}
+  .live-banner {{ background: #0f766e; color: #ecfdf5; padding: 0.5rem 1rem; border-radius: 8px;
+                  font-size: 0.85rem; margin-bottom: 1rem; }}
 </style>
 </head>
 <body>
   <h1>求职投递看板</h1>
   <p class="meta">Source of truth: <code>{esc(str(csv_path.name))}</code>
-     · generated {esc(today.isoformat())} by <code>tools/tracker.py dashboard</code>
+     · generated {esc(today.isoformat())} by <code>tools/tracker.py {"serve" if live else "dashboard"}</code>
      · do not commit (personal data)
-     · 今日清单: <code>tracker.py day-plan</code> · 批打分: <code>tracker.py rank</code></p>
+     · 今日: <code>day-plan</code> · 批打分: <code>rank</code>
+     · {"一键改状态已启用" if live else "file 模式：改状态下拉会复制 update 命令"}</p>
+  {'<div class="live-banner">🟢 本地服务模式：下拉改状态会直接写 CSV（仅本机 127.0.0.1）</div>' if live else ""}
   {stats_html}
   {body_content}
   {weekend_hint}
   {encourage_html}
   {render_filter_bar() if rows else ""}
   {tables_html}
+  {render_status_editor_js() if rows else ""}
 </body>
 </html>
 """
@@ -1318,8 +1435,132 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     path = _csv_path(args.csv)
     dest = Path(args.out) if args.out else DEFAULT_HTML
     ensure_csv(path)
-    export_html(path, dest)
+    export_html(path, dest, live=False)
     print(f"dashboard → {dest}")
+    print("提示: 表内「改状态」会复制 update 命令；要一键写盘请用:")
+    print("  python tools/tracker.py serve")
+    return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    """Local-only HTTP dashboard with one-click status update (stdlib)."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    import json as _json
+
+    path = _csv_path(args.csv)
+    ensure_csv(path)
+    host = args.host or "127.0.0.1"
+    port = int(args.port or 8765)
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, fmt: str, *a) -> None:
+            sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % a))
+
+        def _send(self, code: int, body: bytes, content_type: str = "text/html; charset=utf-8") -> None:
+            self.send_response(code)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self) -> None:  # noqa: N802
+            if self.path.split("?")[0] in ("/", "/index.html", "/dashboard"):
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".html", delete=False, encoding="utf-8"
+                ) as tmp:
+                    tmp_path = Path(tmp.name)
+                try:
+                    export_html(path, tmp_path, live=True)
+                    body = tmp_path.read_bytes()
+                finally:
+                    tmp_path.unlink(missing_ok=True)
+                self._send(200, body)
+                return
+            if self.path.startswith("/api/health"):
+                self._send(200, b'{"ok":true}', "application/json")
+                return
+            self._send(404, b"not found")
+
+        def do_POST(self) -> None:  # noqa: N802
+            if self.path.split("?")[0] != "/api/update":
+                self._send(404, b'{"error":"not found"}', "application/json")
+                return
+            n = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(n) if n else b"{}"
+            try:
+                data = _json.loads(raw.decode("utf-8"))
+            except _json.JSONDecodeError:
+                self._send(400, b'{"error":"bad json"}', "application/json")
+                return
+            company = str(data.get("company") or "").strip()
+            role = str(data.get("role") or "").strip()
+            channel = str(data.get("channel") or "").strip()
+            status = str(data.get("status") or "").strip()
+            if not company or not status:
+                self._send(
+                    400,
+                    b'{"error":"company and status required"}',
+                    "application/json",
+                )
+                return
+            rows = read_rows(path)
+            hits = match_rows(rows, company, role or None)
+            if channel:
+                hits = [
+                    (i, r)
+                    for i, r in hits
+                    if (r.get("channel") or "").lower() == channel.lower()
+                ]
+            if not hits:
+                self._send(404, b'{"error":"no matching row"}', "application/json")
+                return
+            if len(hits) > 1 and not role:
+                self._send(
+                    400,
+                    b'{"error":"multiple matches; need role"}',
+                    "application/json",
+                )
+                return
+            skip_reason = ""
+            if status.lower() == "skipped":
+                skip_reason = normalize_skip_reason(
+                    str(data.get("skip_reason") or "other")
+                )
+                err = validate_skip_fields(status, skip_reason)
+                if err:
+                    self._send(
+                        400,
+                        _json.dumps({"error": err}).encode(),
+                        "application/json",
+                    )
+                    return
+            for i, _ in hits:
+                rows[i]["status"] = status
+                if status.lower() == "skipped":
+                    rows[i]["skip_reason"] = skip_reason
+                else:
+                    rows[i]["skip_reason"] = ""
+            write_rows(path, rows)
+            body = _json.dumps(
+                {"ok": True, "company": company, "status": status},
+                ensure_ascii=False,
+            ).encode()
+            self._send(200, body, "application/json")
+
+    server = ThreadingHTTPServer((host, port), Handler)
+    url = f"http://{host}:{port}/"
+    print(f"tracker serve → {url}")
+    print(f"CSV: {path}")
+    print("仅监听本机；Ctrl+C 结束。改状态下拉会直接写盘。")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nstopped.")
+    finally:
+        server.server_close()
     return 0
 
 
@@ -2232,6 +2473,14 @@ def build_parser() -> argparse.ArgumentParser:
     dash_p = sub.add_parser("dashboard", help="write single-file HTML dashboard")
     dash_p.add_argument("--out", default="")
     dash_p.set_defaults(func=cmd_dashboard)
+
+    srv_p = sub.add_parser(
+        "serve",
+        help="local HTTP dashboard with one-click status update (127.0.0.1 only)",
+    )
+    srv_p.add_argument("--host", default="127.0.0.1")
+    srv_p.add_argument("--port", type=int, default=8765)
+    srv_p.set_defaults(func=cmd_serve)
 
     today_p = sub.add_parser("today", help="daily cockpit: interviews / follow-ups / closed")
     today_p.set_defaults(func=cmd_today)

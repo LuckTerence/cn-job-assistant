@@ -32,7 +32,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TYPST_TEMPLATE = ROOT / "templates" / "zh" / "typst" / "resume.typ"
+TYPST_DIR = ROOT / "templates" / "zh" / "typst"
+TYPST_TEMPLATE = TYPST_DIR / "resume.typ"
+TYPST_TEMPLATES = {
+    "classic": TYPST_DIR / "resume.typ",
+    "compact": TYPST_DIR / "resume_compact.typ",
+}
 
 # ---------------------------------------------------------------------------
 # Resume model + Markdown parse
@@ -165,8 +170,32 @@ def typst_escape(s: str) -> str:
     )
 
 
-def resume_to_typst(res: Resume, template_path: Path = TYPST_TEMPLATE) -> str:
+def resolve_typst_template(name: str | None = None) -> Path:
+    """classic | compact, or path via CN_JOB_TYPST_TEMPLATE env."""
+    env = os.environ.get("CN_JOB_TYPST_TEMPLATE")
+    if env:
+        p = Path(env)
+        if p.is_file():
+            return p
+    key = (name or "classic").strip().lower() or "classic"
+    if key in TYPST_TEMPLATES and TYPST_TEMPLATES[key].is_file():
+        return TYPST_TEMPLATES[key]
+    # allow bare filename under typst dir
+    alt = TYPST_DIR / key
+    if alt.is_file():
+        return alt
+    if not TYPST_TEMPLATE.is_file():
+        raise FileNotFoundError(f"Typst template missing: {TYPST_TEMPLATE}")
+    return TYPST_TEMPLATE
+
+
+def resume_to_typst(
+    res: Resume,
+    template_path: Path | None = None,
+    template: str = "classic",
+) -> str:
     """Build a complete .typ file: template functions + #resume(...) call."""
+    template_path = template_path or resolve_typst_template(template)
     raw = template_path.read_text(encoding="utf-8")
     # Drop the demo #resume(...) at the bottom of the template file
     cut = raw.find("// --- data injected")
@@ -407,6 +436,7 @@ def export_pdf(
     backend: str = "auto",
     keep_html: bool = False,
     keep_typst: bool = False,
+    template: str = "classic",
 ) -> tuple[Path, str]:
     md_path = md_path.resolve()
     if not md_path.is_file():
@@ -421,7 +451,7 @@ def export_pdf(
     be = pick_backend(backend)
 
     if be == "typst":
-        typ_src = resume_to_typst(res)
+        typ_src = resume_to_typst(res, template=template)
         with tempfile.TemporaryDirectory() as tmp:
             typ_path = Path(tmp) / "resume.typ"
             typ_path.write_text(typ_src, encoding="utf-8")
@@ -474,6 +504,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--verify-text",
         action="store_true",
         help="导出后若本机有 pdftotext，检查文本层（ATS 可读性）",
+    )
+    p.add_argument(
+        "--template",
+        default="classic",
+        choices=tuple(TYPST_TEMPLATES.keys()),
+        help="Typst 模板：classic（默认）| compact（更紧凑青绿风格）",
     )
     return p
 
@@ -544,8 +580,11 @@ def main(argv: list[str] | None = None) -> int:
             backend=args.backend,
             keep_html=args.keep_html,
             keep_typst=args.keep_typst,
+            template=getattr(args, "template", None) or "classic",
         )
         print(f"PDF → {pdf}  ({pdf.stat().st_size} bytes)  [backend={used}]")
+        if used == "typst":
+            print(f"  template={getattr(args, 'template', 'classic')}")
         if used == "chrome":
             print("提示: 安装 typst 后版式更稳更好看 — brew install typst")
         if getattr(args, "verify_text", False):

@@ -118,8 +118,11 @@ python tools/tracker.py update --company 某厂 --role 后端 --status skipped -
 # 详情
 python tools/tracker.py show --company 示例科技
 
-# 单文件 HTML 看板（顶部待办卡片 + 不投信号 + 深色模式）
+# 单文件 HTML 看板（待办 + 漏斗 + 改状态下拉）
 python tools/tracker.py dashboard
+# 本机一键改状态（推荐日常用）
+python tools/tracker.py serve
+# 浏览器打开 http://127.0.0.1:8765/
 
 # 导出 SQLite（可选查询）
 python tools/tracker.py export --format sqlite

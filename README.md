@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
   <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
   <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
-  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="1.1.0">
+  <img src="https://img.shields.io/badge/version-1.1.1-blue.svg" alt="1.1.1">
 </p>
 
 <p align="center">
@@ -343,7 +343,7 @@ python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track 
 | 阶段 | 状态 | 内容 |
 |------|------|------|
 | **1.0.x** | ✅ | 可靠闭环 + 门禁 + 新人路径 |
-| **1.1 人性化** | ✅ | 命令地图 · 诚信检查 · 导出归一化 · 周报 · Boss-agent 适配 |
+| **1.1 / 1.1.1** | ✅ | 命令地图 · 诚信检查 · 导出归一化 · 周报 · **serve 改状态** · **compact 模板** |
 | 0.10～0.13 能力火车 | ✅ | import · 薪资/同义词 · day-plan/rank · flow · funnel · split_jds |
 | 投递三档 | ✅ | 默认 **manual**；semi / auto 显式开启 |
 | **验证期（现在）** | 🔄 | 分发 + Issue「我在用/痛点」+ dogfood；**暂不加功能** |

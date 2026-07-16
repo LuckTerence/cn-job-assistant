@@ -27,6 +27,13 @@ brew install typst
 
 ```bash
 python tools/export_resume_pdf.py -i documents/zh/resume_公司.md --backend typst
+# 第二套紧凑模板（青绿头栏，更密）
+python tools/export_resume_pdf.py -i documents/zh/resume_公司.md --template compact
 # 或自动探测（优先 typst）
 python tools/export_resume_pdf.py -i documents/zh/resume_公司.md
 ```
+
+| 模板 | 文件 | 风格 |
+|------|------|------|
+| `classic`（默认） | `resume.typ` | 深蓝分割线、经典单栏 |
+| `compact` | `resume_compact.typ` | 青绿头栏、更小边距与字号 |

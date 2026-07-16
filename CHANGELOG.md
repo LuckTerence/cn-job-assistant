@@ -3,6 +3,21 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.1.1] — 2026-07-17
+
+### 看板一键改状态 + Typst 第二套模板
+
+- **`tracker serve`**：本机 `127.0.0.1:8765` 打开看板，下拉状态 **直接写 CSV**  
+- **`dashboard` 离线**：表内「改状态」复制 `tracker update` 命令（file:// 友好）  
+- **Typst `compact` 模板**：青绿头栏、更密排版  
+  `python tools/export_resume_pdf.py -i resume.md --template compact`
+
+```bash
+python tools/tracker.py serve
+# 浏览器打开 http://127.0.0.1:8765/
+python tools/export_resume_pdf.py -i documents/zh/resume_x.md --template compact
+```
+
 ## [1.1.0] — 2026-07-17
 
 ### 向竞品学人性化（合法复用接口/模式，不 vendor 逆向）
