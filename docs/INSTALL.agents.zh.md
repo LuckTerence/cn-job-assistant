@@ -9,6 +9,9 @@ make check             # 1.0：单测 + 离线产品冒烟（推荐）
 # 或分步: bash scripts/demo.sh
 ```
 
+完整 15 分钟路径：[QUICKSTART.zh.md](./QUICKSTART.zh.md)。  
+没有 `/setup-zh` 时复制：[AGENT_PROMPT.zh.md](./AGENT_PROMPT.zh.md)。
+
 然后在 Agent 里跑 `/setup-zh`、`/apply-zh`。  
 短名单：`python tools/flow.py shortlist --jobs …` · 日常：`day-plan` / `funnel`。  
 DeepSeek / 智谱等接法见 [MODELS.zh.md](./MODELS.zh.md)。  

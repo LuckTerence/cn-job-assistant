@@ -11,16 +11,16 @@
   <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
   <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
   <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="1.0.0">
+  <img src="https://img.shields.io/badge/version-1.0.1-blue.svg" alt="1.0.1">
 </p>
 
 <p align="center">
+  <a href="./docs/QUICKSTART.zh.md"><strong>15 分钟上手</strong></a> ·
   <a href="#三分钟上手"><strong>三分钟上手</strong></a> ·
   <a href="#它解决什么问题"><strong>解决什么问题</strong></a> ·
-  <a href="#和别人有什么不同"><strong>差异点</strong></a> ·
   <a href="./docs/RELEASE-1.0.zh.md"><strong>1.0 发版说明</strong></a> ·
-  <a href="./ARCHITECTURE.zh.md"><strong>架构</strong></a> ·
-  <a href="./MODELS.zh.md"><strong>国产模型</strong></a>
+  <a href="./docs/AGENT_PROMPT.zh.md"><strong>Agent 提示词</strong></a> ·
+  <a href="./ARCHITECTURE.zh.md"><strong>架构</strong></a>
 </p>
 
 <p align="center">
@@ -28,6 +28,28 @@
   (Boss Zhipin / 51job / Liepin …). Not a SaaS, not a mass auto-apply bot.
   Fork → fill profile → generate tailored materials → you submit manually.
 </p>
+
+---
+
+## 新人从这里开始（1.0）
+
+| 步骤 | 命令 / 动作 | 时间 |
+|------|-------------|------|
+| 1. 验证本机 | `make check` | ~2 min |
+| 2. 看演示 | `bash scripts/demo.sh` → 打开 `examples/demo/output/job_search_tracker.html` | ~1 min |
+| 3. 填画像 | Agent：`/setup-zh`（**粘贴旧简历最快**；写上**期望薪资**） | ~5 min |
+| 4. 第一岗 | Agent：`/apply-zh` + 粘贴 JD → 拿 **PDF + 话术 + 匹配摘要** | ~5 min |
+| 5. 投递 | App 里上传 PDF、自己点发送 → `/outcome` 或 `tracker` 记状态 | — |
+
+详细分步、无 slash 时的提示词、卡点表：  
+**[docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md)** · **[docs/AGENT_PROMPT.zh.md](./docs/AGENT_PROMPT.zh.md)**
+
+```bash
+git clone https://github.com/LuckTerence/cn-job-assistant.git
+cd cn-job-assistant && make check
+```
+
+用起来后请点一下 [🙋 我在用](https://github.com/LuckTerence/cn-job-assistant/issues/new?template=using.yml)（脱敏），这是 1.x 迭代的主要信号来源。
 
 ---
 
@@ -165,16 +187,18 @@ python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-ri
 
 ## 三分钟上手（真实求职）
 
+> 更细的 15 分钟版见 [docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md)。
+
 ### 0. 前置
 
 - Python **3.10+**
-- 任意能读仓库 skills/commands 的 AI Agent  
-  （Claude Code / Cursor / 支持 OpenAI 兼容 API 的国产模型 Agent 等，见 [MODELS.zh.md](./MODELS.zh.md)）
+- AI Agent（Claude Code / Cursor / 国产模型等，见 [MODELS.zh.md](./MODELS.zh.md)）
 
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
 cd cn-job-assistant
-# 建议先: bash scripts/demo.sh
+make check          # 推荐：单测 + 离线冒烟
+# 或: bash scripts/demo.sh
 ```
 
 ### 1. （可选）装 Boss 搜岗
@@ -184,36 +208,47 @@ python tools/install_domestic_search.py install-boss
 python tools/install_domestic_search.py status
 ```
 
-> 个人求职用途；boss-cli 上游许可证请自行确认。智联/猎聘等见 `install-get-jobs`（禁商用协议）。
+> 个人求职用途；上游许可证与平台协议自负。智联/猎聘等见 `install-get-jobs`（禁商用）。
 
-### 2. 在 Agent 里初始化画像
+### 2. 画像
 
 ```text
 /setup-zh
 ```
 
-### 3. 丢一份岗位描述 → 材料 + PDF + 打分
+粘贴旧简历最快；**务必写入期望薪资**（如 `25-40K`）。
+
+### 3. 一岗材料
 
 ```text
 /apply-zh
-（粘贴 Boss/智联 岗位链接或全文）
+（粘贴岗位全文或链接）
 ```
 
-写入 `documents/zh/`：简历 md、**简历 PDF（拿去投）**、话术、岗位描述、匹配报告。  
-单独导出 PDF（推荐先 `brew install typst`，版式更好）：
+产出在 `documents/zh/`：**PDF 简历**、话术、匹配摘要（真缺口 / 同义词 / 薪资对照）。  
+Agent 会询问后写入 tracker（默认 `to_apply`，已投再说 `applied`）。
 
 ```bash
-python tools/export_resume_pdf.py --which          # 看本机后端
+# 可选：单独重导 PDF
 python tools/export_resume_pdf.py -i documents/zh/resume_公司.md
 ```
 
-### 4. 用 PDF 在 App 里投；回来记一笔
+### 4. 投递与日常
+
+App 内上传 PDF、**自己点发送**。然后：
 
 ```bash
-python tools/tracker.py init
-python tools/tracker.py add \
-  --company 示例科技 --role 后端 --channel Boss直聘 --status applied
-python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
+python tools/tracker.py day-plan --expected-salary '25-40K'
+python tools/tracker.py funnel
+python tools/tracker.py dashboard
+# 面试/拒信/不投：/outcome
+```
+
+一批岗：
+
+```bash
+python tools/split_jds.py -i pasted.txt -o documents/zh/inbox
+python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track internet
 ```
 
 ---

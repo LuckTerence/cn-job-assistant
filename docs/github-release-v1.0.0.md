@@ -9,12 +9,15 @@
 
 ## 一分钟上手
 
+完整 15 分钟：[QUICKSTART.zh.md](https://github.com/LuckTerence/cn-job-assistant/blob/master/docs/QUICKSTART.zh.md)
+
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
 cd cn-job-assistant
 make check                 # 离线门禁：单测 + 产品冒烟
 bash scripts/demo.sh       # 看示例产出
 # Agent 内：/setup-zh → /apply-zh <岗位描述>
+# 无 slash：https://github.com/LuckTerence/cn-job-assistant/blob/master/docs/AGENT_PROMPT.zh.md
 ```
 
 日常短名单：

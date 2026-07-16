@@ -27,19 +27,25 @@
 
 ## 外人 15 分钟路径
 
+逐步说明（卡点表 + 无 slash 提示词）：
+
+- **[QUICKSTART.zh.md](./QUICKSTART.zh.md)**  
+- **[AGENT_PROMPT.zh.md](./AGENT_PROMPT.zh.md)**
+
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
 cd cn-job-assistant
-bash scripts/smoke_cn.sh    # 或 make smoke
+make check                 # 或 make smoke + make test
 bash scripts/demo.sh
 # Agent 内：/setup-zh → /apply-zh <JD>
-# 日常：python tools/flow.py shortlist --jobs …  或  day-plan / rank / funnel
+# 日常：flow shortlist · day-plan · funnel · /outcome
 ```
 
 反馈：
 
 - [🙋 我在用](https://github.com/LuckTerence/cn-job-assistant/issues/new?template=using.yml)  
 - [💢 痛点](https://github.com/LuckTerence/cn-job-assistant/issues/new?template=pain.yml)  
+- GitHub Release 正文草稿：[github-release-v1.0.0.md](./github-release-v1.0.0.md)
 
 ---
 

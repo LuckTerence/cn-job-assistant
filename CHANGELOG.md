@@ -3,6 +3,16 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.0.1] — 2026-07-17
+
+### 新人路径与验证期收口
+
+- **[docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md)**：15 分钟上手 + 卡点表  
+- **[docs/AGENT_PROMPT.zh.md](./docs/AGENT_PROMPT.zh.md)**：无 slash 时一键提示词  
+- README 首屏「新人从这里开始」；`/setup-zh` 强制期望薪资 + tracker init + 1.0 下一步  
+- 分发/Release 素材已齐（`github-release-v1.0.0.md` · `dist-notes-1.0.zh.md`）  
+- `lint_zh_refs` 纳入 QUICKSTART / flow / split_jds  
+
 ## [1.0.0] — 2026-07-17
 
 ### 国内 Agent 求职最小可靠闭环

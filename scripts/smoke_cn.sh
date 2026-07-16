@@ -84,7 +84,13 @@ grep -q "今日计划" "$TMP/flow.txt"
 echo "▶ version"
 VER="$("$PY" -c "import json; print(json.load(open('skill.json'))['version'])")"
 echo "  skill.json = $VER"
-test "$VER" = "1.0.0"
+case "$VER" in
+  1.0.*) ;;
+  *)
+    echo "error: skill.json version should be 1.0.x, got $VER" >&2
+    exit 1
+    ;;
+esac
 
 echo "=========================================="
 echo " smoke_cn OK ✓  (pair with: make test)"

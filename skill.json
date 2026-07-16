@@ -1,7 +1,7 @@
 {
   "name": "ai-job-assistant",
   "displayName": "AI求职助理",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "本地 AI 求职闭环 1.0：定制简历与话术、匹配与薪资对照、短名单/漏斗/看板、默认可手动投递。触发词：求职、改简历、岗位匹配、今日计划、投递漏斗、求职看板。",
   "author": "LuckTerence",
   "homepage": "https://github.com/LuckTerence/cn-job-assistant",

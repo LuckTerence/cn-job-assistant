@@ -8,7 +8,11 @@
 | 你想… | 去这里 |
 |--------|--------|
 | 了解产品、立刻上手 | [README.md](./README.md) |
+| **15 分钟上手** | [docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md) |
+| **无 slash 的 Agent 提示词** | [docs/AGENT_PROMPT.zh.md](./docs/AGENT_PROMPT.zh.md) |
 | **1.0 发版说明** | [docs/RELEASE-1.0.zh.md](./docs/RELEASE-1.0.zh.md) |
+| **GitHub Release 正文** | [docs/github-release-v1.0.0.md](./docs/github-release-v1.0.0.md) |
+| **分发短文素材** | [docs/dist-notes-1.0.zh.md](./docs/dist-notes-1.0.zh.md) |
 | **1.0 门禁冒烟** | `make check` 或 `bash scripts/smoke_cn.sh` |
 | **先看演示产出（一条命令）** | `bash scripts/demo.sh` → [examples/demo/](./examples/demo/) |
 | Agent 安装（Claude / Cursor） | [docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md) |

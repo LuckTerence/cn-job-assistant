@@ -1,9 +1,11 @@
 # /setup-zh - 国内求职中文引导（Onboarding）
 
 你正在为**国内求职工作区**做初始化引导。目标是填充中文画像文件 `CLAUDE.zh.md`，
-并让用户跑通国内最小闭环：
-`install_domestic_search` → `/apply-zh` → 手动投递 → `tools/tracker.py`。
+并让用户跑通 1.0 最小闭环：
+`/setup-zh` → `/apply-zh` → 手动/半自动投 → `tracker` / `/outcome`
+（可选：`flow shortlist` · `day-plan` · `funnel`）。
 本命令是 `/setup` 的中文版入口；若你也要走海外 LaTeX 流程，可另跑英文 `/setup`。
+新人路径文档：`docs/QUICKSTART.zh.md`。
 
 ---
 
@@ -83,20 +85,33 @@ Demo 跑完后，回到 Path B 填真实画像。
 
 ## Step 3：补充非画像项（重要）
 
-1. **期望薪资** → `CLAUDE.zh.md` 求职方向段。  
-2. **目标赛道** → 决定 `templates/zh/resume_<track>.md`。  
-3. 可选：`python tools/tracker.py init` 创建空追踪表。
+1. **期望薪资（强烈建议必填）** → `CLAUDE.zh.md` 求职方向「薪资期望」  
+   - 示例写法：`25-40K` 或 `30-50万/年`  
+   - 用途：`match_resume report` 薪资对照、`list --salary-flag`、`day-plan --expected-salary`  
+   - 若用户坚持不填，在交付里写一句：后续可用 `--expected-salary` 临时传入  
+2. **目标赛道** → 决定 `templates/zh/resume_<track>.md` 与 `--track`。  
+3. **必须**：`python tools/tracker.py init`（若根目录尚无 `job_search_tracker.csv`）。
 
 ---
 
 ## Step 4：交付与下一步
 
-> 中文画像已写入 `CLAUDE.zh.md`。下一步：
+向用户输出固定结构（可润色，勿省略块）：
+
+> **画像已写入 `CLAUDE.zh.md`。**
+>
+> **下一步（按顺序）：**
 > 1. （可选）`python tools/install_domestic_search.py install-boss`
-> 2. `/apply-zh <岗位描述>` → 简历 + 话术 + 匹配摘要
-> 3. App 内手动投递
-> 4. 使用 `/apply-zh` 给出的 `tracker suggest-add` 命令记一笔
-> 5. 每日：`python tools/tracker.py today`
+> 2. `/apply-zh` 粘贴一份真实 JD → 拿 PDF + 话术 + 匹配摘要  
+> 3. App 里上传 PDF，**自己点发送**（默认 manual；半自动见 `apply_assist semi`）  
+> 4. 按 Agent 询问写入 tracker；不投则 `skipped` + 原因  
+> 5. 每天：`python tools/tracker.py day-plan --expected-salary '<你的期望>'`  
+> 6. 看漏斗/看板：`python tools/tracker.py funnel` · `dashboard`  
+> 7. 面试/结果：`/outcome`
+>
+> **一批岗**：`split_jds` → `flow shortlist` → 再 `/apply-zh` 最高分那条。  
+> **无 slash 时**：见 `docs/AGENT_PROMPT.zh.md`。  
+> **反馈**：GitHub Issue「我在用 / 痛点」。
 >
 > Agent 安装说明见 `docs/INSTALL.agents.zh.md`。可选重应用见 `integrations/catalog/`。
 
