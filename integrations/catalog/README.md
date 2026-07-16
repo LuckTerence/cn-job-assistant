@@ -25,6 +25,7 @@
 | **salary-negotiate/** | methodology_only | n/a | 上游**未声明许可证** | 0（只读） | 画像期望薪资 + 人工谈薪；**勿复制源码** |
 | **referral-outreach/** | low | any | pip CLI + API key | 15–30 min | 手写内推话术 + `tracker.py` 记一笔 |
 | **job-alert/** | medium | **macOS only** | Apple Mail → Reminders | 30–90 min | 系统日历/提醒 + `/outcome` |
+| **boss-agent-cli/** | medium | any | 上游 MIT CLI（uv/patchright） | 15–45 min | `normalize_job_export` + 粘贴 JD；**投递仍 manual** |
 
 ### 另：不再作为默认的外挂
 

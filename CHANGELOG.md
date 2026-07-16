@@ -3,6 +3,26 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.1.0] — 2026-07-17
+
+### 向竞品学人性化（合法复用接口/模式，不 vendor 逆向）
+
+| 学了谁 | 落地 |
+|--------|------|
+| career-ops | [COMMAND_MAP](./docs/COMMAND_MAP.zh.md) 技能模式表 + 日常节奏；`weekly-report` 人话战报 |
+| boss-agent-cli (MIT) | `normalize_job_export.py` 解 JSON 信封；`flow ingest` / `shortlist --raw`；catalog 说明 |
+| 社区翻车案例 | `check_profile_resume.py` 画像↔简历诚信检查；`/apply-zh` 强制跑 |
+| ATS 实践 | `export_resume_pdf --verify-text`（可选 pdftotext） |
+
+```bash
+python tools/normalize_job_export.py -i boss_raw.json -o jobs.json
+python tools/flow.py shortlist --raw boss_raw.json --track internet
+python tools/check_profile_resume.py --profile CLAUDE.zh.md --resume documents/zh/resume_x.md
+python tools/tracker.py weekly-report
+```
+
+**仍不默认**：海投、embedding、代点发送。
+
 ## [1.0.2] — 2026-07-17
 
 ### 发版与仓库卫生

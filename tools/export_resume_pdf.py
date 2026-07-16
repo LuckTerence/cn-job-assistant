@@ -470,7 +470,37 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--keep-typst", action="store_true", help="typst 模式保留 .typ 源")
     p.add_argument("--html-only", action="store_true", help="只写 HTML，不导出 PDF")
     p.add_argument("--which", action="store_true", help="列出本机可用后端")
+    p.add_argument(
+        "--verify-text",
+        action="store_true",
+        help="导出后若本机有 pdftotext，检查文本层（ATS 可读性）",
+    )
     return p
+
+
+def verify_pdf_text_layer(pdf_path: Path) -> tuple[bool, str]:
+    """Optional ATS text-layer check via poppler pdftotext."""
+    bin_ = shutil.which("pdftotext")
+    if not bin_:
+        return True, "skip: pdftotext not installed (brew install poppler)"
+    try:
+        proc = subprocess.run(
+            [bin_, "-layout", str(pdf_path), "-"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return False, f"pdftotext failed: {e}"
+    text = proc.stdout or ""
+    if proc.returncode != 0:
+        return False, (proc.stderr or "pdftotext error")[:200]
+    if "cid:" in text.lower() or "\ufffd" in text:
+        return False, "text layer has (cid:*) or replacement chars — ATS may misread"
+    if len(re.sub(r"\s+", "", text)) < 40:
+        return False, "extracted text too short — PDF may be image-only"
+    return True, f"ok ({len(text)} chars extracted)"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -518,7 +548,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PDF → {pdf}  ({pdf.stat().st_size} bytes)  [backend={used}]")
         if used == "chrome":
             print("提示: 安装 typst 后版式更稳更好看 — brew install typst")
+        if getattr(args, "verify_text", False):
+            ok, msg = verify_pdf_text_layer(Path(pdf))
+            print(f"ATS 文本层: {'✅' if ok else '❌'} {msg}")
+            if not ok and not msg.startswith("skip:"):
+                print("投递前请人工打开 PDF 核对；或换 typst/后端重导。", file=sys.stderr)
         print("投递用此 PDF；内容请人工核对真实后再投。")
+        print("诚信检查: python tools/check_profile_resume.py --profile CLAUDE.zh.md --resume <md>")
         return 0
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)

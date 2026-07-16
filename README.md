@@ -11,13 +11,13 @@
   <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
   <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
   <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
-  <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="1.0.2">
+  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="1.1.0">
 </p>
 
 <p align="center">
   <a href="./docs/QUICKSTART.zh.md"><strong>15 分钟上手</strong></a> ·
+  <a href="./docs/COMMAND_MAP.zh.md"><strong>命令地图</strong></a> ·
   <a href="#三分钟上手"><strong>三分钟上手</strong></a> ·
-  <a href="#它解决什么问题"><strong>解决什么问题</strong></a> ·
   <a href="./docs/RELEASE-1.0.zh.md"><strong>1.0 发版说明</strong></a> ·
   <a href="./docs/AGENT_PROMPT.zh.md"><strong>Agent 提示词</strong></a> ·
   <a href="./ARCHITECTURE.zh.md"><strong>架构</strong></a>
@@ -324,6 +324,7 @@ python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track 
 |------|------------|
 | **本页** | 了解产品 |
 | [docs/QUICKSTART.zh.md](./docs/QUICKSTART.zh.md) | **15 分钟上手（推荐）** |
+| [docs/COMMAND_MAP.zh.md](./docs/COMMAND_MAP.zh.md) | **命令地图 · 每日节奏**（对标 career-ops 模式表） |
 | [docs/AGENT_PROMPT.zh.md](./docs/AGENT_PROMPT.zh.md) | 没有 slash 命令时 |
 | [docs/RELEASE-1.0.zh.md](./docs/RELEASE-1.0.zh.md) | 1.0 承诺与边界 |
 | [docs/github-release-v1.0.0.md](./docs/github-release-v1.0.0.md) | 粘贴到 GitHub Release |
@@ -341,7 +342,8 @@ python tools/flow.py shortlist --jobs documents/zh/inbox/jobs_stub.json --track 
 
 | 阶段 | 状态 | 内容 |
 |------|------|------|
-| **1.0 / 1.0.1** | ✅ | 可靠闭环 + 门禁 + 新人路径/提示词包 |
+| **1.0.x** | ✅ | 可靠闭环 + 门禁 + 新人路径 |
+| **1.1 人性化** | ✅ | 命令地图 · 诚信检查 · 导出归一化 · 周报 · Boss-agent 适配 |
 | 0.10～0.13 能力火车 | ✅ | import · 薪资/同义词 · day-plan/rank · flow · funnel · split_jds |
 | 投递三档 | ✅ | 默认 **manual**；semi / auto 显式开启 |
 | **验证期（现在）** | 🔄 | 分发 + Issue「我在用/痛点」+ dogfood；**暂不加功能** |

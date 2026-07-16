@@ -8,8 +8,10 @@ Does NOT reimplement business logic — only chains existing CLIs:
 
 Usage (repo root):
   python tools/flow.py shortlist --jobs examples/demo/jobs_sample.json --track internet
+  python tools/flow.py ingest -i boss_raw.json   # normalize + import
   python tools/flow.py rank --track internet
   python tools/flow.py day-plan --limit 3
+  python tools/flow.py report                  # weekly-report + funnel
   python tools/flow.py dashboard
 """
 
@@ -23,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
 TRACKER = ROOT / "tools" / "tracker.py"
+NORMALIZE = ROOT / "tools" / "normalize_job_export.py"
 
 
 def _run(argv: list[str]) -> int:
@@ -39,9 +42,68 @@ def _tracker(args: list[str], csv: str | None) -> list[str]:
     return cmd
 
 
+def cmd_ingest(args: argparse.Namespace) -> int:
+    """normalize third-party export → import-jobs."""
+    csv = args.csv or None
+    raw = str(Path(args.input))
+    out = str(Path(args.output or "jobs.normalized.json"))
+    rc = _run(
+        [
+            PY,
+            str(NORMALIZE),
+            "-i",
+            raw,
+            "-o",
+            out,
+            "--default-channel",
+            args.default_channel or "Boss直聘",
+        ]
+    )
+    if rc != 0:
+        return rc
+    return _run(
+        _tracker(
+            [
+                "import-jobs",
+                out,
+                *(["--default-channel", args.default_channel] if args.default_channel else []),
+            ],
+            csv,
+        )
+    )
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    """weekly-report then funnel (human cockpit)."""
+    csv = args.csv or None
+    rc = _run(_tracker(["weekly-report"], csv))
+    if rc != 0:
+        return rc
+    print()
+    return _run(_tracker(["funnel"], csv))
+
+
 def cmd_shortlist(args: argparse.Namespace) -> int:
     """import-jobs (optional) → rank → day-plan."""
     csv = args.csv or None
+    if args.raw:
+        # normalize first
+        out = str(Path(args.jobs or "jobs.normalized.json"))
+        rc = _run(
+            [
+                PY,
+                str(NORMALIZE),
+                "-i",
+                str(Path(args.raw)),
+                "-o",
+                out,
+                "--default-channel",
+                args.default_channel or "Boss直聘",
+            ]
+        )
+        if rc != 0:
+            return rc
+        args.jobs = out
     if args.jobs:
         jobs = str(Path(args.jobs))
         rc = _run(
@@ -105,6 +167,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="import-jobs (if --jobs) → rank → day-plan",
     )
     sl.add_argument("--jobs", default="", help="jobs.json / csv for import-jobs")
+    sl.add_argument(
+        "--raw",
+        default="",
+        help="third-party export (boss-agent envelope/CSV); normalize then import",
+    )
     sl.add_argument("--default-channel", default="Boss直聘")
     sl.add_argument("--track", default="", help="synonym track for rank/day-plan")
     sl.add_argument("--limit", type=int, default=3, help="day-plan to_apply count")
@@ -121,16 +188,32 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sl.set_defaults(func=cmd_shortlist)
 
+    ing = sub.add_parser("ingest", help="normalize export → import-jobs")
+    ing.add_argument("-i", "--input", required=True, help="raw JSON/CSV/envelope")
+    ing.add_argument("-o", "--output", default="jobs.normalized.json")
+    ing.add_argument("--default-channel", default="Boss直聘")
+    ing.set_defaults(func=cmd_ingest)
+
+    rep = sub.add_parser("report", help="weekly-report + funnel")
+    rep.set_defaults(func=cmd_report)
+
     for name, help_ in (
         ("import", "alias: needs jobs path as first forward arg — prefer shortlist"),
         ("rank", "wrapper: tracker rank …"),
         ("day-plan", "wrapper: tracker day-plan …"),
         ("dashboard", "wrapper: tracker dashboard …"),
         ("today", "wrapper: tracker today …"),
+        ("weekly-report", "wrapper: tracker weekly-report"),
+        ("funnel", "wrapper: tracker funnel"),
     ):
         sp = sub.add_parser(name, help=help_)
         sp.add_argument("forward_args", nargs=argparse.REMAINDER, default=[])
-        sp.set_defaults(func=cmd_passthrough, forward=name if name != "import" else "import-jobs")
+        fwd = {
+            "import": "import-jobs",
+            "weekly-report": "weekly-report",
+            "funnel": "funnel",
+        }.get(name, name)
+        sp.set_defaults(func=cmd_passthrough, forward=fwd)
 
     return p
 

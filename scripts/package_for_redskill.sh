@@ -60,6 +60,8 @@ SAFE_TOOLS = {
     "flow.py",
     "split_jds.py",
     "install_domestic_search.py",
+    "normalize_job_export.py",
+    "check_profile_resume.py",
 }
 
 def copy_file(rel: str) -> None:

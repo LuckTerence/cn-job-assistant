@@ -54,6 +54,7 @@ CATALOG_ENTRIES = frozenset(
         "resume-build",
         "resume-match",  # heavy upstream UI; core uses tools/match_resume.py
         "salary-negotiate",
+        "boss-agent-cli",  # MIT assisted Boss CLI; adapter only in core tools/
     }
 )
 

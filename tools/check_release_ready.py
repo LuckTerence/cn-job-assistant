@@ -17,6 +17,7 @@ def main() -> int:
     ver = skill.get("version", "")
     if not re.match(r"^1\.\d+\.\d+$", ver):
         errors.append(f"skill.json version not 1.x.y: {ver!r}")
+    # 1.1+ still ok
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     if f"## [{ver}]" not in changelog:
@@ -25,6 +26,7 @@ def main() -> int:
     required = [
         "docs/QUICKSTART.zh.md",
         "docs/AGENT_PROMPT.zh.md",
+        "docs/COMMAND_MAP.zh.md",
         "docs/RELEASE-1.0.zh.md",
         "docs/github-release-v1.0.0.md",
         "docs/dist-notes-1.0.zh.md",
@@ -32,12 +34,15 @@ def main() -> int:
         "scripts/demo.sh",
         "tools/flow.py",
         "tools/split_jds.py",
+        "tools/normalize_job_export.py",
+        "tools/check_profile_resume.py",
         "tools/tracker.py",
         "tools/match_resume.py",
         ".claude/commands/setup-zh.md",
         ".claude/commands/apply-zh.md",
         ".github/ISSUE_TEMPLATE/using.yml",
         ".github/ISSUE_TEMPLATE/pain.yml",
+        "integrations/catalog/boss-agent-cli/SKILL.md",
     ]
     for rel in required:
         if not (ROOT / rel).is_file():

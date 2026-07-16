@@ -1598,6 +1598,76 @@ def cmd_funnel(args: argparse.Namespace) -> int:
     print("-" * 48)
     print(funnel["note"])
     print("看板卡片: python tools/tracker.py dashboard")
+    print("人话周报: python tools/tracker.py weekly-report")
+    return 0
+
+
+def cmd_weekly_report(args: argparse.Namespace) -> int:
+    """Human weekly battle report (career-ops style narrative, local only)."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    today = date.today()
+    stats = compute_stats(rows, today)
+    funnel = compute_funnel(rows)
+    skip = compute_skip_stats(rows)
+    actions = build_action_items(rows, today)
+    c = funnel["counts"]
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "stats": stats,
+                    "funnel": funnel,
+                    "skip": {
+                        "total": skip["total_skipped"],
+                        "top": skip.get("top_reason"),
+                        "ranked": skip.get("ranked"),
+                    },
+                    "interviews": len(actions["interviews"]),
+                    "follow_ups": len(actions["follow_ups"]),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
+
+    if not rows:
+        print("【本周求职战报】还没有记录。先 /apply-zh 或 import-jobs 记一笔。")
+        return 0
+
+    print(f"【本周求职战报 · {today.isoformat()}】")
+    print()
+    print(
+        f"本周记了 {stats['week_applied']} 条投递向记录；"
+        f"累计已投口径 {stats['total_applied']}，面试阶段 {stats['total_interviews']}，"
+        f"面试率 {stats['interview_rate']}。"
+    )
+    print(
+        f"管道快照：待投 {c.get('to_apply', 0)} · "
+        f"已投+筛 {c.get('applied', 0) + c.get('screening', 0)} · "
+        f"面试 {c.get('interview', 0)} · Offer {c.get('offer', 0)} · "
+        f"入职 {c.get('hired', 0)} · 拒 {c.get('rejected', 0)} · 不投 {c.get('skipped', 0)}。"
+    )
+    if actions["interviews"]:
+        print(f"进行中的面试 {len(actions['interviews'])} 场——优先准备 /interview。")
+    if actions["follow_ups"]:
+        print(
+            f"有 {len(actions['follow_ups'])} 条 ≥{FOLLOW_UP_DAYS} 天无进展，"
+            "适合 /outcome 记跟进或无回复。"
+        )
+    if skip["total_skipped"] and skip.get("ranked"):
+        top_k, top_n = skip["ranked"][0]
+        label = SKIP_REASONS.get(top_k, top_k)
+        print(f"不投原因最高频：{label}（{top_k}×{top_n}）。筛岗标准可以更早用这个挡。")
+    print()
+    print("建议下周：")
+    print("  1. python tools/tracker.py day-plan --limit 5")
+    print("  2. 对 day-plan 前 1～2 名跑 /apply-zh（不要群发）")
+    print("  3. 状态变化立刻 /outcome 或 tracker update")
+    print()
+    print("（战报为本地快照叙事，不是官方转化率。）")
     return 0
 
 
@@ -2211,6 +2281,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     fun_p.add_argument("--json", action="store_true")
     fun_p.set_defaults(func=cmd_funnel)
+
+    wr_p = sub.add_parser(
+        "weekly-report",
+        help="human weekly battle report (local narrative)",
+    )
+    wr_p.add_argument("--json", action="store_true")
+    wr_p.set_defaults(func=cmd_weekly_report)
 
     skip_p = sub.add_parser(
         "skip-stats",

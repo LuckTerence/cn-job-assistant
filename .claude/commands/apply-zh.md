@@ -110,9 +110,20 @@ python tools/match_resume.py report \
 
 向用户**优先展示中文一页摘要**（命令默认已含【一页摘要 · 人话版】，或读 `match_brief_*.txt`）：
 - 还差什么（still_missing；同义词已对齐的不再算 miss）
+- **同义词已对齐** vs **真缺口**
 - **薪资对照**（期望 vs JD 区间，✅/⚠️/❌；偏低可建议 skipped + salary_low）
 - 建议改哪 3 条
 - **禁止虚构**合规句
+
+**诚信检查（强制，对标社区 AI 乱改简历事故）：**
+
+```bash
+python tools/check_profile_resume.py \
+  --profile CLAUDE.zh.md \
+  --resume documents/zh/resume_<company>.md
+```
+
+若出现 ❌ 高严重度（联系方式不一致、可疑量化数字），**停下来与用户确认**，不得直接鼓励投递。
 
 规则：真实具备的 miss → 回 Step 2/3 补一版；不具备 → 诚实标注。
 
@@ -128,9 +139,10 @@ python tools/match_resume.py diff \
 
 ## Step 5: 合规自检
 
-- [ ] 无虚构经历/技能
+- [ ] 无虚构经历/技能（已跑 `check_profile_resume`）
 - [ ] 点名公司与岗位
 - [ ] 已出 match 报告 + 人话摘要
+- [ ] PDF 导出建议加 `--verify-text`（有 pdftotext 时）
 - [ ] 投递方式按用户选择的模式执行（见 Step 6）；**未选择时默认手动**
 
 ---
