@@ -88,9 +88,9 @@ echo "▶ version"
 VER="$("$PY" -c "import json; print(json.load(open('skill.json'))['version'])")"
 echo "  skill.json = $VER"
 case "$VER" in
-  1.0.*) ;;
+  1.*) ;;
   *)
-    echo "error: skill.json version should be 1.0.x, got $VER" >&2
+    echo "error: skill.json version should be 1.x, got $VER" >&2
     exit 1
     ;;
 esac
