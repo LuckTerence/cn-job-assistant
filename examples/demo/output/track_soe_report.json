@@ -1,7 +1,7 @@
 {
   "resume": {
-    "score": 37.3,
-    "cosine": 0.1336,
+    "score": 39.2,
+    "cosine": 0.1682,
     "keyword_coverage": 66.7,
     "keywords": {
       "hit": [
@@ -29,8 +29,8 @@
     "verdict": "partial_match"
   },
   "cover": {
-    "score": 19.3,
-    "cosine": 0.0787,
+    "score": 23.6,
+    "cosine": 0.1556,
     "keyword_coverage": 33.3,
     "keywords": {
       "hit": [
@@ -51,8 +51,8 @@
     "verdict": "partial_match"
   },
   "combined": {
-    "score": 37.0,
-    "cosine": 0.128,
+    "score": 39.5,
+    "cosine": 0.1733,
     "keyword_coverage": 66.7,
     "keywords": {
       "hit": [
@@ -101,7 +101,7 @@
   },
   "brief_zh": {
     "tone_open": "这个岗位要求和你当前画像有距离——投了当练手也行，别抱太大期望；也可以想想是不是方向不太对。",
-    "headline": "综合 37.0/100（部分匹配），关键词覆盖 66.7%",
+    "headline": "综合 39.5/100（部分匹配），关键词覆盖 66.7%",
     "still_missing": [
       "中间件",
       "运维"
@@ -139,8 +139,8 @@
     "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
-    "resume_score": 37.3,
-    "combined_score": 37.0,
+    "resume_score": 39.2,
+    "combined_score": 39.5,
     "keyword_coverage_combined": 66.7,
     "verdict": "partial_match",
     "missing_count": 2,

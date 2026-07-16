@@ -1,0 +1,3 @@
+note: no --jobs; skipping import (rank existing to_apply only)
++ /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/tools/tracker.py --csv /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/job_search_tracker.csv rank --track internet --limit 9
++ /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/tools/tracker.py --csv /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/job_search_tracker.csv day-plan --limit 3 --track internet --expected-salary 25-40K

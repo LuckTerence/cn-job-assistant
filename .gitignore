@@ -81,6 +81,8 @@ third_party/
 config/apply_mode.yaml
 # Local synonym overrides (optional; default groups ship as synonyms.default.json)
 config/synonyms.json
+# Local IDF overrides
+config/idf.json
 
 # Upskill reports (personal output)
 upskill/*.md

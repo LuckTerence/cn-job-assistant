@@ -118,7 +118,10 @@ rm -f "$CSV" "$OUT/job_search_tracker.html" "$OUT/job_search_tracker.db" "$OUT/s
   --source "$DEMO/jd_星云科技_后端.md" || true
 "$PY" tools/tracker.py --csv "$CSV" rank --track internet | tee "$OUT/rank.txt"
 "$PY" tools/tracker.py --csv "$CSV" day-plan --limit 3 --track internet \
-  | tee "$OUT/day_plan.txt"
+  --expected-salary '25-40K' | tee "$OUT/day_plan.txt"
+"$PY" tools/flow.py --csv "$CSV" shortlist --limit 3 --track internet \
+  --expected '25-40K' 2>"$OUT/flow_shortlist.err" | tee "$OUT/flow_shortlist.txt" || true
+# shortlist without --jobs reuses existing CSV (import already done)
 "$PY" tools/tracker.py --csv "$CSV" dashboard --out "$OUT/job_search_tracker.html"
 "$PY" tools/tracker.py --csv "$CSV" export --format sqlite --out "$OUT/job_search_tracker.db"
 
@@ -208,6 +211,7 @@ echo "  不投信号: $OUT/skip_stats.txt"
 echo "  搜岗导入: $OUT/import_jobs.txt  (源: examples/demo/jobs_sample.json)"
 echo "  批打分:   $OUT/rank.txt"
 echo "  今日计划: $OUT/day_plan.txt"
+echo "  flow:     $OUT/flow_shortlist.txt"
 echo "  赛道对比: $OUT/track_internet_brief.txt  vs  $OUT/track_soe_brief.txt"
 echo "  飞轮 diff: $OUT/match_diff_v1_v2.txt"
 echo

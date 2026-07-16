@@ -1,7 +1,7 @@
 === 质量飞轮 · 报告对比 (v1 → v2) ===
-综合分:   0.0 → 54.5  (Δ +54.5)
+综合分:   0.0 → 74.1  (Δ +74.1)
 覆盖率:   0.0% → 81.0%  (Δ +81.0)
-verdict:  weak_match → moderate_match
+verdict:  weak_match → strong_match
 
 已补上的关键词 (17):
   ci/cd, docker, go, java, kafka, kubernetes, mysql, redis, spring boot, 中间件, 后端, 微服务, 数据结构, 消息队列, 算法, 高可用, 高并发

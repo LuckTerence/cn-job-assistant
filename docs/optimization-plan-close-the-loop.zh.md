@@ -1,8 +1,8 @@
 # 优化方案：先把闭环做透（Phase 0 → 1 → 2）
 
-> **状态**：Phase 0–1 与决策层已齐；**v0.11「今天投谁」已落地**（2026-07-17）：  
-> `day-plan` / `rank`、看板筛选、`--track` 赛道同义词、黄金回归。  
-> 仍建议并行分发验证；0.12 再考虑薄 flow / 轻 IDF / boss 适配。  
+> **状态**：至 **v0.12「短名单丝滑」**（2026-07-17）：  
+> flow shortlist、expected_salary 旗标、语料 IDF、import 字段提示、day-plan/rank。  
+> 仍建议并行分发验证；再往后：boss 适配加厚 / embedding catalog / 可选 Web。  
 > **原则**：产品成熟度 = 闭环完成度 × 用户反馈验证数，不是功能数。  
 > **定位**：Agent 可读可跑的本地求职工作流（非 SaaS、默认不自动投）。  
 > **相关**：[`pm-review-2026-07-10.zh.md`](./pm-review-2026-07-10.zh.md)、[`ARCHITECTURE.zh.md`](../ARCHITECTURE.zh.md)、  

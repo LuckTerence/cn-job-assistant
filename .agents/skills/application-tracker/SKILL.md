@@ -1,6 +1,6 @@
 ---
 name: application-tracker
-version: 2.3.0
+version: 2.4.0
 description: >
   本地投递状态追踪与求职看板。以 job_search_tracker.csv 为权威源，通过
   tools/tracker.py（stdlib：CSV / 可选 SQLite / 单文件 HTML）读写，零 Docker。
@@ -23,11 +23,11 @@ allowed-tools: Bash(python* tools/tracker.py *), Bash(python3 tools/tracker.py *
 | `tools/tracker.py dashboard` | 可视化镜像 | 生成 `job_search_tracker.html`（勿提交，已 gitignore） |
 | jobsync 等 | **可选**外挂 | 见 `integrations/catalog/` 思路；不自动同步 |
 
-表头（18 列；结构化列与 `skip_reason` 均可空，旧 CSV 缺列可读、写回时补齐）：
+表头（19 列；结构化列 / `skip_reason` / `expected_salary` 均可空，旧 CSV 缺列可读）：
 
 ```
 date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,
-cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason
+cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason,expected_salary
 ```
 
 关闭态含 `skipped`（不投）。**Phase 1**：`status=skipped` 时**必须**填 `skip_reason` 枚举：
@@ -83,6 +83,10 @@ python tools/tracker.py day-plan --limit 3 --track internet
 # v0.11 批打分排序（cv_file + source 需为本地文件）
 python tools/tracker.py rank --status to_apply --track internet
 python tools/tracker.py rank --write-fit   # 把分数写入 fit_rating
+
+# v0.12 薄编排 + 薪资旗标
+python tools/flow.py shortlist --jobs path/to/jobs.json --track internet --limit 3
+python tools/tracker.py list --open-only --salary-flag --expected-salary '25-40K'
 
 # 不投原因分布（Phase 1 产品信号）
 python tools/tracker.py skip-stats

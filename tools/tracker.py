@@ -5,13 +5,13 @@ Stdlib only. Aligns with /outcome and the job_search_tracker.csv schema:
 
   date,company,sector,role,role_type,channel,status,contact_person,
   fit_rating,notes,cv_file,cover_letter_file,source,
-  salary,city,education,experience,skip_reason
+  salary,city,education,experience,skip_reason,expected_salary
 
 Usage (from repo root):
   python tools/tracker.py init
   python tools/tracker.py add --company 字节 --role 后端 --channel Boss直聘 --status applied
   python tools/tracker.py add --company X --role Y --status skipped --skip-reason salary_low
-  python tools/tracker.py list [--status applied]
+  python tools/tracker.py list [--status applied] [--salary-flag]
   python tools/tracker.py update --company 字节 --role 后端 --status interview
   python tools/tracker.py show --company 字节
   python tools/tracker.py export --format html|sqlite|csv
@@ -22,6 +22,7 @@ Usage (from repo root):
   python tools/tracker.py skip-stats  # 不投原因分布（产品信号）
   python tools/tracker.py import-jobs jobs.json   # 搜岗结果批量入库（默认 to_apply）
   python tools/tracker.py suggest-add --company X --role Y ...
+  python tools/flow.py shortlist --jobs jobs.json   # v0.12 薄编排
 """
 
 from __future__ import annotations
@@ -61,7 +62,21 @@ HEADER = [
     "education",
     "experience",
     "skip_reason",
+    "expected_salary",
 ]
+
+# Shown when import cannot map a company field
+IMPORT_FIELD_HINT = """\
+提示：每条至少需要公司名。可用字段别名（任选其一）：
+  company ← company / company_name / brand / brandName / corp
+  role    ← role / title / job_title / jobName / position / positionName
+  channel ← channel / platform / site
+  source  ← source / url / link / jobUrl / pcUrl
+  city    ← city / location / cityName
+  salary  ← salary / salary_desc / salaryDesc
+Boss 导出 CSV 常见：brandName, jobName, cityName, salaryDesc, jobUrl
+样例：examples/demo/jobs_sample.json
+"""
 
 # Phase 1 product signal: why user chose not to apply (status=skipped).
 # Keep keys stable — used in CSV, CLI, Issue feedback clustering.
@@ -301,6 +316,7 @@ def cmd_add(args: argparse.Namespace) -> int:
     row["education"] = args.education or ""
     row["experience"] = args.experience or ""
     row["skip_reason"] = skip_reason if status.lower() == "skipped" else ""
+    row["expected_salary"] = getattr(args, "expected_salary", None) or ""
     rows.append(row)
     write_rows(path, rows)
     extra = ""
@@ -329,14 +345,26 @@ def cmd_list(args: argparse.Namespace) -> int:
         print("(no rows)")
         return 0
     # Compact table
-    print(f"{'#':>3}  {'date':10}  {'status':14}  {'company':16}  {'role':20}  channel")
-    print("-" * 90)
+    show_sal = bool(getattr(args, "salary_flag", False))
+    exp_default = (getattr(args, "expected_salary", None) or "").strip() or None
+    head = f"{'#':>3}  {'date':10}  {'status':14}  {'company':16}  {'role':20}  channel"
+    if show_sal:
+        head += "  pay"
+    print(head)
+    print("-" * (100 if show_sal else 90))
     for i, r in enumerate(rows, 1):
-        print(
+        line = (
             f"{i:>3}  {r['date'][:10]:10}  {r['status'][:14]:14}  "
             f"{r['company'][:16]:16}  {r['role'][:20]:20}  {r['channel']}"
         )
+        if show_sal:
+            flag = salary_flag_for_row(r, default_expected=exp_default)
+            sal = (r.get("salary") or "")[:12]
+            line += f"  {flag} {sal}"
+        print(line)
     print(f"\n{len(rows)} row(s)  ← {path}")
+    if show_sal:
+        print("pay 列：期望 vs JD 薪资（✅交集 ⚠️触底/面议 ❌偏低 ·未知）")
     return 0
 
 
@@ -369,6 +397,7 @@ def cmd_update(args: argparse.Namespace) -> int:
         "education": args.education,
         "experience": args.experience,
         "skip_reason": args.skip_reason,
+        "expected_salary": args.expected_salary,
     }
     updates = {k: v for k, v in fields.items() if v is not None}
     notes_append = (getattr(args, "notes_append", None) or "").strip()
@@ -608,6 +637,32 @@ def _load_match_resume():
     import match_resume as m  # noqa: WPS433
 
     return m
+
+
+def salary_flag_for_row(
+    row: dict[str, str],
+    *,
+    default_expected: str | None = None,
+) -> str:
+    """Return short flag ✅/⚠️/❌/· for JD salary vs expected (local parse)."""
+    m = _load_match_resume()
+    offered_raw = (row.get("salary") or "").strip()
+    exp_raw = (row.get("expected_salary") or "").strip() or (default_expected or "").strip()
+    if not exp_raw:
+        # try profile once
+        if m.DEFAULT_PROFILE.is_file():
+            exp_raw = m.extract_expected_from_profile(
+                m.DEFAULT_PROFILE.read_text(encoding="utf-8", errors="replace")
+            ) or ""
+    if not offered_raw and not exp_raw:
+        return "·"
+    offered = m.parse_salary_text(offered_raw) if offered_raw else None
+    expected = m.parse_salary_text(exp_raw) if exp_raw else None
+    if not offered and offered_raw:
+        # might be plain text without numbers
+        offered = None
+    cmp_ = m.compare_salary(expected, offered)
+    return str(cmp_.get("signal") or "·")
 
 
 def score_tracker_rows(
@@ -1266,15 +1321,20 @@ def cmd_day_plan(args: argparse.Namespace) -> int:
     print(f"【今日计划 · {plan['date']}】")
     print()
 
+    exp_default = (getattr(args, "expected_salary", None) or "").strip() or None
+
     def line_row(r: dict, prefix: str = "") -> None:
         extra = ""
         if r.get("city"):
             extra += f" · {r['city']}"
         if r.get("salary"):
-            extra += f" · {r['salary']}"
+            flag = salary_flag_for_row(r, default_expected=exp_default)
+            extra += f" · {flag}{r['salary']}"
         score = r.get("score")
         score_s = f"  分={score}" if score is not None else ""
-        if r.get("error") and score is None and r.get("status") == "to_apply":
+        if r.get("error") and score is None and (
+            r.get("status") == "to_apply" or r.get("verdict") == "unscored"
+        ):
             score_s = "  （缺本地简历/JD，无法打分）"
         print(
             f"  {prefix}{r.get('company','')} / {r.get('role','')}"
@@ -1704,6 +1764,15 @@ def cmd_import_jobs(args: argparse.Namespace) -> int:
             f"error: {invalid} row(s) invalid (need at least company); nothing to import",
             file=sys.stderr,
         )
+        # Help map boss / portal column names
+        sample_keys: list[str] = []
+        for raw in raw_list[:3]:
+            if isinstance(raw, dict):
+                sample_keys.extend(str(k) for k in raw.keys())
+        if sample_keys:
+            uniq = sorted(set(sample_keys))
+            print(f"  columns seen: {', '.join(uniq[:24])}", file=sys.stderr)
+        print(IMPORT_FIELD_HINT, file=sys.stderr)
         return 2
 
     on_dup = "skip"
@@ -1730,6 +1799,13 @@ def cmd_import_jobs(args: argparse.Namespace) -> int:
         f"dup_skipped={stats['skipped_dup']}  forced={stats['forced']}  "
         f"invalid={stats['invalid']}"
     )
+    if stats["invalid"] and stats["added"] == 0 and stats["filled"] == 0 and not args.dry_run:
+        print(IMPORT_FIELD_HINT, file=sys.stderr)
+    elif stats["invalid"]:
+        print(
+            f"  note: {stats['invalid']} row(s) skipped (no company / bad skip fields).",
+            file=sys.stderr,
+        )
     if args.dry_run:
         print("  dry-run: CSV not written")
         for j in normalized[: min(5, len(normalized))]:
@@ -1743,9 +1819,9 @@ def cmd_import_jobs(args: argparse.Namespace) -> int:
 
     write_rows(csv_path, new_rows)
     print(f"  wrote → {csv_path}  (total rows: {len(new_rows)})")
-    print("  next: python tools/tracker.py list --open-only")
-    print("        python tools/tracker.py today")
-    print("        /apply-zh  # pick a to_apply row")
+    print("  next: python tools/tracker.py rank && python tools/tracker.py day-plan")
+    print("    or: python tools/flow.py shortlist --jobs …   # import+rank+day-plan")
+    print("        python tools/tracker.py list --open-only --salary-flag")
     return 0
 
 
@@ -1859,6 +1935,12 @@ def build_parser() -> argparse.ArgumentParser:
         dest="skip_reason",
         help="required when --status skipped: salary_low|location|low_match|unknown_company|other",
     )
+    add_p.add_argument(
+        "--expected-salary",
+        default="",
+        dest="expected_salary",
+        help="your expected range for this row e.g. 25-40K",
+    )
     add_p.add_argument("--date", default="")
     add_p.add_argument("--force", action="store_true", help="allow duplicate company+role")
     add_p.set_defaults(func=cmd_add)
@@ -1866,6 +1948,17 @@ def build_parser() -> argparse.ArgumentParser:
     list_p = sub.add_parser("list", help="list applications")
     list_p.add_argument("--status", default="")
     list_p.add_argument("--open-only", action="store_true")
+    list_p.add_argument(
+        "--salary-flag",
+        action="store_true",
+        help="show ✅/⚠️/❌ for JD salary vs expected (row or --expected-salary / profile)",
+    )
+    list_p.add_argument(
+        "--expected-salary",
+        default="",
+        dest="expected_salary",
+        help="default expected range when row.expected_salary empty e.g. 25-40K",
+    )
     list_p.set_defaults(func=cmd_list)
 
     up_p = sub.add_parser("update", help="update matching row(s)")
@@ -1897,6 +1990,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         dest="skip_reason",
         help="set when moving to skipped: salary_low|location|low_match|unknown_company|other",
+    )
+    up_p.add_argument(
+        "--expected-salary",
+        default=None,
+        dest="expected_salary",
+        help="your expected range e.g. 25-40K",
     )
     up_p.set_defaults(func=cmd_update)
 
@@ -1931,6 +2030,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-score",
         action="store_true",
         help="do not call match_resume (faster; order = CSV order)",
+    )
+    day_p.add_argument(
+        "--expected-salary",
+        default="",
+        dest="expected_salary",
+        help="for pay flags next to JD salary e.g. 25-40K",
     )
     day_p.set_defaults(func=cmd_day_plan)
 

@@ -468,14 +468,23 @@ def cmd_semi(args: argparse.Namespace) -> int:
             print("---")
             print(text)
             print("---")
+            print("  剪贴板排障：")
+            if sys.platform == "darwin":
+                print("    · macOS 需有 pbcopy（系统自带）")
+            elif sys.platform.startswith("linux"):
+                print("    · Linux: 安装 wl-clipboard（Wayland）或 xclip/xsel（X11）")
+            elif sys.platform == "win32":
+                print("    · Windows: 确认 PowerShell 可用，或使用 clip.exe")
+            else:
+                print("    · 当前环境未检测到剪贴板工具，粘贴步骤请纯手动")
     else:
         print("  未提供 --text-file / --text，只处理链接。")
 
     print()
     print("请你现在：")
     print("  1. 在打开的页面里确认是目标岗位")
-    print("  2. 粘贴话术 / 上传简历")
-    print("  3. 自己点「发送」或「立即沟通」")
+    print("  2. 粘贴话术 / 上传简历（Cmd/Ctrl+V）")
+    print("  3. 自己点「发送」或「立即沟通」——本工具绝不会代点")
     print("  4. 回来记一笔:")
     if company:
         print(

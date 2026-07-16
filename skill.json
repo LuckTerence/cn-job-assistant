@@ -1,8 +1,8 @@
 {
   "name": "ai-job-assistant",
   "displayName": "AI求职助理",
-  "version": "0.11.0",
-  "description": "本地求职助手：按岗位定制简历与话术，匹配打分（同义词/赛道/薪资对照），今日计划 day-plan，to_apply 批打分 rank，搜岗入库与投递看板。触发词：求职、改简历、岗位匹配、今日计划、投递进度、求职看板。",
+  "version": "0.12.0",
+  "description": "本地求职助手：定制简历与话术，匹配（同义词/赛道/IDF/薪资），flow 短名单编排，day-plan/rank，搜岗入库与看板。触发词：求职、改简历、岗位匹配、今日计划、短名单、投递进度。",
   "author": "LuckTerence",
   "homepage": "https://github.com/LuckTerence/cn-job-assistant",
   "license": "MIT",

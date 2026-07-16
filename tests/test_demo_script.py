@@ -52,6 +52,8 @@ class DemoScriptTests(unittest.TestCase):
         self.assertTrue((OUT / "day_plan.txt").is_file())
         self.assertIn("今日计划", (OUT / "day_plan.txt").read_text(encoding="utf-8"))
         self.assertIn("filter-status", html)
+        if (OUT / "flow_shortlist.txt").is_file():
+            self.assertIn("今日计划", (OUT / "flow_shortlist.txt").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

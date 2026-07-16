@@ -3,6 +3,21 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定：  
 `0.x` 阶段允许在次版本加入能力；破坏性变更会在条目里标明。
 
+## [0.12.0] — 2026-07-17
+
+### 短名单丝滑
+
+- **`tools/flow.py shortlist`**：薄编排 `import-jobs → rank → day-plan`（不重写业务）
+- **import 硬化**：缺 company 时打印列名 + Boss/门户字段别名提示
+- **`expected_salary` 列** + `list --salary-flag` / `day-plan --expected-salary`（✅/⚠️/❌）
+- **轻量语料 IDF**：`config/idf.default.json` 缓解 n=2 动态 IDF 退化（可 `config/idf.json` 覆盖）
+- **semi**：剪贴板失败时按 OS 给出排障提示；强调不代点发送
+
+```bash
+python tools/flow.py shortlist --jobs jobs.json --track internet --limit 3
+python tools/tracker.py list --open-only --salary-flag --expected-salary '25-40K'
+```
+
 ## [0.11.0] — 2026-07-17
 
 ### 今天投谁（体验 + 管道）

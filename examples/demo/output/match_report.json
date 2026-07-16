@@ -1,7 +1,7 @@
 {
   "resume": {
-    "score": 55.9,
-    "cosine": 0.3543,
+    "score": 76.3,
+    "cosine": 0.7244,
     "keyword_coverage": 81.0,
     "keywords": {
       "hit": [
@@ -44,11 +44,11 @@
     "jd_keyword_count": 21,
     "resume_token_count": 80,
     "jd_token_count": 50,
-    "verdict": "moderate_match"
+    "verdict": "strong_match"
   },
   "cover": {
-    "score": 29.2,
-    "cosine": 0.1801,
+    "score": 42.3,
+    "cosine": 0.4191,
     "keyword_coverage": 42.9,
     "keywords": {
       "hit": [
@@ -86,8 +86,8 @@
     "verdict": "partial_match"
   },
   "combined": {
-    "score": 54.5,
-    "cosine": 0.3293,
+    "score": 74.1,
+    "cosine": 0.6855,
     "keyword_coverage": 81.0,
     "keywords": {
       "hit": [
@@ -131,7 +131,7 @@
     "jd_keyword_count": 21,
     "resume_token_count": 100,
     "jd_token_count": 50,
-    "verdict": "moderate_match"
+    "verdict": "strong_match"
   },
   "still_missing": [
     "大模型",
@@ -141,8 +141,7 @@
   ],
   "cover_only_hits": [],
   "suggestions": [
-    "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。",
-    "打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。"
+    "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。"
   ],
   "salary": {
     "verdict": "overlap",
@@ -162,8 +161,8 @@
     "expected_input": "25-40K"
   },
   "brief_zh": {
-    "tone_open": "有一定匹配度，重点看下面缺口是否属实。",
-    "headline": "综合 54.5/100（匹配中等），关键词覆盖 81.0%",
+    "tone_open": "这份和你挺匹配的。",
+    "headline": "综合 74.1/100（匹配较强），关键词覆盖 81.0%",
     "still_missing": [
       "大模型",
       "llm",
@@ -190,10 +189,10 @@
     "cover_only": [],
     "edit_top3": [
       "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。",
-      "打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。",
-      "如果确实会，可以优先补这几个核心词：大模型、llm、架构。"
+      "如果确实会，可以优先补这几个核心词：大模型、llm、架构。",
+      "简历和话术里写上公司名、岗位名，别写成万能模板。"
     ],
-    "action_by_band": "有一定匹配但缺口不少，可以投但别抱太大期望；或再找更贴近画像的岗位。",
+    "action_by_band": "基本匹配，建议把上面「核心硬技能」里你确实会的补进简历；不会的别编。",
     "salary": {
       "verdict": "overlap",
       "signal": "✅",
@@ -215,10 +214,10 @@
     "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
-    "resume_score": 55.9,
-    "combined_score": 54.5,
+    "resume_score": 76.3,
+    "combined_score": 74.1,
     "keyword_coverage_combined": 81.0,
-    "verdict": "moderate_match",
+    "verdict": "strong_match",
     "missing_count": 4,
     "hit_count": 17,
     "salary_verdict": "overlap",

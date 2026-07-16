@@ -37,7 +37,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SYNONYMS = ROOT / "config" / "synonyms.default.json"
 USER_SYNONYMS = ROOT / "config" / "synonyms.json"
+DEFAULT_IDF = ROOT / "config" / "idf.default.json"
+USER_IDF = ROOT / "config" / "idf.json"
 DEFAULT_PROFILE = ROOT / "CLAUDE.zh.md"
+_CORPUS_IDF_CACHE: dict[str, float] | None = None
 
 # ---------------------------------------------------------------------------
 # Lexicon: high-signal skills / role terms (EN + 中文). Not exhaustive —
@@ -625,14 +628,72 @@ def term_frequency(tokens: list[str]) -> Counter[str]:
     return Counter(tokens)
 
 
-def build_idf(docs: list[Counter[str]]) -> dict[str, float]:
+def load_corpus_idf(force_reload: bool = False) -> dict[str, float]:
+    """Load precomputed skill IDF to avoid n=2 dynamic IDF collapse.
+
+    File format: {"N": int, "df": {term: doc_freq}} or {"idf": {term: float}}.
+    """
+    global _CORPUS_IDF_CACHE
+    if _CORPUS_IDF_CACHE is not None and not force_reload:
+        return _CORPUS_IDF_CACHE
+    out: dict[str, float] = {}
+    for path in (DEFAULT_IDF, USER_IDF):
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        if isinstance(data.get("idf"), dict):
+            for k, v in data["idf"].items():
+                try:
+                    out[_norm_syn_term(str(k))] = float(v)
+                except (TypeError, ValueError):
+                    continue
+        n = float(data.get("N") or 5000)
+        df_map = data.get("df")
+        if isinstance(df_map, dict):
+            for k, df in df_map.items():
+                try:
+                    dfi = float(df)
+                    # classic smooth idf
+                    out[_norm_syn_term(str(k))] = math.log((1 + n) / (1 + dfi)) + 1.0
+                except (TypeError, ValueError):
+                    continue
+    _CORPUS_IDF_CACHE = out
+    return out
+
+
+def build_idf(
+    docs: list[Counter[str]],
+    *,
+    use_corpus: bool = True,
+) -> dict[str, float]:
     n = len(docs)
     df: Counter[str] = Counter()
     for doc in docs:
         for term in doc:
             df[term] += 1
-    # smooth idf
-    return {t: math.log((1 + n) / (1 + df[t])) + 1.0 for t in df}
+    # smooth dynamic idf (degenerates when n=2)
+    dynamic = {t: math.log((1 + n) / (1 + df[t])) + 1.0 for t in df}
+    if not use_corpus:
+        return dynamic
+    corpus = load_corpus_idf()
+    if not corpus:
+        return dynamic
+    # Prefer corpus weights for known skill terms; keep dynamic for unknowns
+    blended: dict[str, float] = {}
+    for t, dyn in dynamic.items():
+        key = t.lower() if not CJK_RE.fullmatch(t) else t
+        if key in corpus:
+            blended[t] = corpus[key]
+        elif t in corpus:
+            blended[t] = corpus[t]
+        else:
+            blended[t] = dyn
+    return blended
 
 
 def tfidf_vector(tf: Counter[str], idf: dict[str, float]) -> dict[str, float]:
@@ -759,7 +820,7 @@ def match_texts(
     j_tokens = tokenize(jd_text)
     r_tf = term_frequency(r_tokens)
     j_tf = term_frequency(j_tokens)
-    idf = build_idf([r_tf, j_tf])
+    idf = build_idf([r_tf, j_tf], use_corpus=True)
     r_vec = tfidf_vector(r_tf, idf)
     j_vec = tfidf_vector(j_tf, idf)
     cos = cosine(r_vec, j_vec)

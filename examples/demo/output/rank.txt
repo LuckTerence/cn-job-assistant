@@ -1,7 +1,7 @@
 【批打分排序 · status=to_apply · 3 条】
   #   score   cov%  verdict           company / role
 ------------------------------------------------------------------------------
-  1    55.9   81.0  moderate_match    云梯科技 / Java 后端工程师 · 杭州
+  1    76.3   81.0  strong_match      云梯科技 / Java 后端工程师 · 杭州
   2     0.0    0.0  weak_match        字节示例 / 后端开发 · 上海
   3       —      —  unscored          本地生活示范 / 服务端开发  (need local cv_file + source (JD file))
 
