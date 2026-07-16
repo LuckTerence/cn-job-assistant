@@ -79,6 +79,8 @@ jobs:
       - run: python tools/lint_zh_refs.py
       - run: python tools/lint_skill_surface.py
       - run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: 1.0 product-path smoke (offline)
+        run: bash scripts/smoke_cn.sh
 
   security-guards:
     name: Security guards (permissions, gitignore, manifests)

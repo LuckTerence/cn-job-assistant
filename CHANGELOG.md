@@ -1,7 +1,23 @@
 # Changelog
 
-本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定：  
-`0.x` 阶段允许在次版本加入能力；破坏性变更会在条目里标明。
+本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
+**1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
+
+## [1.0.0] — 2026-07-17
+
+### 国内 Agent 求职最小可靠闭环
+
+能力面齐备（0.10～0.13 累积），并加上 **1.0 发版门禁**：
+
+- `bash scripts/smoke_cn.sh` / `make smoke`：离线产品路径冒烟（demo · split_jds · import · funnel · flow · 匹配/薪资）
+- `make check`：单测 + smoke
+- 发版说明：[docs/RELEASE-1.0.zh.md](./docs/RELEASE-1.0.zh.md)
+- CI domestic-loop 增加 smoke 步骤
+
+**承诺**：本地优先 · 默认 manual · 可量化匹配 · 可追踪 · Agent 可编排。  
+**不承诺**：offer 结果 · 默认海投 · 默认 embedding · 云端同步。
+
+社区验证（≥5 人 × ≥3 岗）仍欢迎 [我在用 Issue](https://github.com/LuckTerence/cn-job-assistant/issues/new?template=using.yml)，不挡能力发版。
 
 ## [0.13.0] — 2026-07-17
 

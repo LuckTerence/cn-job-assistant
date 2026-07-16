@@ -5,11 +5,14 @@
 ```bash
 git clone https://github.com/LuckTerence/cn-job-assistant.git
 cd cn-job-assistant
-bash scripts/demo.sh   # 先确认本机 Python 工具正常
+make check             # 1.0：单测 + 离线产品冒烟（推荐）
+# 或分步: bash scripts/demo.sh
 ```
 
 然后在 Agent 里跑 `/setup-zh`、`/apply-zh`。  
-DeepSeek / 智谱等接法见 [MODELS.zh.md](./MODELS.zh.md)。
+短名单：`python tools/flow.py shortlist --jobs …` · 日常：`day-plan` / `funnel`。  
+DeepSeek / 智谱等接法见 [MODELS.zh.md](./MODELS.zh.md)。  
+发版边界见 [RELEASE-1.0.zh.md](./RELEASE-1.0.zh.md)。
 
 ## Claude Code
 

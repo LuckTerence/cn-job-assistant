@@ -8,6 +8,8 @@
 | 你想… | 去这里 |
 |--------|--------|
 | 了解产品、立刻上手 | [README.md](./README.md) |
+| **1.0 发版说明** | [docs/RELEASE-1.0.zh.md](./docs/RELEASE-1.0.zh.md) |
+| **1.0 门禁冒烟** | `make check` 或 `bash scripts/smoke_cn.sh` |
 | **先看演示产出（一条命令）** | `bash scripts/demo.sh` → [examples/demo/](./examples/demo/) |
 | Agent 安装（Claude / Cursor） | [docs/INSTALL.agents.zh.md](./docs/INSTALL.agents.zh.md) |
 | 分赛道样例（互联网 vs 国企） | [examples/demo/tracks/](./examples/demo/tracks/) |

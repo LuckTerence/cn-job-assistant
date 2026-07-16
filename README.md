@@ -11,12 +11,14 @@
   <img src="https://img.shields.io/badge/market-China-red.svg" alt="China">
   <img src="https://img.shields.io/badge/auto--apply-No-lightgrey.svg" alt="No auto apply">
   <img src="https://img.shields.io/badge/python-3.10+-green.svg" alt="Python">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="1.0.0">
 </p>
 
 <p align="center">
   <a href="#三分钟上手"><strong>三分钟上手</strong></a> ·
   <a href="#它解决什么问题"><strong>解决什么问题</strong></a> ·
   <a href="#和别人有什么不同"><strong>差异点</strong></a> ·
+  <a href="./docs/RELEASE-1.0.zh.md"><strong>1.0 发版说明</strong></a> ·
   <a href="./ARCHITECTURE.zh.md"><strong>架构</strong></a> ·
   <a href="./MODELS.zh.md"><strong>国产模型</strong></a>
 </p>
@@ -45,36 +47,35 @@
 
 ---
 
-## 30 秒看懂闭环
+## 30 秒看懂闭环（1.0）
 
 ```text
-  装搜岗工具          填画像            丢一份岗位描述
-       │                │                  │
-       ▼                ▼                  ▼
- install_domestic   /setup-zh      /apply-zh <岗位描述>
-       │                │                  │
-       └────────────────┴──────────────────┘
-                           │
-           ┌───────────────┼───────────────┐
-           ▼               ▼               ▼
-     中文简历 PDF    打招呼 / 求职信    匹配质量报告
-   resume_*.pdf      documents/zh/    match_report.json
-           │               │               │
-           └───────────────┴───────────────┘
-                           │
-                           ▼
-              你在 App 里手动投递（关键）
-                           │
-                           ▼
-              tracker.py 记一笔 / /outcome 更新状态
+  粘贴/搜岗 JSON          /setup-zh 画像
+         │                      │
+         ▼                      ▼
+  split_jds / import-jobs   母版简历
+         │                      │
+         └──────────┬───────────┘
+                    ▼
+         flow shortlist · rank · day-plan · funnel
+                    │
+                    ▼
+              /apply-zh → PDF + 话术 + 匹配摘要
+                    │
+                    ▼
+         你在 App 手动/半自动投（默认不代点发送）
+                    │
+                    ▼
+         tracker / /outcome · skip-stats · dashboard
 ```
 
-**开箱可跑的 4 个本地组件**（不装 Docker、不拉百 MB 向量模型）：
+**开箱可跑（不装 Docker、不拉 embedding）**：
 
-1. `tools/install_domestic_search.py` — Boss / 多平台搜岗安装  
-2. `/apply-zh` · `/da-zhaohu` — 中文简历与话术（Agent 命令）  
-3. `tools/match_resume.py` — 匹配分 + 关键词命中/缺失  
-4. `tools/tracker.py` — 投递追踪与 HTML 看板  
+1. `bash scripts/smoke_cn.sh` / `make check` — **1.0 门禁**  
+2. `tools/flow.py shortlist` · `tracker day-plan/rank/funnel`  
+3. `/setup-zh` · `/apply-zh` · `/outcome`  
+4. `match_resume`（同义词 · 真缺口 · 薪资对照）· `split_jds`  
+5. `apply_assist` 投递三档（默认 manual）
 
 ---
 
@@ -309,8 +310,9 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **决策层** | ✅ | 同义词表 + 期望 vs JD 薪资（本地解析） |
 | **0.11 今天投谁** | ✅ | `day-plan` · `rank` · 看板筛选 · `--track` |
 | **0.12 短名单丝滑** | ✅ | `flow shortlist` · 期望薪资列/旗标 · 语料 IDF · import 字段提示 |
-| **0.13 决策可信** | ✅ | `funnel` 漏斗 · 真缺口/同义词分列 · `split_jds` 粘贴批拆 |
-| **扩圈（有信号再开）** | ⏸ | embedding catalog / 本地 Web / 1.0 用户验证 —— 见优化方案 |
+| **0.13 决策可信** | ✅ | `funnel` · 真缺口/同义词分列 · `split_jds` |
+| **1.0 可靠闭环** | ✅ | `smoke_cn` 门禁 · [发版说明](./docs/RELEASE-1.0.zh.md) · 能力面稳定 |
+| **1.x 信号驱动** | ⏸ | embedding catalog / 本地 Web / 社区规模 —— Issue 痛点票 |
 | **暂缓** | — | 自研爬虫、强制 SaaS、默认海投、未验证就上 embedding |
 
 ---

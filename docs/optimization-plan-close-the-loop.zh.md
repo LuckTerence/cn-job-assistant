@@ -1,8 +1,8 @@
 # 优化方案：先把闭环做透（Phase 0 → 1 → 2）
 
-> **状态**：至 **v0.13「决策可信」**（2026-07-17）：  
-> funnel、真缺口/同义词分列、split_jds、apply-zh↔rank 互链、flow/day-plan/rank 全家桶。  
-> 下一目标建议：**1.0 外部用户验证** 或 catalog 语义匹配（有信号再开）。  
+> **状态**：**v1.0.0 能力发版**（2026-07-17）。  
+> 0.10～0.13 能力面 + `scripts/smoke_cn.sh` / `make check` 门禁 + [RELEASE-1.0.zh.md](./RELEASE-1.0.zh.md)。  
+> 持续：社区「我在用」验证；有信号再开 embedding catalog / 轻 Web。  
 > **原则**：产品成熟度 = 闭环完成度 × 用户反馈验证数，不是功能数。  
 > **定位**：Agent 可读可跑的本地求职工作流（非 SaaS、默认不自动投）。  
 > **相关**：[`pm-review-2026-07-10.zh.md`](./pm-review-2026-07-10.zh.md)、[`ARCHITECTURE.zh.md`](../ARCHITECTURE.zh.md)、  
