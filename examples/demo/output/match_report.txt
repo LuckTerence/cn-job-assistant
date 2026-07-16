@@ -1,12 +1,14 @@
 【匹配摘要】
 有一定匹配度，重点看下面缺口是否属实。
-综合 54.9/100（匹配中等），关键词覆盖 81.0%
+综合 54.5/100（匹配中等），关键词覆盖 81.0%
 
 已经对上的词：
   高并发、微服务、后端、高可用、数据结构、消息队列、ci/cd、docker
 
 JD 提到但你简历没写的词（不会的别硬编）：
   · 核心硬技能（会再补，不会别编）：大模型、llm、架构、英语
+
+薪资对照：✅ 区间有交集 — 期望 25K–40K/月 · JD 25K–40K/月 → 区间有交集。
 
 如果属实，可以改的方向：
   1. JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。
@@ -17,19 +19,19 @@ JD 提到但你简历没写的词（不会的别硬编）：
 有一定匹配但缺口不少，可以投但别抱太大期望；或再找更贴近画像的岗位。
 
 不会的技能别硬写上去刷分。
-分数只是本地关键词对齐程度，不代表能不能拿到面试。
+分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。
 
 --- 详细指标 ---
 === Generation quality report ===
-Résumé score:       56.3/100
-Combined score:     54.9/100  (moderate_match)
+Résumé score:       55.9/100
+Combined score:     54.5/100  (moderate_match)
 Combined coverage:  81.0%  (17 hit / 4 still missing)
 
 === Résumé vs 岗位描述 ===
-Score:              56.3/100  (moderate_match)
-Cosine (TF–IDF):    0.3604
+Score:              55.9/100  (moderate_match)
+Cosine (TF–IDF):    0.3543
 Keyword coverage:   81.0%  (17/21 岗位描述 keywords)
-Tokens:             résumé=80  jd=49
+Tokens:             résumé=80  jd=50
 
 HIT (17):
   高并发, 微服务, 后端, 高可用, 数据结构, 消息队列, ci/cd, docker, go, java, kafka, kubernetes, mysql, redis, spring boot, 中间件, 算法
@@ -41,19 +43,19 @@ EXTRA on résumé (signal, not in 岗位描述 top):
   落地, python, linux, git, qps, p99, tob, 设计, 主导
 
 === Cover / 打招呼 vs 岗位描述 ===
-Score:              20.8/100  (weak_match)
-Cosine (TF–IDF):    0.1825
-Keyword coverage:   23.8%  (5/21 岗位描述 keywords)
-Tokens:             résumé=23  jd=49
+Score:              29.2/100  (partial_match)
+Cosine (TF–IDF):    0.1801
+Keyword coverage:   42.9%  (9/21 岗位描述 keywords)
+Tokens:             résumé=23  jd=50
 
-HIT (5):
-  高并发, 微服务, 后端, kafka, spring boot
+HIT (9):
+  高并发, 微服务, 后端, 消息队列, docker, go, kafka, kubernetes, spring boot
 
-MISS (16):
-  高可用, 大模型, 数据结构, 消息队列, ci/cd, docker, go, java, kubernetes, llm, mysql, redis, 中间件, 架构, 算法, 英语
+MISS (12):
+  高可用, 大模型, 数据结构, ci/cd, java, llm, mysql, redis, 中间件, 架构, 算法, 英语
 
 EXTRA on résumé (signal, not in 岗位描述 top):
-  java/go, k8s
+  java/go
 
 Still missing after combining materials:
   大模型, llm, 架构, 英语

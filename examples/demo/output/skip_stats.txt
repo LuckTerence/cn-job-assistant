@@ -1,0 +1,8 @@
+不投记录：3 条  ← /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/job_search_tracker.csv
+------------------------------------------------
+  location           1   33.3%  地点不合适  █
+  low_match          1   33.3%  匹配度低  █
+  salary_low         1   33.3%  薪资偏低  █
+------------------------------------------------
+最高频：location（地点不合适） 占比 33%
+信号未就绪（建议累计 ≥10 条 skipped 再决策；还差约 7 条有原因的记录）

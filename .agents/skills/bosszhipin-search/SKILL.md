@@ -70,13 +70,21 @@ python tools/apply_assist.py auto-greet --security-id <id> --i-understand-ban-ri
 ## 工作流
 
 1. `python tools/install_domestic_search.py status`
-2. `boss search` / `boss export` 找岗
-3. `/apply-zh` 或 `/da-zhaohu` 生成材料
-4. 按用户模式投递（**默认 manual**）：
+2. `boss search` / `boss export` 找岗（优先导出 JSON/CSV）
+3. **批量进 tracker**（默认 `to_apply`，不去重强制投）：
+   ```bash
+   # 若 boss export 出 JSON 数组或含 jobs 字段：
+   python tools/tracker.py import-jobs jobs.json --default-channel Boss直聘
+   python tools/tracker.py import-jobs jobs.json --dry-run   # 先看解析结果
+   # 字段别名已覆盖 company/title/url/city/salary/securityId 等常见键
+   # 样例：examples/demo/jobs_sample.json
+   ```
+4. 从 `to_apply` 列表挑岗 → `/apply-zh` 或 `/da-zhaohu` 生成材料
+5. 按用户模式投递（**默认 manual**）：
    - **manual**：用户在 App 里自己点
    - **semi**：`python tools/apply_assist.py semi --url … --text-file …`（仍须用户点发送）
    - **auto**：`apply_assist.py set-mode auto` + 配置风险项 + `auto-greet … --execute`
-5. `python tools/tracker.py add …`
+6. 单条补记仍可用 `python tools/tracker.py add …`；结果用 `/outcome`
 
 ## 合规与边界
 

@@ -26,7 +26,6 @@
       ],
       "extra": [
         "落地",
-        "kubernetes",
         "qps"
       ]
     },
@@ -36,14 +35,15 @@
     "verdict": "moderate_match"
   },
   "cover": {
-    "score": 29.4,
+    "score": 32.2,
     "cosine": 0.2794,
-    "keyword_coverage": 31.2,
+    "keyword_coverage": 37.5,
     "keywords": {
       "hit": [
         "微服务",
         "kafka",
         "高并发",
+        "go",
         "spring boot",
         "后端"
       ],
@@ -53,7 +53,6 @@
         "高可用",
         "ci/cd",
         "docker",
-        "go",
         "java",
         "k8s",
         "mysql",
@@ -96,7 +95,6 @@
       ],
       "extra": [
         "落地",
-        "kubernetes",
         "qps",
         "java/go"
       ]
@@ -117,6 +115,17 @@
     "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。",
     "打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。"
   ],
+  "salary": {
+    "verdict": "unknown",
+    "signal": "·",
+    "label": "未填写",
+    "summary": "未提供期望薪资，JD 也未解析到区间；可在 CLAUDE.zh.md 填「薪资期望」或 --expected。",
+    "expected_raw": "",
+    "offered_raw": "",
+    "expected_monthly": null,
+    "offered_monthly": null,
+    "expected_input": ""
+  },
   "brief_zh": {
     "tone_open": "有一定匹配度，重点看下面缺口是否属实。",
     "headline": "综合 56.1/100（匹配中等），关键词覆盖 75.0%",
@@ -150,8 +159,19 @@
       "如果确实会，可以优先补这几个核心词：数据结构、高可用、中间件。"
     ],
     "action_by_band": "有一定匹配但缺口不少，可以投但别抱太大期望；或再找更贴近画像的岗位。",
+    "salary": {
+      "verdict": "unknown",
+      "signal": "·",
+      "label": "未填写",
+      "summary": "未提供期望薪资，JD 也未解析到区间；可在 CLAUDE.zh.md 填「薪资期望」或 --expected。",
+      "expected_raw": "",
+      "offered_raw": "",
+      "expected_monthly": null,
+      "offered_monthly": null,
+      "expected_input": ""
+    },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
     "resume_score": 57.5,
@@ -159,6 +179,8 @@
     "keyword_coverage_combined": 75.0,
     "verdict": "moderate_match",
     "missing_count": 4,
-    "hit_count": 12
+    "hit_count": 12,
+    "salary_verdict": "unknown",
+    "salary_signal": "·"
   }
 }

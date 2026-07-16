@@ -19,3 +19,5 @@ python tools/tracker.py add \
   --source examples/demo/jd_星云科技_后端.md
 
 # 如果已经投了，把 --status to_apply 改成 --status applied
+# 若评估后不投，改成：
+#   --status skipped --skip-reason salary_low|location|low_match|unknown_company|other

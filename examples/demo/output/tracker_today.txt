@@ -1,4 +1,4 @@
-投递记录共 3 条，还在跟的 2 条，已结束 1 条
+投递记录共 9 条，还在跟的 5 条，已结束 4 条
 
 ── 进度 ──
   本周已记录投递：3 条
@@ -6,18 +6,28 @@
   累计进入面试阶段：1 条
   面试率：33.3%（基于当前快照，非官方转化率）
 
+── 不投信号（skipped）──
+  合计：3 条
+  location           1  (33%)  地点不合适
+  low_match          1  (33%)  匹配度低
+  salary_low         1  (33%)  薪资偏低
+
 📅 面试相关（1）
-  [interview] 青梧数据 / 后端开发 · 智联  demo: 二面中
+  [interview] 青梧数据 / 后端开发 · 智联 · 上海 · 30-45K  demo: 二面中
   （需要准备就跑 /interview，状态变了用 tracker update）
 
-已投/待投、等回复（1）
-  [applied] 星云科技 / 高级后端 · Boss直聘  demo: 已生成材料，待手动投递
+已投/待投、等回复（4）
+  [applied] 星云科技 / 高级后端 · Boss直聘 · 杭州 · 25-40K  demo: 已生成材料，待手动投递
+  [to_apply] 云梯科技 / Java 后端工程师 · Boss直聘 · 杭州 · 20-35K  security_id=demo_sec_yunti
+  [to_apply] 字节示例 / 后端开发 · Boss直聘 · 上海 · 30-50K
+  [to_apply] 本地生活示范 / 服务端开发 · 智联 · 北京 · 25-40K
   （新投的用 tracker add）
 
 📝 最近结束的（近30天）（1）
-  [rejected] 北岸出行 / 服务端 · 猎聘  demo: 已结束
+  [rejected] 北岸出行 / 服务端 · 猎聘 · 北京  demo: 已结束 → 可 /outcome 复盘 + match diff
   （复盘可以用 /outcome，旧记录别删）
 
 常用：
   python tools/tracker.py list --open-only
   python tools/tracker.py dashboard   # 打开 HTML 看板看待办卡片
+  python tools/tracker.py skip-stats  # 不投原因分布（产品信号）

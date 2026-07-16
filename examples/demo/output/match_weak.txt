@@ -2,7 +2,7 @@
 Score:              0.0/100  (weak_match)
 Cosine (TF–IDF):    0.0000
 Keyword coverage:   0.0%  (0/21 岗位描述 keywords)
-Tokens:             résumé=11  jd=49
+Tokens:             résumé=11  jd=50
 
 HIT (0):
   (none)

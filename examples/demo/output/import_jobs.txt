@@ -1,0 +1,6 @@
+import from /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jobs_sample.json
+  parsed=3  valid=3  added=3  filled=0  dup_skipped=0  forced=0  invalid=0
+  wrote → /Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/output/job_search_tracker.csv  (total rows: 9)
+  next: python tools/tracker.py list --open-only
+        python tools/tracker.py today
+        /apply-zh  # pick a to_apply row

@@ -1,0 +1,26 @@
+{
+  "_comment": "内置技能/表述同义词簇。用户可复制为 config/synonyms.json 覆盖或追加（同键合并）。匹配时：简历出现簇内任一词，JD 簇内其它词计为 hit。",
+  "groups": [
+    ["高并发", "大流量", "高吞吐", "high concurrency", "高qps"],
+    ["微服务", "分布式架构", "microservice", "microservices", "服务化"],
+    ["高可用", "容灾", "ha", "high availability", "稳定性保障"],
+    ["消息队列", "mq", "kafka", "rocketmq", "rabbitmq", "中间件消息"],
+    ["容器化", "docker", "k8s", "kubernetes", "容器编排"],
+    ["ci/cd", "cicd", "持续集成", "持续交付", "流水线"],
+    ["golang", "go", "go语言"],
+    ["javascript", "js", "typescript", "ts"],
+    ["postgresql", "postgres", "pgsql"],
+    ["mongodb", "mongo"],
+    ["elasticsearch", "es", "elastic search"],
+    ["机器学习", "machine learning", "ml"],
+    ["深度学习", "deep learning", "dl"],
+    ["大模型", "llm", "大语言模型", "生成式ai"],
+    ["spring boot", "springboot", "spring"],
+    ["后端", "服务端", "server side", "backend"],
+    ["前端", "fe", "frontend", "web前端"],
+    ["数据结构", "算法基础", "dsa"],
+    ["mysql", "关系数据库", "关系型数据库"],
+    ["redis", "缓存", "分布式缓存"],
+    ["rest api", "restful", "http api", "接口开发"]
+  ]
+}

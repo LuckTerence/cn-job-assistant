@@ -1,0 +1,53 @@
+name: 💢 使用痛点（选项式）
+description: 用多选告诉我们卡在哪——用来决定 Phase 2 做什么（不写功能脑暴长文也行）
+title: "[痛点] "
+labels: ["pain-point", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Phase 1 原则：**同一痛点被 ≥3 人明确提出**，才开 Phase 2 大项。  
+        请尽量勾选最贴近的选项；细节可写在补充说明里（请脱敏）。
+  - type: checkboxes
+    id: pains
+    attributes:
+      label: 主要痛点（可多选）
+      options:
+        - label: 命令太多 / 不知道下一步跑什么
+        - label: 匹配分不准 / miss 列表胡扯
+        - label: 不知道薪资合不合适、不敢投
+        - label: 想要网页看进度（不想开终端）
+        - label: 搜岗结果记不进 tracker，手工录入麻烦
+        - label: PDF / 简历版式不满意
+        - label: setup 画像太重 / 冷启动难
+        - label: 其他（请在补充里写一句）
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 对你继续用的影响
+      options:
+        - 能用，略烦
+        - 经常卡住
+        - 几乎用不下去
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: 环境
+      options:
+        - Claude Code
+        - Cursor
+        - 其他 Agent
+        - 纯 CLI
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: 补充（可选）
+      placeholder: 复现步骤、期望行为；勿贴隐私与完整简历
+    validations:
+      required: false

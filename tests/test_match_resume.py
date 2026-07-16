@@ -93,11 +93,68 @@ class MatchResumeTests(unittest.TestCase):
                     str(FIX / "cover_backend.md"),
                     "--out",
                     str(out),
+                    "--expected-salary",
+                    "25-40K",
                 ]
             )
             self.assertEqual(rc, 0)
             data = json.loads(out.read_text(encoding="utf-8"))
             self.assertIn("summary", data)
+            self.assertIn("salary", data)
+            self.assertIn(data["salary"]["verdict"], ("overlap", "high_ok", "partial", "low"))
+
+    def test_synonym_reduces_false_miss(self) -> None:
+        """Resume says 大流量; JD says 高并发 → should hit with synonyms on."""
+        jd = "负责高并发系统与微服务架构"
+        resume_syn = "有大流量系统与分布式架构经验"
+        with_syn = m.match_texts(resume_syn, jd, synonym_map=m.load_synonym_map())
+        without = m.match_texts(resume_syn, jd, synonym_map={})
+        # 高并发 should be miss without synonyms if only 大流量 present
+        self.assertIn("高并发", without.keywords.miss + without.keywords.hit)
+        self.assertIn("高并发", with_syn.keywords.hit)
+        self.assertNotIn("高并发", with_syn.keywords.miss)
+        self.assertGreaterEqual(with_syn.keyword_coverage, without.keyword_coverage)
+
+    def test_parse_and_compare_salary(self) -> None:
+        r = m.parse_salary_text("25-40K")
+        self.assertIsNotNone(r)
+        assert r is not None
+        self.assertAlmostEqual(r.low or 0, 25000, delta=1)
+        self.assertAlmostEqual(r.high or 0, 40000, delta=1)
+
+        yearly = m.parse_salary_text("30-50万/年")
+        self.assertIsNotNone(yearly)
+        assert yearly is not None
+        self.assertGreater(yearly.low or 0, 20000)
+        self.assertLess(yearly.high or 0, 50000)
+
+        jd = (FIX / "jd_backend_sample.md").read_text(encoding="utf-8")
+        offered = m.extract_jd_salary(jd)
+        self.assertIsNotNone(offered)
+        low = m.compare_salary(m.parse_salary_text("50-60K"), offered)
+        self.assertEqual(low["verdict"], "low")
+        self.assertEqual(low["signal"], "❌")
+        ok = m.compare_salary(m.parse_salary_text("25-35K"), offered)
+        self.assertIn(ok["verdict"], ("overlap", "high_ok", "partial"))
+        self.assertEqual(ok["signal"], "✅")
+
+    def test_extract_expected_from_profile(self) -> None:
+        text = "### 求职方向\n- **薪资期望：** 28-40K\n- **城市偏好：** 杭州\n"
+        self.assertEqual(m.extract_expected_from_profile(text), "28-40K")
+        self.assertIsNone(m.extract_expected_from_profile("- **薪资期望：** [范围，可选]\n"))
+
+    def test_cli_salary(self) -> None:
+        rc = m.main(
+            [
+                "salary",
+                "--jd",
+                str(FIX / "jd_backend_sample.md"),
+                "--expected",
+                "50-60K",
+                "--json",
+            ]
+        )
+        self.assertEqual(rc, 0)
 
     def test_keywords_command(self) -> None:
         ranked = m.extract_jd_keywords(self.jd, top_k=15)

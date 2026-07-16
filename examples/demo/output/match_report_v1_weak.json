@@ -35,7 +35,7 @@
     },
     "jd_keyword_count": 21,
     "resume_token_count": 11,
-    "jd_token_count": 49,
+    "jd_token_count": 50,
     "verdict": "weak_match"
   },
   "cover": null,
@@ -75,7 +75,7 @@
     },
     "jd_keyword_count": 21,
     "resume_token_count": 11,
-    "jd_token_count": 49,
+    "jd_token_count": 50,
     "verdict": "weak_match"
   },
   "still_missing": [
@@ -106,6 +106,20 @@
     "简历里岗位关键词偏少；会的话写进经历里，不会的别硬凑。",
     "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。"
   ],
+  "salary": {
+    "verdict": "jd_only",
+    "signal": "·",
+    "label": "仅 JD",
+    "summary": "JD 约 25K–40K/月（原文 25-40K）；画像未填期望，无法对比。",
+    "expected_raw": "",
+    "offered_raw": "25-40K",
+    "expected_monthly": null,
+    "offered_monthly": {
+      "low": 25000.0,
+      "high": 40000.0
+    },
+    "expected_input": ""
+  },
   "brief_zh": {
     "tone_open": "这个岗位要求和你当前画像有距离——投了当练手也行，别抱太大期望；也可以想想是不是方向不太对。",
     "headline": "综合 0.0/100（匹配偏弱），关键词覆盖 0.0%",
@@ -136,8 +150,22 @@
       "如果确实会，可以优先补这几个核心词：高并发、微服务、后端。"
     ],
     "action_by_band": "匹配度较低，投了权当练手；建议优先找和你画像更接近的岗位。",
+    "salary": {
+      "verdict": "jd_only",
+      "signal": "·",
+      "label": "仅 JD",
+      "summary": "JD 约 25K–40K/月（原文 25-40K）；画像未填期望，无法对比。",
+      "expected_raw": "",
+      "offered_raw": "25-40K",
+      "expected_monthly": null,
+      "offered_monthly": {
+        "low": 25000.0,
+        "high": 40000.0
+      },
+      "expected_input": ""
+    },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
     "resume_score": 0.0,
@@ -145,6 +173,8 @@
     "keyword_coverage_combined": 0.0,
     "verdict": "weak_match",
     "missing_count": 21,
-    "hit_count": 0
+    "hit_count": 0,
+    "salary_verdict": "jd_only",
+    "salary_signal": "·"
   }
 }

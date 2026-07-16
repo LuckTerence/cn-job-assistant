@@ -1,0 +1,6 @@
+{
+  "_comment": "复制为 config/synonyms.json（可 gitignore 本地定制）后生效；与 synonyms.default.json 的 groups 合并。",
+  "groups": [
+    ["你们公司内部黑话A", "等价表述B"]
+  ]
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import sqlite3
 import sys
 import tempfile
@@ -102,6 +103,41 @@ class TrackerTests(unittest.TestCase):
         rows = tracker.read_rows(self.csv)
         self.assertEqual(rows[0]["status"], "interview")
 
+    def test_update_notes_append(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main(
+            [
+                "--csv",
+                str(self.csv),
+                "add",
+                "--company",
+                "NoteCo",
+                "--role",
+                "dev",
+                "--notes",
+                "day1 applied",
+            ]
+        )
+        self.assertEqual(
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "update",
+                    "--company",
+                    "NoteCo",
+                    "--role",
+                    "dev",
+                    "--notes-append",
+                    "2026-07-17 interview invite",
+                ]
+            ),
+            0,
+        )
+        rows = tracker.read_rows(self.csv)
+        self.assertIn("day1 applied", rows[0]["notes"])
+        self.assertIn("2026-07-17 interview invite", rows[0]["notes"])
+
     def test_export_sqlite_and_html(self) -> None:
         tracker.main(["--csv", str(self.csv), "init"])
         tracker.main(
@@ -143,9 +179,9 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("date", tracker.HEADER)
         self.assertIn("company", tracker.HEADER)
         self.assertIn("source", tracker.HEADER)
-        for col in ("salary", "city", "education", "experience"):
+        for col in ("salary", "city", "education", "experience", "skip_reason"):
             self.assertIn(col, tracker.HEADER, f"missing column: {col}")
-        self.assertEqual(len(tracker.HEADER), 17)
+        self.assertEqual(len(tracker.HEADER), 18)
 
     def test_add_with_structured_fields(self) -> None:
         tracker.main(["--csv", str(self.csv), "init"])
@@ -213,14 +249,14 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(rows[0]["salary"], "30-50K")
 
     def test_backward_compat_old_csv_missing_columns(self) -> None:
-        """Old CSV without salary/city/education/experience should still read."""
+        """Old CSV without salary/city/education/experience/skip_reason should still read."""
         old_header = "date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source\n"
         old_row = "2026-07-01,OldCo,,Engineer,,Boss直聘,applied,,,,,,\n"
         self.csv.write_text(old_header + old_row, encoding="utf-8")
         rows = tracker.read_rows(self.csv)
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["company"], "OldCo")
-        for col in ("salary", "city", "education", "experience"):
+        for col in ("salary", "city", "education", "experience", "skip_reason"):
             self.assertEqual(rows[0].get(col, ""), "", f"col {col} should default to empty")
         tracker.main(
             [
@@ -239,7 +275,7 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(len(rows2), 2)
         self.assertEqual(rows2[1]["city"], "深圳")
         header_line = self.csv.read_text(encoding="utf-8").splitlines()[0]
-        for col in ("salary", "city", "education", "experience"):
+        for col in ("salary", "city", "education", "experience", "skip_reason"):
             self.assertIn(col, header_line, f"after write-back, header should contain {col}")
 
     def test_today_and_suggest_add(self) -> None:
@@ -406,7 +442,7 @@ class TrackerTests(unittest.TestCase):
         """skipped should be treated as a closed/terminal status."""
         self.assertIn("skipped", tracker.CLOSED_STATUSES)
         tracker.main(["--csv", str(self.csv), "init"])
-        tracker.main(
+        rc = tracker.main(
             [
                 "--csv",
                 str(self.csv),
@@ -417,12 +453,141 @@ class TrackerTests(unittest.TestCase):
                 "X",
                 "--status",
                 "skipped",
+                "--skip-reason",
+                "salary_low",
             ]
         )
+        self.assertEqual(rc, 0)
         html = Path(self.tmp.name) / "d.html"
         tracker.main(["--csv", str(self.csv), "dashboard", "--out", str(html)])
         text = html.read_text(encoding="utf-8")
         self.assertIn("已结束", text)
+        self.assertIn("不投信号", text)
+
+    def test_skipped_requires_skip_reason(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        rc = tracker.main(
+            [
+                "--csv",
+                str(self.csv),
+                "add",
+                "--company",
+                "NoReason",
+                "--role",
+                "X",
+                "--status",
+                "skipped",
+            ]
+        )
+        self.assertEqual(rc, 2)
+        self.assertEqual(len(tracker.read_rows(self.csv)), 0)
+
+    def test_normalize_skip_reason_aliases(self) -> None:
+        self.assertEqual(tracker.normalize_skip_reason("salary_low"), "salary_low")
+        self.assertEqual(tracker.normalize_skip_reason("薪资"), "salary_low")
+        self.assertEqual(tracker.normalize_skip_reason("地点不合适"), "location")
+        self.assertEqual(tracker.normalize_skip_reason("weird free text"), "other")
+        self.assertEqual(tracker.normalize_skip_reason(""), "")
+
+    def test_skip_stats_command_and_signal(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        for i in range(6):
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "add",
+                    "--company",
+                    f"Pay{i}",
+                    "--role",
+                    "dev",
+                    "--status",
+                    "skipped",
+                    "--skip-reason",
+                    "salary_low",
+                ]
+            )
+        for i in range(4):
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "add",
+                    "--company",
+                    f"Loc{i}",
+                    "--role",
+                    "dev",
+                    "--status",
+                    "skipped",
+                    "--skip-reason",
+                    "location",
+                ]
+            )
+        rows = tracker.read_rows(self.csv)
+        stats = tracker.compute_skip_stats(rows)
+        self.assertEqual(stats["total_skipped"], 10)
+        self.assertEqual(stats["top_reason"], "salary_low")
+        self.assertTrue(stats["signal_ready"])
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = tracker.main(["--csv", str(self.csv), "skip-stats"])
+        self.assertEqual(rc, 0)
+        out = buf.getvalue()
+        self.assertIn("salary_low", out)
+        self.assertIn("触发建议", out)
+        self.assertIn("样本≥10", out)
+
+    def test_update_to_skipped_needs_reason(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        tracker.main(
+            [
+                "--csv",
+                str(self.csv),
+                "add",
+                "--company",
+                "UpCo",
+                "--role",
+                "dev",
+                "--status",
+                "to_apply",
+            ]
+        )
+        self.assertEqual(
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "update",
+                    "--company",
+                    "UpCo",
+                    "--role",
+                    "dev",
+                    "--status",
+                    "skipped",
+                ]
+            ),
+            2,
+        )
+        self.assertEqual(
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "update",
+                    "--company",
+                    "UpCo",
+                    "--role",
+                    "dev",
+                    "--status",
+                    "skipped",
+                    "--skip-reason",
+                    "low_match",
+                ]
+            ),
+            0,
+        )
+        rows = tracker.read_rows(self.csv)
+        self.assertEqual(rows[0]["skip_reason"], "low_match")
 
     def test_html_dashboard_closed_is_collapsed(self) -> None:
         """Closed rows should be wrapped in <details> for folding."""
@@ -534,19 +699,154 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("累计已投", out)
         self.assertIn("面试率", out)
 
+    def test_normalize_job_record_aliases(self) -> None:
+        job = tracker.normalize_job_record(
+            {
+                "company_name": "云梯",
+                "title": "后端",
+                "platform": "Boss直聘",
+                "location": "杭州",
+                "salary_desc": "20-30K",
+                "url": "https://example.com/j/1",
+                "securityId": "abc",
+            },
+            default_status="to_apply",
+        )
+        assert job is not None
+        self.assertEqual(job["company"], "云梯")
+        self.assertEqual(job["role"], "后端")
+        self.assertEqual(job["channel"], "Boss直聘")
+        self.assertEqual(job["city"], "杭州")
+        self.assertEqual(job["salary"], "20-30K")
+        self.assertEqual(job["source"], "https://example.com/j/1")
+        self.assertIn("security_id=abc", job["notes"])
+        self.assertEqual(job["status"], "to_apply")
+
+    def test_import_jobs_json_and_dedup(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        sample = Path(self.tmp.name) / "jobs.json"
+        sample.write_text(
+            json.dumps(
+                {
+                    "jobs": [
+                        {
+                            "company": "A",
+                            "title": "Dev",
+                            "platform": "Boss直聘",
+                            "city": "杭州",
+                        },
+                        {
+                            "company": "B",
+                            "role": "QA",
+                            "channel": "智联",
+                        },
+                    ]
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            tracker.main(
+                [
+                    "--csv",
+                    str(self.csv),
+                    "import-jobs",
+                    str(sample),
+                    "--default-channel",
+                    "Boss直聘",
+                ]
+            ),
+            0,
+        )
+        rows = tracker.read_rows(self.csv)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["status"], "to_apply")
+        self.assertEqual(rows[0]["role"], "Dev")
+        # second import dedups
+        self.assertEqual(
+            tracker.main(["--csv", str(self.csv), "import-jobs", str(sample)]),
+            0,
+        )
+        self.assertEqual(len(tracker.read_rows(self.csv)), 2)
+        # fill-empty adds city on blank
+        sample2 = Path(self.tmp.name) / "jobs2.json"
+        sample2.write_text(
+            json.dumps(
+                [{"company": "B", "role": "QA", "channel": "智联", "city": "深圳"}],
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        tracker.main(
+            [
+                "--csv",
+                str(self.csv),
+                "import-jobs",
+                str(sample2),
+                "--fill-empty",
+            ]
+        )
+        rows = tracker.read_rows(self.csv)
+        b = next(r for r in rows if r["company"] == "B")
+        self.assertEqual(b["city"], "深圳")
+
+    def test_import_jobs_ndjson_and_csv(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        nd = Path(self.tmp.name) / "jobs.ndjson"
+        nd.write_text(
+            '{"company":"N1","title":"T1","platform":"Boss直聘"}\n'
+            '{"company":"N2","title":"T2","platform":"Boss直聘"}\n',
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            tracker.main(["--csv", str(self.csv), "import-jobs", str(nd)]),
+            0,
+        )
+        self.assertEqual(len(tracker.read_rows(self.csv)), 2)
+
+        csv_jobs = Path(self.tmp.name) / "jobs.csv"
+        csv_jobs.write_text(
+            "company,title,platform,city\nCSVCo,Engineer,猎聘,广州\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            tracker.main(["--csv", str(self.csv), "import-jobs", str(csv_jobs)]),
+            0,
+        )
+        rows = tracker.read_rows(self.csv)
+        self.assertTrue(any(r["company"] == "CSVCo" and r["role"] == "Engineer" for r in rows))
+
+    def test_import_jobs_dry_run_no_write(self) -> None:
+        tracker.main(["--csv", str(self.csv), "init"])
+        sample = Path(self.tmp.name) / "d.json"
+        sample.write_text(
+            '[{"company":"Dry","title":"X","channel":"Boss直聘"}]',
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            tracker.main(
+                ["--csv", str(self.csv), "import-jobs", str(sample), "--dry-run"]
+            ),
+            0,
+        )
+        self.assertEqual(len(tracker.read_rows(self.csv)), 0)
+
     def test_today_weekend_hint_on_weekend(self) -> None:
         """When today is weekend and there are follow_ups, show weekend hint."""
         from unittest.mock import patch
         tracker.main(["--csv", str(self.csv), "init"])
-        old_date = (date.today() - timedelta(days=10)).isoformat()
+        # Anchor both "today" and stale application date so age >= FOLLOW_UP_DAYS
+        saturday = date(2026, 7, 11)  # Saturday
+        old_date = (saturday - timedelta(days=10)).isoformat()
         tracker.main([
             "--csv", str(self.csv), "add",
             "--company", "OldCo", "--role", "dev", "--channel", "Boss",
             "--status", "applied", "--date", old_date,
         ])
-        saturday = date(2026, 7, 11)
         buf = io.StringIO()
-        with redirect_stdout(buf), patch("tools.tracker.date") as mock_date:
+        # Module is imported as `tracker` (tools/ on sys.path), not tools.tracker
+        with redirect_stdout(buf), patch("tracker.date") as mock_date:
             mock_date.today.return_value = saturday
             mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
             tracker.main(["--csv", str(self.csv), "today"])

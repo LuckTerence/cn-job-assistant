@@ -1,0 +1,65 @@
+name: 🙋 我在用
+description: 登记你在用本仓库求职（帮助我们了解真实用户画像，零压力）
+title: "[我在用] "
+labels: ["using", "community"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢愿意说一声「我在用」！这是 Phase 1 **验证期**最重要的信号之一。  
+        **请脱敏**：不要贴真实手机号、身份证、完整简历内容。
+  - type: dropdown
+    id: years
+    attributes:
+      label: 工作年限（大致）
+      options:
+        - 应届 / 实习
+        - 1–3 年
+        - 3–5 年
+        - 5–10 年
+        - 10 年+
+    validations:
+      required: true
+  - type: input
+    id: target_role
+    attributes:
+      label: 目标岗位方向
+      placeholder: 例如：后端 / 数据 / 产品 / 前端
+    validations:
+      required: true
+  - type: input
+    id: city
+    attributes:
+      label: 目标城市（可写「远程」）
+      placeholder: 例如：杭州 / 北上广深 / 远程
+    validations:
+      required: true
+  - type: dropdown
+    id: applied_count
+    attributes:
+      label: 用本仓库完成了大约多少个岗位闭环？（生成材料 → 投递/跳过 → tracker）
+      options:
+        - 还在 setup / 第一次 demo
+        - 1–2 个
+        - 3–9 个
+        - 10 个以上
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: 主要 Agent / 环境
+      options:
+        - Claude Code
+        - Cursor
+        - 其他 Agent（国产模型等）
+        - 纯 CLI，基本不用 Agent
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: 一句可选反馈
+      placeholder: 最有用的一步 / 最卡的一步（可空）
+    validations:
+      required: false

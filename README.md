@@ -98,6 +98,7 @@ open examples/demo/output/job_search_tracker.html   # macOS 打开投递看板
 | **可投递 PDF 简历** | [`examples/demo/output/resume_星云科技.pdf`](./examples/demo/output/resume_星云科技.pdf) |
 | 匹配摘要 | [`examples/demo/output/match_brief_zh.txt`](./examples/demo/output/match_brief_zh.txt) |
 | HTML 投递看板 | [`examples/demo/output/job_search_tracker.html`](./examples/demo/output/job_search_tracker.html) |
+| 不投原因分布 | [`examples/demo/output/skip_stats.txt`](./examples/demo/output/skip_stats.txt) |
 | 今日进度 | [`examples/demo/output/tracker_today.txt`](./examples/demo/output/tracker_today.txt) |
 | 互联网 / 国企 PDF | `examples/demo/output/resume_互联网样例.pdf` · `resume_国企样例.pdf` |
 
@@ -105,6 +106,19 @@ open examples/demo/output/job_search_tracker.html   # macOS 打开投递看板
 
 ---
 
+## 一个用户故事（虚构，但流程真实）
+
+> **阿哲**，3 年 Java，目标杭州后端。不想把简历丢进在线 SaaS，也不想一键海投被封号。
+
+1. `bash scripts/demo.sh` —— 先看懂产出长什么样（PDF / 匹配摘要 / 看板）  
+2. Agent 里 `/setup-zh`，粘贴旧简历抽出画像  
+3. Boss 上看到「星云科技 · 后端」→ `/apply-zh` 粘贴岗位描述  
+4. 拿到 **定制 PDF + 打招呼话术 + 人话匹配摘要**；在 App 里自己点发送  
+5. Agent 问他记不记 tracker：选 `applied`；不合适的岗选 `skipped` + 原因（如 `salary_low`）  
+6. 每天 `python tools/tracker.py today` 看面试 / 跟进；面试来了跑 `/outcome`  
+
+你要复制的不是「阿哲」的简历，而是这条**可重复的闭环**。  
+真实在用的话，欢迎开一个 [🙋 我在用](https://github.com/LuckTerence/cn-job-assistant/issues/new?template=using.yml) Issue（脱敏即可）。
 
 ---
 
@@ -212,11 +226,15 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | **可投递 A4 PDF** | `export_resume_pdf.py`：优先 **Typst** 模板，回退 Chrome/pandoc（见 `docs/resume-pdf-reuse.zh.md`） |
 | Boss 打招呼 + 正式求职信 | `/da-zhaohu` · `/apply-zh` |
 | 匹配打分 + **人话一页摘要** | `report --zh-only`；禁止虚构写进摘要 |
+| **同义词表** | `config/synonyms.default.json`；减少「明明会却 miss」 |
+| **期望 vs JD 薪资** | `match_resume salary` / report 摘要；零爬虫 |
 | 质量飞轮 | `match_resume.py diff` 对比 v1→v2 |
 | Tracker + **每日工作台** | `tracker.py today` / `suggest-add` 挂钩 apply-zh |
+| **不投原因（skip_reason）** | `skipped` 必填枚举；`skip-stats` 看分布（Phase 1 信号） |
+| **搜岗 → tracker** | `import-jobs`：JSON/NDJSON/CSV 批量入库，默认 `to_apply` + 去重 |
 | `/setup-zh` 粘贴旧简历 | 冷启动减负 |
 | 国产模型友好 | 见 MODELS.zh.md |
-| Issue 赛道模板 | 互联网 / 国企 / 校招反馈 |
+| Issue 模板 | 赛道反馈 + **我在用** + **痛点多选** |
 | CI | demo 脚本 + tracker / match / lint |
 
 | ⚠️ 明确不做 / 降级 | 说明 |
@@ -269,6 +287,7 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 | [SETUP.md](./SETUP.md) | 上游英文 / LaTeX 环境 |
 | [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) | 多轮对标与决策记录 |
 | [docs/resume-pdf-reuse.zh.md](./docs/resume-pdf-reuse.zh.md) | 简历 PDF 开源复用（10 项目） |
+| [CHANGELOG.md](./CHANGELOG.md) | 版本变更与发版说明 |
 
 ---
 
@@ -276,14 +295,14 @@ python tools/tracker.py dashboard   # 浏览器打开 job_search_tracker.html
 
 | 阶段 | 状态 | 内容 |
 |------|------|------|
-| Phase 1 | ✅ | 搜岗安装器 + 本地 Tracker + skill 面诚实化 |
-| Phase 2 | ✅ | 本地匹配引擎 + `/apply-zh` 强制质量报告 |
-| Phase 3 | ✅ | Catalog 成本卡 + skill allowlist 治理 |
-| **P0 增长资产** | ✅ | Demo 脚本 + Issue 模板 |
-| **P1 体验** | ✅ | 人话报告 / tracker 挂钩 / setup 粘贴简历 / 分赛道样例 / `today` |
-| **P2 分发** | 进行中 | Agent 安装文档已出；话题与社区内容待你发布 |
-| **投递三档** | ✅ | `tools/apply_assist.py`：manual / semi / auto（选择权在用户） |
-| **暂缓** | — | 自研爬虫协议、强制 SaaS、默认海投 |
+| 工程 Phase 1–3 | ✅ | 搜岗安装器 · 匹配 · Tracker · Catalog 治理 · Demo |
+| **投递三档** | ✅ | `apply_assist.py`：manual / semi / auto（选择权在用户） |
+| **闭环收尾** | ✅ | `/apply-zh` 确认写 tracker · 看板待办 · city/salary 列 |
+| **验证期** | 🔄 | 用户故事 · Issue 反馈 · `skip_reason` / `skip-stats` · `/outcome` 飞轮 |
+| **搜岗入库** | ✅ | `tracker import-jobs`（搜岗 JSON → `to_apply`，去重） |
+| **决策层** | ✅ | 同义词表 + 期望 vs JD 薪资（本地解析） |
+| **扩圈（有信号再开）** | ⏸ | HTML 增强 / 薄 `flow.py` / embedding catalog —— 见 [优化方案](./docs/optimization-plan-close-the-loop.zh.md) |
+| **暂缓** | — | 自研爬虫、强制 SaaS、默认海投、未验证就上 embedding |
 
 ---
 

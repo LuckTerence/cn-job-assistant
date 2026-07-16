@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "company": "云梯科技",
+      "title": "Java 后端工程师",
+      "platform": "Boss直聘",
+      "city": "杭州",
+      "salary": "20-35K",
+      "url": "https://www.zhipin.com/job_detail/demo_yunti.html",
+      "securityId": "demo_sec_yunti"
+    },
+    {
+      "company": "字节示例",
+      "job_title": "后端开发",
+      "channel": "Boss直聘",
+      "location": "上海",
+      "salary_desc": "30-50K",
+      "link": "https://www.zhipin.com/job_detail/demo_byted.html"
+    },
+    {
+      "company_name": "本地生活示范",
+      "position": "服务端开发",
+      "site": "智联",
+      "cityName": "北京",
+      "salary": "25-40K"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "resume": {
-    "score": 56.3,
-    "cosine": 0.3604,
+    "score": 55.9,
+    "cosine": 0.3543,
     "keyword_coverage": 81.0,
     "keywords": {
       "hit": [
@@ -43,31 +43,31 @@
     },
     "jd_keyword_count": 21,
     "resume_token_count": 80,
-    "jd_token_count": 49,
+    "jd_token_count": 50,
     "verdict": "moderate_match"
   },
   "cover": {
-    "score": 20.8,
-    "cosine": 0.1825,
-    "keyword_coverage": 23.8,
+    "score": 29.2,
+    "cosine": 0.1801,
+    "keyword_coverage": 42.9,
     "keywords": {
       "hit": [
         "高并发",
         "微服务",
         "后端",
+        "消息队列",
+        "docker",
+        "go",
         "kafka",
+        "kubernetes",
         "spring boot"
       ],
       "miss": [
         "高可用",
         "大模型",
         "数据结构",
-        "消息队列",
         "ci/cd",
-        "docker",
-        "go",
         "java",
-        "kubernetes",
         "llm",
         "mysql",
         "redis",
@@ -77,18 +77,17 @@
         "英语"
       ],
       "extra": [
-        "java/go",
-        "k8s"
+        "java/go"
       ]
     },
     "jd_keyword_count": 21,
     "resume_token_count": 23,
-    "jd_token_count": 49,
-    "verdict": "weak_match"
+    "jd_token_count": 50,
+    "verdict": "partial_match"
   },
   "combined": {
-    "score": 54.9,
-    "cosine": 0.3351,
+    "score": 54.5,
+    "cosine": 0.3293,
     "keyword_coverage": 81.0,
     "keywords": {
       "hit": [
@@ -125,14 +124,13 @@
         "p99",
         "tob",
         "java/go",
-        "k8s",
         "设计",
         "主导"
       ]
     },
     "jd_keyword_count": 21,
     "resume_token_count": 100,
-    "jd_token_count": 49,
+    "jd_token_count": 50,
     "verdict": "moderate_match"
   },
   "still_missing": [
@@ -146,9 +144,26 @@
     "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。",
     "打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。"
   ],
+  "salary": {
+    "verdict": "overlap",
+    "signal": "✅",
+    "label": "区间有交集",
+    "summary": "期望 25K–40K/月 · JD 25K–40K/月 → 区间有交集。",
+    "expected_raw": "25-40K",
+    "offered_raw": "25-40K",
+    "expected_monthly": {
+      "low": 25000.0,
+      "high": 40000.0
+    },
+    "offered_monthly": {
+      "low": 25000.0,
+      "high": 40000.0
+    },
+    "expected_input": "25-40K"
+  },
   "brief_zh": {
     "tone_open": "有一定匹配度，重点看下面缺口是否属实。",
-    "headline": "综合 54.9/100（匹配中等），关键词覆盖 81.0%",
+    "headline": "综合 54.5/100（匹配中等），关键词覆盖 81.0%",
     "still_missing": [
       "大模型",
       "llm",
@@ -179,15 +194,34 @@
       "如果确实会，可以优先补这几个核心词：大模型、llm、架构。"
     ],
     "action_by_band": "有一定匹配但缺口不少，可以投但别抱太大期望；或再找更贴近画像的岗位。",
+    "salary": {
+      "verdict": "overlap",
+      "signal": "✅",
+      "label": "区间有交集",
+      "summary": "期望 25K–40K/月 · JD 25K–40K/月 → 区间有交集。",
+      "expected_raw": "25-40K",
+      "offered_raw": "25-40K",
+      "expected_monthly": {
+        "low": 25000.0,
+        "high": 40000.0
+      },
+      "offered_monthly": {
+        "low": 25000.0,
+        "high": 40000.0
+      },
+      "expected_input": "25-40K"
+    },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
-    "resume_score": 56.3,
-    "combined_score": 54.9,
+    "resume_score": 55.9,
+    "combined_score": 54.5,
     "keyword_coverage_combined": 81.0,
     "verdict": "moderate_match",
     "missing_count": 4,
-    "hit_count": 17
+    "hit_count": 17,
+    "salary_verdict": "overlap",
+    "salary_signal": "✅"
   }
 }

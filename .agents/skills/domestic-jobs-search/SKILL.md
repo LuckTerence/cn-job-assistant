@@ -48,10 +48,15 @@ cd third_party/get_jobs
 ## 工作流
 
 1. `install-get-jobs` 克隆上游。
-2. 在 get_jobs 中配置筛选；导出或复制目标岗位描述。
-3. `/apply-zh` / `/da-zhaohu` 生成中文简历与话术。
-4. 按 `python tools/apply_assist.py status` 当前模式投递（默认 manual；semi 复制话术；auto 高风险门禁）。
-5. `python tools/tracker.py add … --channel 智联|猎聘|51job|拉勾`。
+2. 在 get_jobs 中配置筛选；导出或复制目标岗位（能导出 JSON/CSV 最好）。
+3. **批量进 tracker**（避免逐条手敲）：
+   ```bash
+   python tools/tracker.py import-jobs jobs.json --default-channel 智联
+   # 键名不统一也行：company / title / url / city / salary 等别名见 application-tracker
+   ```
+4. 挑 `to_apply` 岗位 → `/apply-zh` / `/da-zhaohu` 生成中文简历与话术。
+5. 按 `python tools/apply_assist.py status` 当前模式投递（默认 manual；semi 复制话术；auto 高风险门禁）。
+6. 单条：`python tools/tracker.py add … --channel 智联|猎聘|51job|拉勾`；结果 `/outcome`。
 
 ## 合规与边界
 

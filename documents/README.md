@@ -139,9 +139,11 @@ applications/
 ```markdown
 # Outcome: <Company> — <Role>
 
-**Status:** in_progress | hired | offer_declined | rejected | no_response | interview_only
+**Status:** in_progress | hired | offer_declined | rejected | no_response | interview_only | withdrawn | skipped
 
 **Date resolved:** YYYY-MM-DD
+
+**Skip reason:** salary_low | location | low_match | unknown_company | other   ← only when Status is `skipped`
 
 ## Interview stages reached
 - [ ] Phone screen
@@ -156,7 +158,9 @@ What would you do differently?
 Any signal about what they valued or didn't?
 ```
 
-`in_progress` marks an application that is still open (used by `/outcome` for interview-stage updates before a resolution). `/setup`'s calibration draws conclusions only from applications with a final status.
+`in_progress` marks an application that is still open (used by `/outcome` for interview-stage updates before a resolution).  
+`skipped` means you evaluated the role and chose **not** to apply — still valuable signal (`skip_reason` + tracker `skip-stats`).  
+`/setup`'s calibration draws conclusions only from applications with a final status (including `skipped`).
 
 Application folders may also contain **`interview_prep_<stage>.md`** files written by `/interview` (one per interview stage, kept as history). `/setup` reads only the four files named above and ignores these.
 

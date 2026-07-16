@@ -76,12 +76,16 @@ python tools/match_resume.py report \
   --resume documents/zh/resume_<company>.md \
   --jd documents/zh/jd_<company>_<role>.md \
   --cover documents/zh/<da-zhaohu_or_cover>_<company>_<role>.md \
+  --profile CLAUDE.zh.md \
   --out documents/zh/match_report_<company>.json \
   --brief-out documents/zh/match_brief_<company>.txt
+# 若用户口头给了期望薪资，加：--expected-salary '25-40K'
+# 同义词默认开启（config/synonyms.default.json）；调试可 --no-synonyms
 ```
 
 向用户**优先展示中文一页摘要**（命令默认已含【一页摘要 · 人话版】，或读 `match_brief_*.txt`）：
-- 还差什么（still_missing）
+- 还差什么（still_missing；同义词已对齐的不再算 miss）
+- **薪资对照**（期望 vs JD 区间，✅/⚠️/❌；偏低可建议 skipped + salary_low）
 - 建议改哪 3 条
 - **禁止虚构**合规句
 
@@ -204,7 +208,8 @@ python tools/tracker.py suggest-add \
 > 要把这条记录写入 tracker 吗？
 > - **to_apply**：还没投，先占个位（默认安全选项）
 > - **applied**：已经投了
-> - **跳过**：先不记
+> - **skipped（不投）**：评估后决定不投——**仍写入**，并选一个原因（产品信号）
+> - **稍后**：先不记，稍后自己 `tracker add`
 
 根据用户回答执行对应 add 命令（把 suggest-add 输出的命令里 `--status` 改成用户选的值；
 若用户说"已经投了/已投递"才用 `--status applied`；其他情况默认 `to_apply`）：
@@ -219,10 +224,34 @@ python tools/tracker.py add \
   [--city <城市> --salary <薪资> --education <学历> --experience <经验>]
 ```
 
-若用户选"跳过"则不执行 add，仅告知"随时可以让我帮你 tracker add 记一笔"。
+### 7C. 用户选「不投 / skipped」时（Phase 1 信号）
+
+**必须再问一次原因**（单选，写入 `--skip-reason`；禁止只记 skipped 不写原因）：
+
+| 键 | 含义 |
+|----|------|
+| `salary_low` | 薪资偏低 |
+| `location` | 地点不合适 |
+| `low_match` | 匹配度低 / 技能差太多 |
+| `unknown_company` | 不了解公司 |
+| `other` | 其他（可在 `--notes` 写一句） |
+
+```bash
+python tools/tracker.py add \
+  --company <公司> --role <岗位> --channel <渠道> \
+  --status skipped \
+  --skip-reason <salary_low|location|low_match|unknown_company|other> \
+  --cv documents/zh/resume_<公司>.md \
+  --source documents/zh/jd_<公司>_<岗位>.md \
+  [--notes "一句话补充"] \
+  [--city <城市> --salary <薪资>]
+```
+
+若用户说「稍后 / 先不记」→ **不执行 add**，告知随时可 `tracker add`。
 
 **规则**：
 - 用户没明确说"已经投了" → 默认 `to_apply`，不要自作主张标 applied
+- **不投也值得记**：`skipped` + `skip_reason` 帮助后续看「为什么总筛掉这类岗」；可 `python tools/tracker.py skip-stats`
 - 若发现已有同公司+岗位+渠道的记录，tracker 会提示 duplicate，用 `update` 改状态即可
 - 写入成功后告诉用户：日常用 `python tools/tracker.py today` 或 `dashboard` 看进度
 - **首次庆祝**：如果这是本会话第一次成功写入 tracker（add 命令返回成功），在告诉用户进度查看方式**之前**，加一句：
@@ -254,9 +283,13 @@ python tools/tracker.py add \
     - 拿到面试 / offer / 拒信，都回来 /outcome 更新状态
     - 日常看进度：python tools/tracker.py today （终端） 或 dashboard （HTML看板，有卡片待办）
 
+  • 若本岗选择了不投（skipped）
+    - 原因会进 skip_reason；汇总：python tools/tracker.py skip-stats
+    - 之后想改状态或补笔记：/outcome <公司>
+
   • 想改简历（v2、v3）
     - 改完 md 后重新跑 match_resume.py report 生成新报告
-    - 用 diff 对比前后版本，看技能覆盖度有没有提升：
+    - 拒信/无回复后更建议跑 diff（/outcome 也会提醒）：
         python tools/match_resume.py diff \
           --before documents/zh/match_report_<公司>_v1.json \
           --after documents/zh/match_report_<公司>.json

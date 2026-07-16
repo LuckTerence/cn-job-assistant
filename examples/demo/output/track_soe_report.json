@@ -88,6 +88,17 @@
     "JD 里还有一些词材料没写到；会的再补，不会的当差距，别编。",
     "打招呼写短一点也没关系，但最好点名公司和岗位，别像群发。"
   ],
+  "salary": {
+    "verdict": "unknown",
+    "signal": "·",
+    "label": "未填写",
+    "summary": "未提供期望薪资，JD 也未解析到区间；可在 CLAUDE.zh.md 填「薪资期望」或 --expected。",
+    "expected_raw": "",
+    "offered_raw": "",
+    "expected_monthly": null,
+    "offered_monthly": null,
+    "expected_input": ""
+  },
   "brief_zh": {
     "tone_open": "这个岗位要求和你当前画像有距离——投了当练手也行，别抱太大期望；也可以想想是不是方向不太对。",
     "headline": "综合 37.0/100（部分匹配），关键词覆盖 66.7%",
@@ -113,8 +124,19 @@
       "如果确实会，可以优先补这几个核心词：中间件、运维。"
     ],
     "action_by_band": "匹配度较低，投了权当练手；建议优先找和你画像更接近的岗位。",
+    "salary": {
+      "verdict": "unknown",
+      "signal": "·",
+      "label": "未填写",
+      "summary": "未提供期望薪资，JD 也未解析到区间；可在 CLAUDE.zh.md 填「薪资期望」或 --expected。",
+      "expected_raw": "",
+      "offered_raw": "",
+      "expected_monthly": null,
+      "offered_monthly": null,
+      "expected_input": ""
+    },
     "compliance": "不会的技能别硬写上去刷分。",
-    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。"
+    "score_note": "分数只是本地关键词对齐程度，不代表能不能拿到面试。同义词表会减少「明明会却 miss」。"
   },
   "summary": {
     "resume_score": 37.3,
@@ -122,6 +144,8 @@
     "keyword_coverage_combined": 66.7,
     "verdict": "partial_match",
     "missing_count": 2,
-    "hit_count": 4
+    "hit_count": 4,
+    "salary_verdict": "unknown",
+    "salary_signal": "·"
   }
 }

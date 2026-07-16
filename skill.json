@@ -1,8 +1,8 @@
 {
   "name": "ai-job-assistant",
   "displayName": "AI求职助理",
-  "version": "0.9.0",
-  "description": "本地求职助手：根据岗位描述定制中文简历与求职话术，导出可投递 PDF 简历，分析简历与岗位匹配度，记录求职投递进度。支持简历模板、求职信生成、求职看板。触发词：求职、找工作、改简历、中文简历、PDF简历、求职信、岗位匹配、投递进度、简历优化、找工作助手。",
+  "version": "0.10.0",
+  "description": "本地求职助手：按岗位定制中文简历与话术，PDF 导出，匹配打分（同义词+期望薪资对照），投递追踪与不投原因，搜岗批量入库。触发词：求职、找工作、改简历、中文简历、岗位匹配、薪资对照、投递进度、求职看板。",
   "author": "LuckTerence",
   "homepage": "https://github.com/LuckTerence/cn-job-assistant",
   "license": "MIT",

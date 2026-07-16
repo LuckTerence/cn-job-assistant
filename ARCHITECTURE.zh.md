@@ -34,7 +34,7 @@
 | `jobbank-search` 等 6 个海外 CLI | TypeScript CLI + 单测 |
 | `bosszhipin-search` | 安装器 + boss-cli（外部） |
 | `domestic-jobs-search` | 安装器 + get_jobs 克隆（外部，禁商用） |
-| `application-tracker` | `tools/tracker.py` |
+| `application-tracker` | `tools/tracker.py`（含 `import-jobs` / `skip-stats`） |
 | `resume-match` | `tools/match_resume.py`（非 catalog 重 UI） |
 
 由 `tools/lint_skill_surface.py` 的 `CORE_AGENTS_SKILLS` **硬性 allowlist** 约束：新增目录必须改 lint 并说明理由。

@@ -15,8 +15,9 @@
 | 接 DeepSeek / 智谱 / 通义 | [MODELS.zh.md](./MODELS.zh.md) |
 | 可选重应用的真实搭建成本 | [integrations/catalog/README.md](./integrations/catalog/README.md) |
 | 对标调研与历史决策（工程向） | [docs/competitive-research.zh.md](./docs/competitive-research.zh.md) |
-| **闭环优化方案（Phase 0–2，先做透收尾）** | [docs/optimization-plan-close-the-loop.zh.md](./docs/optimization-plan-close-the-loop.zh.md) |
+| **闭环优化方案（Phase 0–2；验证期进行中）** | [docs/optimization-plan-close-the-loop.zh.md](./docs/optimization-plan-close-the-loop.zh.md) |
 | **冷静 UX 文案开发规格（match/today/看板）** | [docs/dev-calmer-ux-copy.zh.md](./docs/dev-calmer-ux-copy.zh.md) |
+| 登记「我在用」/ 痛点反馈 | [Issue 模板](./.github/ISSUE_TEMPLATE/) |
 
 ## 国内最小命令备忘
 
@@ -27,6 +28,8 @@ python tools/install_domestic_search.py status
 python tools/match_resume.py report --zh-only --resume … --jd … --cover …
 python tools/tracker.py suggest-add --company … --role … --channel Boss直聘
 python tools/tracker.py today
+python tools/tracker.py skip-stats   # 不投原因分布（Phase 1 信号）
+python tools/tracker.py import-jobs examples/demo/jobs_sample.json  # 搜岗 JSON → to_apply
 python tools/tracker.py dashboard
 ```
 
