@@ -56,6 +56,10 @@ SAFE_TOOLS = {
     "tracker.py",
     "match_resume.py",
     "export_resume_pdf.py",
+    "apply_assist.py",
+    "flow.py",
+    "split_jds.py",
+    "install_domestic_search.py",
 }
 
 def copy_file(rel: str) -> None:

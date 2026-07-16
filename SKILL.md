@@ -27,9 +27,9 @@ description: "本地求职助手：根据岗位描述定制中文简历与求职
 # 1. 解压后进入本技能目录
 cd ai-job-assistant
 
-# 2. 试跑（无需登录，查看示例）
+# 2. 试跑 / 1.0 门禁（无需登录）
 bash scripts/demo.sh
-# 或: make demo
+# 或: make check
 
 # 3. 在 Agent 里
 # /setup-zh   → 填写个人画像（可粘贴旧简历）
@@ -53,9 +53,13 @@ python3 tools/apply_assist.py set-mode semi     # 半自动：打开页面并复
 # auto 需风险确认 + --i-understand-ban-risk + --execute（定制话术请用 semi）
 ```
 
-投递进度管理：
+投递进度与短名单（1.0）：
 
 ```bash
+python3 tools/flow.py shortlist --jobs jobs.json --track internet
+python3 tools/tracker.py day-plan
+python3 tools/tracker.py rank
+python3 tools/tracker.py funnel
 python3 tools/tracker.py today
 python3 tools/tracker.py dashboard
 ```
@@ -66,10 +70,11 @@ python3 tools/tracker.py dashboard
 |------|------|
 | 简历定制 | 根据岗位描述关键词优化简历内容 |
 | PDF 导出 | 生成排版精美的可投递 PDF 简历 |
-| 匹配分析 | 本地 TF-IDF 算法分析简历与岗位匹配度，给出优化建议 |
+| 匹配分析 | 本地 TF-IDF + 同义词/真缺口 + 期望薪资对照 |
 | 话术生成 | 生成针对性的求职沟通文案 |
-| 进度追踪 | 本地 CSV 记录投递状态、面试进度、Offer 管理 |
-| 求职看板 | 生成单文件 HTML 可视化求职看板 |
+| 短名单 | flow / day-plan / rank 批打分 |
+| 进度追踪 | 本地 CSV、漏斗 funnel、不投原因 skip-stats |
+| 求职看板 | 单文件 HTML（待办 + 漏斗 + 状态/城市筛选） |
 | 模板库 | 互联网/国企/外企/应届生等多场景中文简历模板 |
 
 ## 命令示例
@@ -114,9 +119,9 @@ python3 tools/tracker.py dashboard
 
 - 斜杠命令：`.claude/commands/`（`setup-zh` / `apply-zh` / `da-zhaohu` 等）
 - 中文简历模板：`templates/zh/`
-- 工具脚本：`tools/`（export_resume_pdf / match_resume / tracker / apply_assist）
+- 工具脚本：`tools/`（export_resume_pdf / match_resume / tracker / flow / split_jds / apply_assist）
 - 使用示例：`examples/demo/`
-- 详细说明：`README.md`、`README.zh.md`
+- 1.0 说明：`docs/RELEASE-1.0.zh.md`、`README.md`
 
 ## 许可证
 

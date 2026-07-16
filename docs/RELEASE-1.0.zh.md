@@ -67,7 +67,8 @@ bash scripts/demo.sh
 - [x] `bash scripts/smoke_cn.sh` 绿  
 - [x] CI domestic-loop 单测 + lint  
 - [x] CHANGELOG / skill.json 版本一致  
-- [ ] （可选）打 git tag `v1.0.0` 并 push  
+- [x] git tag `v1.0.0` 已 push 到 `cn`（`LuckTerence/cn-job-assistant`）  
+- [ ] GitHub Release 页面（可用 `docs/github-release-v1.0.0.md`；需 `gh auth login` 后创建）  
 - [ ] （持续）外部用户 ≥5 人完成 ≥3 岗闭环 —— **社区验证，不挡能力发版**  
 
 > **说明**：1.0 标记的是「产品能力面达到可对外宣称的可靠最小集」。  
