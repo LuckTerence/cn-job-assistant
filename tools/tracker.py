@@ -5,7 +5,8 @@ Stdlib only. Aligns with /outcome and the job_search_tracker.csv schema:
 
   date,company,sector,role,role_type,channel,status,contact_person,
   fit_rating,notes,cv_file,cover_letter_file,source,
-  salary,city,education,experience,skip_reason,expected_salary
+  salary,city,education,experience,skip_reason,expected_salary,
+  match_score,match_coverage,match_verdict
 
 Usage (from repo root):
   python tools/tracker.py init
@@ -20,9 +21,11 @@ Usage (from repo root):
   python tools/tracker.py day-plan    # 今天投谁：面试 / 跟进 / to_apply 短名单
   python tools/tracker.py rank        # 对 to_apply 批打分排序（需 cv_file + source 本地文件）
   python tools/tracker.py skip-stats  # 不投原因分布（产品信号）
+  python tools/tracker.py match-outcome  # 匹配分 × 结果归因（质量飞轮）
   python tools/tracker.py import-jobs jobs.json   # 搜岗结果批量入库（默认 to_apply）
   python tools/tracker.py suggest-add --company X --role Y ...
   python tools/flow.py shortlist --jobs jobs.json   # v0.12 薄编排
+  python tools/quality_gate.py --resume r.md --jd j.md  # 投前门禁
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ import csv
 import hashlib
 import html
 import json
+import re
 import shutil
 import sqlite3
 import sys
@@ -63,7 +67,24 @@ HEADER = [
     "experience",
     "skip_reason",
     "expected_salary",
+    "match_score",
+    "match_coverage",
+    "match_verdict",
 ]
+
+# Outcome buckets for match-score correlation (quality flywheel)
+POSITIVE_OUTCOMES = frozenset(
+    {
+        "interview",
+        "interview_1",
+        "interview_2",
+        "interview_final",
+        "offer",
+        "hired",
+        "screening",
+    }
+)
+NEGATIVE_OUTCOMES = frozenset({"rejected", "no_response", "withdrawn", "offer_declined"})
 
 # Shown when import cannot map a company field
 IMPORT_FIELD_HINT = """\
@@ -317,6 +338,9 @@ def cmd_add(args: argparse.Namespace) -> int:
     row["experience"] = args.experience or ""
     row["skip_reason"] = skip_reason if status.lower() == "skipped" else ""
     row["expected_salary"] = getattr(args, "expected_salary", None) or ""
+    row["match_score"] = str(getattr(args, "match_score", None) or "")
+    row["match_coverage"] = str(getattr(args, "match_coverage", None) or "")
+    row["match_verdict"] = str(getattr(args, "match_verdict", None) or "")
     rows.append(row)
     write_rows(path, rows)
     extra = ""
@@ -398,6 +422,9 @@ def cmd_update(args: argparse.Namespace) -> int:
         "experience": args.experience,
         "skip_reason": args.skip_reason,
         "expected_salary": args.expected_salary,
+        "match_score": args.match_score,
+        "match_coverage": args.match_coverage,
+        "match_verdict": args.match_verdict,
     }
     updates = {k: v for k, v in fields.items() if v is not None}
     notes_append = (getattr(args, "notes_append", None) or "").strip()
@@ -801,6 +828,8 @@ def score_tracker_rows(
                     "verdict": result.verdict,
                     "miss_top": result.keywords.miss[:5],
                     "error": "",
+                    # Prefer live score; fall back to stored columns
+                    "stored_score": r.get("match_score", ""),
                 }
             )
         except OSError as e:
@@ -1780,7 +1809,7 @@ def cmd_rank(args: argparse.Namespace) -> int:
         print("今日短名单: python tools/tracker.py day-plan")
 
     if args.write_fit:
-        # Write numeric score into fit_rating for scored rows
+        # Write score into fit_rating + dedicated match_* columns
         by_key = {
             (
                 (r.get("company") or "").lower(),
@@ -1800,10 +1829,17 @@ def cmd_rank(args: argparse.Namespace) -> int:
             hit = by_key.get(key)
             if hit:
                 row["fit_rating"] = str(hit["score"])
+                row["match_score"] = str(hit["score"])
+                cov = hit.get("keyword_coverage")
+                row["match_coverage"] = "" if cov is None else str(cov)
+                row["match_verdict"] = str(hit.get("verdict") or "")
                 changed += 1
         if changed:
             write_rows(path, rows)
-            print(f"已写入 fit_rating ← 匹配分（{changed} 行）→ {path}", file=sys.stderr)
+            print(
+                f"已写入 fit_rating + match_score/coverage/verdict（{changed} 行）→ {path}",
+                file=sys.stderr,
+            )
     if args.out:
         Path(args.out).write_text(
             json.dumps({"results": ranked}, ensure_ascii=False, indent=2) + "\n",
@@ -1909,6 +1945,147 @@ def cmd_weekly_report(args: argparse.Namespace) -> int:
     print("  3. 状态变化立刻 /outcome 或 tracker update")
     print()
     print("（战报为本地快照叙事，不是官方转化率。）")
+    return 0
+
+
+def _parse_match_score(row: dict[str, str]) -> float | None:
+    raw = (row.get("match_score") or row.get("fit_rating") or "").strip()
+    if not raw:
+        return None
+    # fit_rating may be "72" or "72/100" or "strong"
+    m = re.search(r"(\d+(?:\.\d+)?)", raw)
+    if not m:
+        return None
+    try:
+        v = float(m.group(1))
+    except ValueError:
+        return None
+    if v > 100:
+        return None
+    return v
+
+
+def score_band(score: float | None) -> str:
+    if score is None:
+        return "unscored"
+    if score >= 70:
+        return "high"
+    if score >= 40:
+        return "mid"
+    return "low"
+
+
+def compute_match_outcome(rows: list[dict[str, str]]) -> dict:
+    """Correlate stored match_score with application outcomes (quality flywheel)."""
+    bands = ("high", "mid", "low", "unscored")
+    empty = {
+        b: {
+            "n": 0,
+            "positive": 0,
+            "negative": 0,
+            "open": 0,
+            "skipped": 0,
+            "other": 0,
+            "scores": [],
+        }
+        for b in bands
+    }
+    for r in rows:
+        score = _parse_match_score(r)
+        band = score_band(score)
+        st = (r.get("status") or "").strip().lower()
+        bucket = empty[band]
+        bucket["n"] += 1
+        if score is not None:
+            bucket["scores"].append(score)
+        if st in POSITIVE_OUTCOMES:
+            bucket["positive"] += 1
+        elif st in NEGATIVE_OUTCOMES:
+            bucket["negative"] += 1
+        elif st == "skipped":
+            bucket["skipped"] += 1
+        elif st in OPEN_STATUSES or st in ("applied", "to_apply", "in_progress"):
+            bucket["open"] += 1
+        else:
+            bucket["other"] += 1
+
+    def rate(num: int, den: int) -> str:
+        if den <= 0:
+            return "—"
+        return f"{num * 100.0 / den:.0f}%"
+
+    summary = []
+    for b in bands:
+        d = empty[b]
+        scored_closed = d["positive"] + d["negative"]
+        summary.append(
+            {
+                "band": b,
+                "n": d["n"],
+                "avg_score": (
+                    round(sum(d["scores"]) / len(d["scores"]), 1) if d["scores"] else None
+                ),
+                "positive": d["positive"],
+                "negative": d["negative"],
+                "open": d["open"],
+                "skipped": d["skipped"],
+                "positive_rate_closed": rate(d["positive"], scored_closed),
+                "hint": {
+                    "high": "高匹配应优先准备面试；若 negative 偏多→检查内容是否空/AI 腔",
+                    "mid": "中匹配重点看「改这 3 条」是否补上核心词",
+                    "low": "低匹配宜 skipped 或练手；持续投低分岗浪费时间",
+                    "unscored": "补跑 quality_gate / rank --write-fit 写入 match_score",
+                }.get(b, ""),
+            }
+        )
+    scored_n = sum(1 for r in rows if _parse_match_score(r) is not None)
+    return {
+        "total": len(rows),
+        "scored": scored_n,
+        "bands": summary,
+        "signal_ready": scored_n >= 8,
+    }
+
+
+def cmd_match_outcome(args: argparse.Namespace) -> int:
+    """Print match_score × outcome correlation (content quality flywheel)."""
+    path = _csv_path(args.csv)
+    rows = read_rows(path)
+    data = compute_match_outcome(rows)
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return 0
+    if not rows:
+        print("还没有投递记录。先 /apply-zh 或 import-jobs。")
+        return 0
+    print(f"【匹配分 × 结果归因】共 {data['total']} 条 · 有分数 {data['scored']}  ← {path}")
+    print("-" * 64)
+    print(
+        f"{'band':8}  {'n':>4}  {'avg':>6}  {'进面+':>5}  {'拒/无':>5}  "
+        f"{'开放':>4}  {'不投':>4}  关闭进面率"
+    )
+    for b in data["bands"]:
+        avg = "—" if b["avg_score"] is None else f"{b['avg_score']:.0f}"
+        print(
+            f"{b['band']:8}  {b['n']:4}  {avg:>6}  {b['positive']:5}  "
+            f"{b['negative']:5}  {b['open']:4}  {b['skipped']:4}  "
+            f"{b['positive_rate_closed']}"
+        )
+    print("-" * 64)
+    for b in data["bands"]:
+        if b["n"] and b.get("hint"):
+            print(f"  · {b['band']}: {b['hint']}")
+    print()
+    if data["signal_ready"]:
+        print("样本足够做粗判断：对照 high vs low 的进面率，决定要不要改简历策略。")
+    else:
+        need = max(0, 8 - data["scored"])
+        print(
+            f"信号未就绪（建议 ≥8 条带 match_score；还差约 {need}）。"
+            " 写入：quality_gate 后 tracker add --match-score … "
+            "或 rank --write-fit"
+        )
+    print("不是因果证明；只帮助发现「分高却无回复」或「总投低分岗」。")
     return 0
 
 
@@ -2303,6 +2480,9 @@ def cmd_suggest_add(args: argparse.Namespace) -> int:
     education = args.education or ""
     experience = args.experience or ""
     status = args.status or "to_apply"
+    match_score = getattr(args, "match_score", None) or ""
+    match_coverage = getattr(args, "match_coverage", None) or ""
+    match_verdict = getattr(args, "match_verdict", None) or ""
 
     parts = [
         "python tools/tracker.py add",
@@ -2324,6 +2504,12 @@ def cmd_suggest_add(args: argparse.Namespace) -> int:
         parts.append(f"--education {education!s}")
     if experience:
         parts.append(f"--experience {experience!s}")
+    if match_score:
+        parts.append(f"--match-score {match_score}")
+    if match_coverage:
+        parts.append(f"--match-coverage {match_coverage}")
+    if match_verdict:
+        parts.append(f"--match-verdict {match_verdict}")
     cmd = " \\\n  ".join(p for p in parts if p)
 
     print("=" * 60)
@@ -2340,6 +2526,8 @@ def cmd_suggest_add(args: argparse.Namespace) -> int:
         print(f"  学历:   {education}")
     if experience:
         print(f"  经验:   {experience}")
+    if match_score:
+        print(f"  匹配分: {match_score}  覆盖: {match_coverage or '—'}  {match_verdict or ''}")
     print(f"  简历:   {cv}")
     if cover:
         print(f"  话术:   {cover}")
@@ -2353,6 +2541,7 @@ def cmd_suggest_add(args: argparse.Namespace) -> int:
     print(
         "#   --status skipped --skip-reason salary_low|location|low_match|unknown_company|other"
     )
+    print("# 匹配分来自 quality_gate / match report，便于日后 match-outcome 归因")
     return 0
 
 
@@ -2401,6 +2590,24 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         dest="expected_salary",
         help="your expected range for this row e.g. 25-40K",
+    )
+    add_p.add_argument(
+        "--match-score",
+        default="",
+        dest="match_score",
+        help="from quality_gate / match report e.g. 72",
+    )
+    add_p.add_argument(
+        "--match-coverage",
+        default="",
+        dest="match_coverage",
+        help="keyword coverage %% e.g. 55",
+    )
+    add_p.add_argument(
+        "--match-verdict",
+        default="",
+        dest="match_verdict",
+        help="strong_match|moderate_match|partial_match|weak_match",
     )
     add_p.add_argument("--date", default="")
     add_p.add_argument("--force", action="store_true", help="allow duplicate company+role")
@@ -2457,6 +2664,22 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         dest="expected_salary",
         help="your expected range e.g. 25-40K",
+    )
+    up_p.add_argument(
+        "--match-score",
+        default=None,
+        dest="match_score",
+        help="from quality_gate / match report",
+    )
+    up_p.add_argument(
+        "--match-coverage",
+        default=None,
+        dest="match_coverage",
+    )
+    up_p.add_argument(
+        "--match-verdict",
+        default=None,
+        dest="match_verdict",
     )
     up_p.set_defaults(func=cmd_update)
 
@@ -2544,6 +2767,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     skip_p.set_defaults(func=cmd_skip_stats)
 
+    mo_p = sub.add_parser(
+        "match-outcome",
+        help="correlate match_score with outcomes (quality flywheel)",
+    )
+    mo_p.add_argument("--json", action="store_true")
+    mo_p.set_defaults(func=cmd_match_outcome)
+
     imp_p = sub.add_parser(
         "import-jobs",
         help="batch-import search results (JSON/NDJSON/CSV) → tracker; default status to_apply",
@@ -2600,6 +2830,9 @@ def build_parser() -> argparse.ArgumentParser:
     sug_p.add_argument("--city", default="")
     sug_p.add_argument("--education", default="")
     sug_p.add_argument("--experience", default="")
+    sug_p.add_argument("--match-score", default="", dest="match_score")
+    sug_p.add_argument("--match-coverage", default="", dest="match_coverage")
+    sug_p.add_argument("--match-verdict", default="", dest="match_verdict")
     sug_p.set_defaults(func=cmd_suggest_add)
 
     return p

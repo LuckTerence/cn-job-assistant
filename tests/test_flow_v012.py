@@ -124,7 +124,8 @@ class FlowV012Tests(unittest.TestCase):
 
     def test_header_has_expected_salary(self) -> None:
         self.assertIn("expected_salary", tracker.HEADER)
-        self.assertEqual(len(tracker.HEADER), 19)
+        self.assertIn("match_score", tracker.HEADER)
+        self.assertEqual(len(tracker.HEADER), 22)
 
 
 if __name__ == "__main__":

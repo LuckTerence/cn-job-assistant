@@ -1,10 +1,11 @@
 ---
 name: application-tracker
-version: 2.5.0
+version: 2.6.0
 description: >
   本地投递状态追踪与求职看板。以 job_search_tracker.csv 为权威源，通过
   tools/tracker.py（stdlib：CSV / 可选 SQLite / 单文件 HTML）读写，零 Docker。
-  触发词：投递追踪、申请状态、面试进度、求职看板、track application、offer 管理、tracker。
+  支持 match_score 归因（match-outcome）。触发词：投递追踪、申请状态、面试进度、
+  求职看板、track application、offer 管理、tracker、匹配归因。
 context: fork
 allowed-tools: Bash(python* tools/tracker.py *), Bash(python3 tools/tracker.py *), Read, Glob, Grep, AskUserQuestion
 ---
@@ -23,11 +24,12 @@ allowed-tools: Bash(python* tools/tracker.py *), Bash(python3 tools/tracker.py *
 | `tools/tracker.py dashboard` | 可视化镜像 | 生成 `job_search_tracker.html`（勿提交，已 gitignore） |
 | jobsync 等 | **可选**外挂 | 见 `integrations/catalog/` 思路；不自动同步 |
 
-表头（19 列；结构化列 / `skip_reason` / `expected_salary` 均可空，旧 CSV 缺列可读）：
+表头（22 列；结构化列 / `skip_reason` / `expected_salary` / `match_*` 均可空，旧 CSV 缺列可读）：
 
 ```
 date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,
-cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason,expected_salary
+cv_file,cover_letter_file,source,salary,city,education,experience,skip_reason,expected_salary,
+match_score,match_coverage,match_verdict
 ```
 
 关闭态含 `skipped`（不投）。**Phase 1**：`status=skipped` 时**必须**填 `skip_reason` 枚举：
@@ -82,7 +84,7 @@ python tools/tracker.py day-plan --limit 3 --track internet
 
 # v0.11 批打分排序（cv_file + source 需为本地文件）
 python tools/tracker.py rank --status to_apply --track internet
-python tools/tracker.py rank --write-fit   # 把分数写入 fit_rating
+python tools/tracker.py rank --write-fit   # 写入 fit_rating + match_score/coverage/verdict
 
 # v0.12 薄编排 + 薪资旗标
 python tools/flow.py shortlist --jobs path/to/jobs.json --track internet --limit 3
@@ -96,6 +98,12 @@ python tools/tracker.py import-jobs documents/zh/inbox/jobs_stub.json
 # 不投原因分布（Phase 1 产品信号）
 python tools/tracker.py skip-stats
 
+# 1.2 匹配分 × 结果归因（质量飞轮）
+python tools/tracker.py match-outcome
+
+# 投前质量门禁（写 match 分前建议先过）
+python tools/quality_gate.py --resume r.md --jd j.md --pdf r.pdf
+
 # 搜岗结果批量入库（JSON / NDJSON / CSV；默认 status=to_apply，按 company+role+channel 去重）
 python tools/tracker.py import-jobs path/to/jobs.json --default-channel Boss直聘
 python tools/tracker.py import-jobs path/to/jobs.json --dry-run
@@ -106,7 +114,8 @@ python tools/tracker.py import-jobs path/to/jobs.json --fill-empty   # 重复行
 python tools/tracker.py suggest-add \
   --company 示例科技 --role 后端 --channel Boss直聘 \
   --cv documents/zh/resume_示例科技.md \
-  --city 杭州 --salary 25-40K
+  --city 杭州 --salary 25-40K \
+  --match-score 72 --match-coverage 55 --match-verdict moderate_match
 
 # 状态更新（可补结构化字段；改成 skipped 时补 --skip-reason）
 # /outcome 优先用 --notes-append，避免覆盖历史 notes

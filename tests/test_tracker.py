@@ -179,9 +179,19 @@ class TrackerTests(unittest.TestCase):
         self.assertIn("date", tracker.HEADER)
         self.assertIn("company", tracker.HEADER)
         self.assertIn("source", tracker.HEADER)
-        for col in ("salary", "city", "education", "experience", "skip_reason", "expected_salary"):
+        for col in (
+            "salary",
+            "city",
+            "education",
+            "experience",
+            "skip_reason",
+            "expected_salary",
+            "match_score",
+            "match_coverage",
+            "match_verdict",
+        ):
             self.assertIn(col, tracker.HEADER, f"missing column: {col}")
-        self.assertEqual(len(tracker.HEADER), 19)
+        self.assertEqual(len(tracker.HEADER), 22)
 
     def test_add_with_structured_fields(self) -> None:
         tracker.main(["--csv", str(self.csv), "init"])

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Thin orchestration for the domestic shortlist loop (v0.12).
+"""Thin orchestration for the domestic shortlist loop (v0.12+).
 
 Does NOT reimplement business logic — only chains existing CLIs:
 
   import-jobs → rank → day-plan   (command: shortlist)
+  quality_gate                    (command: gate) — 投前门禁
   plus thin wrappers: import / rank / day-plan / dashboard
 
 Usage (repo root):
@@ -12,6 +13,7 @@ Usage (repo root):
   python tools/flow.py rank --track internet
   python tools/flow.py day-plan --limit 3
   python tools/flow.py report                  # weekly-report + funnel
+  python tools/flow.py gate --resume r.md --jd j.md [--export-pdf]
   python tools/flow.py dashboard
 """
 
@@ -26,6 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
 TRACKER = ROOT / "tools" / "tracker.py"
 NORMALIZE = ROOT / "tools" / "normalize_job_export.py"
+GATE = ROOT / "tools" / "quality_gate.py"
 
 
 def _run(argv: list[str]) -> int:
@@ -150,6 +153,36 @@ def cmd_passthrough(args: argparse.Namespace) -> int:
     return _run(_tracker([sub, *extra], args.csv or None))
 
 
+def cmd_gate(args: argparse.Namespace) -> int:
+    """Forward to quality_gate.py (pre-submit match + integrity + ATS)."""
+    cmd = [PY, str(GATE), "--resume", args.resume, "--jd", args.jd]
+    if args.cover:
+        cmd.extend(["--cover", args.cover])
+    if args.profile:
+        cmd.extend(["--profile", args.profile])
+    if args.pdf:
+        cmd.extend(["--pdf", args.pdf])
+    if args.export_pdf:
+        cmd.append("--export-pdf")
+    if args.template:
+        cmd.extend(["--template", args.template])
+    if args.track:
+        cmd.extend(["--track", args.track])
+    if args.expected:
+        cmd.extend(["--expected-salary", args.expected])
+    if args.force:
+        cmd.append("--force")
+    if args.force_hard:
+        cmd.append("--force-hard")
+    if args.out:
+        cmd.extend(["--out", args.out])
+    if args.brief_out:
+        cmd.extend(["--brief-out", args.brief_out])
+    if args.json:
+        cmd.append("--json")
+    return _run(cmd)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="flow",
@@ -196,6 +229,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     rep = sub.add_parser("report", help="weekly-report + funnel")
     rep.set_defaults(func=cmd_report)
+
+    gt = sub.add_parser(
+        "gate",
+        help="投前质量门禁 → quality_gate.py（匹配+诚信+ATS）",
+    )
+    gt.add_argument("--resume", required=True)
+    gt.add_argument("--jd", required=True)
+    gt.add_argument("--cover", default="")
+    gt.add_argument("--profile", default="")
+    gt.add_argument("--pdf", default="")
+    gt.add_argument("--export-pdf", action="store_true")
+    gt.add_argument("--template", default="classic")
+    gt.add_argument("--track", default="")
+    gt.add_argument("--expected", default="", help="expected salary e.g. 25-40K")
+    gt.add_argument("--force", action="store_true")
+    gt.add_argument("--force-hard", action="store_true")
+    gt.add_argument("--out", default="")
+    gt.add_argument("--brief-out", default="")
+    gt.add_argument("--json", action="store_true")
+    gt.set_defaults(func=cmd_gate)
 
     for name, help_ in (
         ("import", "alias: needs jobs path as first forward arg — prefer shortlist"),

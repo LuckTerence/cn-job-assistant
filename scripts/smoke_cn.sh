@@ -84,6 +84,45 @@ grep -q "薪资对照" "$TMP/salary.txt"
 }
 grep -q "今日计划" "$TMP/flow.txt"
 
+echo "▶ quality_gate + align + match-outcome"
+"$PY" tools/match_resume.py align --json \
+  --resume tests/fixtures/resume_backend_good.md \
+  --jd tests/fixtures/jd_backend_sample.md >"$TMP/align.json"
+"$PY" - <<PY
+import json
+a=json.load(open("$TMP/align.json"))
+assert "action_checklist" in a and len(a["action_checklist"]) >= 1
+print("  align checklist OK", len(a["action_checklist"]))
+PY
+# Good resume should PASS soft thresholds; allow 0 or force path
+set +e
+"$PY" tools/quality_gate.py \
+  --resume tests/fixtures/resume_backend_good.md \
+  --jd tests/fixtures/jd_backend_sample.md \
+  --profile tests/fixtures/profile_backend.md \
+  --out "$TMP/gate_good.json" \
+  --zh-only >"$TMP/gate_good.txt" 2>"$TMP/gate_good.err"
+GATE_RC=$?
+set -e
+test -f "$TMP/gate_good.json"
+grep -q "投前质量门禁" "$TMP/gate_good.txt" || grep -q "gate_status" "$TMP/gate_good.json"
+# weak resume should soft-fail (rc 1) unless thresholds weird
+set +e
+"$PY" tools/quality_gate.py \
+  --resume tests/fixtures/resume_backend_weak.md \
+  --jd tests/fixtures/jd_backend_sample.md \
+  --out "$TMP/gate_weak.json" \
+  --zh-only >"$TMP/gate_weak.txt" 2>"$TMP/gate_weak.err"
+WEAK_RC=$?
+set -e
+test "$WEAK_RC" -eq 1 -o "$WEAK_RC" -eq 2
+echo "  gate good_rc=$GATE_RC weak_rc=$WEAK_RC"
+"$PY" tools/tracker.py --csv "$CSV" add \
+  --company 门禁测 --role 后端 --status applied \
+  --match-score 72 --match-coverage 50 --match-verdict moderate_match
+"$PY" tools/tracker.py --csv "$CSV" match-outcome | tee "$TMP/match_outcome.txt"
+grep -q "匹配分" "$TMP/match_outcome.txt"
+
 echo "▶ version"
 VER="$("$PY" -c "import json; print(json.load(open('skill.json'))['version'])")"
 echo "  skill.json = $VER"

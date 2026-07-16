@@ -28,11 +28,12 @@ MARKET=domestic。岗位描述如下（或链接）：
 
 要求：
 1. 先做匹配评估，再生成材料
-2. 必须导出 PDF 简历
-3. match_resume report 要带 --profile CLAUDE.zh.md
-4. 摘要区分「同义词已对齐」与「真缺口」
-5. Step 7 用 tracker suggest-add，询问后再写入（禁止静默 applied）
-6. 交付后给出 day-plan / funnel / outcome 的下一步
+2. 双格式：md=粘贴稿，必须导出 PDF=上传稿
+3. match_resume report 要带 --profile CLAUDE.zh.md，展示「改这 3 条」
+4. **强制**跑 quality_gate（SOFT 默认不鼓励投；HARD 诚信必须停下）
+5. 摘要区分「同义词已对齐」与「真缺口」；禁止虚构
+6. Step 7 用 tracker suggest-add（含 --match-score 等），询问后再写入（禁止静默 applied）
+7. 交付后给出 day-plan / funnel / match-outcome / outcome 的下一步
 ```
 
 ---

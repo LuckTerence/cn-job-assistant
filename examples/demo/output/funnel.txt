@@ -11,3 +11,4 @@
 ------------------------------------------------
 快照漏斗（非同期群）；skipped 不计入 applied 转化分母旁路展示。
 看板卡片: python tools/tracker.py dashboard
+人话周报: python tools/tracker.py weekly-report

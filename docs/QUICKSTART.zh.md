@@ -1,4 +1,4 @@
-# 15 分钟上手（1.0 推荐路径）
+# 15 分钟上手（1.2 推荐路径）
 
 > 目标：从 0 到「看过演示 → 填过画像 → 知道下一岗怎么投」。  
 > 不需要 Boss 登录；不需要 Docker；不需要下载 embedding。
@@ -10,7 +10,8 @@
 | 必须 | 可选 |
 |------|------|
 | Python **3.10+** | Typst（`brew install typst`，PDF 更好看） |
-| 任意 AI Agent（Claude Code / Cursor / 国产模型 Agent） | Boss 搜岗 CLI（`install-boss`） |
+| 任意 AI Agent（Claude Code / Cursor / 国产模型 Agent） | `poppler`（`pdftotext`，ATS 文本层检查） |
+| | Boss 搜岗 CLI（`install-boss`） |
 
 ---
 
@@ -70,7 +71,17 @@ open examples/demo/output/job_search_tracker.html   # macOS
 （粘贴 Boss/智联 岗位全文，或链接）
 ```
 
-会生成：`documents/zh/` 下的简历 md/PDF、话术、匹配摘要；并询问是否写入 tracker。
+会生成：`documents/zh/` 下的简历 **md（粘贴）/ PDF（上传）**、话术、匹配摘要、**投前门禁**；并询问是否写入 tracker（含 match 分）。
+
+投前也可单独跑：
+
+```bash
+python tools/quality_gate.py \
+  --resume documents/zh/resume_公司.md \
+  --jd documents/zh/jd_公司_岗位.md \
+  --pdf documents/zh/resume_公司.pdf
+# 说明：docs/ats-gate.zh.md
+```
 
 ### 方式 B：先囤一批再挑
 
@@ -85,7 +96,7 @@ python tools/tracker.py day-plan
 
 ### 投递
 
-1. 上传 **`documents/zh/resume_*.pdf`** 到招聘 App  
+1. 上传 **`documents/zh/resume_*.pdf`**；表单粘贴用 **同名 `.md`**  
 2. 复制打招呼话术（或 `apply_assist semi` 打开页+复制）  
 3. **自己点发送**  
 4. 状态变化用 `/outcome` 或：

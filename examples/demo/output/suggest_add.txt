@@ -21,3 +21,4 @@ python tools/tracker.py add \
 # 如果已经投了，把 --status to_apply 改成 --status applied
 # 若评估后不投，改成：
 #   --status skipped --skip-reason salary_low|location|low_match|unknown_company|other
+# 匹配分来自 quality_gate / match report，便于日后 match-outcome 归因

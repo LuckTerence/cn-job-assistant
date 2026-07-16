@@ -64,22 +64,33 @@ python tools/match_resume.py report --zh-only \
 
 ---
 
-## Step 2: 中文简历草稿 + **可投递 PDF（必须）**
+## Step 2: 中文简历草稿 + **双格式交付（必须）**
 
 - 读 `08-resume-zh.md`，按赛道选 `templates/zh/resume_<track>.md`。
-- 写入 `documents/zh/resume_<company>.md`（源文件，便于改）。
-- **只写真实具备的技能**；可参考 `match_resume.py keywords --jd …`。
-- **国内投递默认交付物是 PDF**，不是 Markdown。生成 md 后**必须**导出：
+- 写入 `documents/zh/resume_<company>.md`（**粘贴稿** + 源文件）。
+- **只写真实具备的技能**；可参考：
+  ```bash
+  python tools/match_resume.py keywords --jd documents/zh/jd_<company>_<role>.md
+  python tools/match_resume.py align --resume <母版或草稿> --jd documents/zh/jd_<company>_<role>.md
+  ```
+- **国内双格式**：
+  | 格式 | 用途 |
+  |------|------|
+  | **`.md`** | 站内粘贴、改稿、ATS 友好纯文本 |
+  | **`.pdf`** | 上传附件（单栏 classic/compact） |
+
+生成 md 后**必须**导出 PDF：
 
 ```bash
 # 推荐本机安装 Typst：brew install typst（版式优先）
 python tools/export_resume_pdf.py \
   --input documents/zh/resume_<company>.md \
-  --output documents/zh/resume_<company>.pdf
+  --output documents/zh/resume_<company>.pdf \
+  --ats-checklist
 # 查看后端：python tools/export_resume_pdf.py --which
 ```
 
-- 向用户明确：上传平台时用 **`.pdf`**；md 只是源文件。
+- 向用户明确：上传用 **`.pdf`**；平台要粘贴/在线表单时用 **`.md` 正文**。
 - 后端优先级：**Typst → pandoc → Chrome**；无 Typst 时自动回退 Chrome 打印。
 - 都没有时会写 HTML，指导「打印 → 存 PDF」。
 - 不要只丢给用户一份 md 就结束本步。
@@ -94,7 +105,9 @@ python tools/export_resume_pdf.py \
 
 ---
 
-## Step 4: 生成质量报告（强制）
+## Step 4: 生成质量报告 + **投前门禁（强制，不可跳过）**
+
+### 4A. 匹配报告（含「改这 3 条」）
 
 ```bash
 python tools/match_resume.py report \
@@ -105,29 +118,40 @@ python tools/match_resume.py report \
   --out documents/zh/match_report_<company>.json \
   --brief-out documents/zh/match_brief_<company>.txt
 # 若用户口头给了期望薪资，加：--expected-salary '25-40K'
-# 同义词默认开启（config/synonyms.default.json）；调试可 --no-synonyms
 ```
 
-向用户**优先展示中文一页摘要**（命令默认已含【一页摘要 · 人话版】，或读 `match_brief_*.txt`）：
+向用户**优先展示**【改这 3 条】与中文摘要：
 - 还差什么（still_missing；同义词已对齐的不再算 miss）
 - **同义词已对齐** vs **真缺口**
-- **薪资对照**（期望 vs JD 区间，✅/⚠️/❌；偏低可建议 skipped + salary_low）
-- 建议改哪 3 条
-- **禁止虚构**合规句
+- **薪资对照**
+- **禁止虚构**
 
-**诚信检查（强制，对标社区 AI 乱改简历事故）：**
+### 4B. 一键质量门禁（匹配 + 诚信 + ATS）
+
+**必须执行**（不要只跑 report 就结束）：
 
 ```bash
-python tools/check_profile_resume.py \
+python tools/quality_gate.py \
+  --resume documents/zh/resume_<company>.md \
+  --jd documents/zh/jd_<company>_<role>.md \
+  --cover documents/zh/<da-zhaohu_or_cover>_<company>_<role>.md \
   --profile CLAUDE.zh.md \
-  --resume documents/zh/resume_<company>.md
+  --pdf documents/zh/resume_<company>.pdf \
+  --out documents/zh/gate_<company>.json \
+  --brief-out documents/zh/gate_brief_<company>.txt
+# 等价：python tools/flow.py gate --resume … --jd … --pdf …
+# 若尚无 PDF：加 --export-pdf
 ```
 
-若出现 ❌ 高严重度（联系方式不一致、可疑量化数字），**停下来与用户确认**，不得直接鼓励投递。
+| 退出码 / 状态 | 含义 | Agent 行为 |
+|---------------|------|------------|
+| **0 PASS** | 可投 | 继续 Step 6–7 |
+| **1 SOFT_FAIL** | 匹配偏弱 / 覆盖低 / ATS 警告 | **默认阻断投递叙事**；展示「改这 3 条」→ 回 Step 2 改 → 重跑门禁。用户明确「仍要投」才可加 `--force` 后继续 |
+| **2 HARD_FAIL** | 诚信高严重度 | **必须停下与用户确认**；不得鼓励投递。仅用户知情后可用 `--force-hard`（高风险） |
 
-规则：真实具备的 miss → 回 Step 2/3 补一版；不具备 → 诚实标注。
+规则：真实具备的 miss → 回 Step 2/3 补一版；不具备 → 诚实标注 / 可 `skipped --skip-reason low_match`。
 
-若用户是在改第二版，可对比飞轮：
+第二版飞轮：
 
 ```bash
 python tools/match_resume.py diff \
@@ -137,13 +161,15 @@ python tools/match_resume.py diff \
 
 ---
 
-## Step 5: 合规自检
+## Step 5: 合规自检（门禁通过后勾选）
 
-- [ ] 无虚构经历/技能（已跑 `check_profile_resume`）
+- [ ] 已跑 `quality_gate`（或 flow gate），状态为 PASS 或用户明确 force
+- [ ] 无虚构经历/技能（诚信无 HARD）
 - [ ] 点名公司与岗位
-- [ ] 已出 match 报告 + 人话摘要
-- [ ] PDF 导出建议加 `--verify-text`（有 pdftotext 时）
-- [ ] 投递方式按用户选择的模式执行（见 Step 6）；**未选择时默认手动**
+- [ ] 已出 match 报告 +「改这 3 条」
+- [ ] PDF 文本层 / ATS 清单已看（有 pdftotext 时）
+- [ ] 用户知道：**md=粘贴稿，pdf=上传稿**
+- [ ] 投递模式见 Step 6；**未选择时默认手动**
 
 ---
 
@@ -222,6 +248,8 @@ python tools/apply_assist.py after-generate \
 
 **直接运行**以下命令（把占位符替换为 Step 0 抽取的真实值；城市/薪资/学历/经验如果 JD 里有就传，没有就不传）：
 
+从 `gate_*.json` / match report 取出 score / coverage / verdict，一并预填：
+
 ```bash
 python tools/tracker.py suggest-add \
   --company <公司> \
@@ -233,10 +261,13 @@ python tools/tracker.py suggest-add \
   --city <城市，可选> \
   --salary <薪资区间，可选> \
   --education <学历要求，可选> \
-  --experience <经验要求，可选>
+  --experience <经验要求，可选> \
+  --match-score <综合分> \
+  --match-coverage <覆盖率> \
+  --match-verdict <verdict>
 ```
 
-向用户展示 suggest-add 输出的**预填摘要**（公司/岗位/渠道/状态/城市薪资等）。
+向用户展示 suggest-add 输出的**预填摘要**（公司/岗位/渠道/状态/匹配分等）。
 
 ### 7B. 询问用户意图，确认后写入
 
@@ -258,6 +289,7 @@ python tools/tracker.py add \
   --cv documents/zh/resume_<公司>.md \
   --cover documents/zh/<话术文件>.md \
   --source documents/zh/jd_<公司>_<岗位>.md \
+  --match-score <分> --match-coverage <覆盖> --match-verdict <verdict> \
   [--city <城市> --salary <薪资> --education <学历> --experience <经验>]
 ```
 
@@ -301,12 +333,12 @@ python tools/tracker.py add \
 
 ### 8A. 交付汇总（缺一不可说清楚）
 
-- `documents/zh/resume_<company>.md`（源）
-- **`documents/zh/resume_<company>.pdf`（投递用，必须生成）**
-- 话术 / 求职信、岗位描述、匹配报告
-- 当前投递模式 + tracker 是否已写入（7B 的结果）
+- `documents/zh/resume_<company>.md`（**粘贴稿**）
+- **`documents/zh/resume_<company>.pdf`（上传稿，必须生成）**
+- 话术 / 求职信、岗位描述、匹配报告、**gate 报告**
+- 当前投递模式 + tracker 是否已写入（含 match_score）
 
-闭环确认：搜岗 → 生成材料 → **导出 PDF** → 按模式投 → tracker 记一笔。
+闭环确认：搜岗 → 生成材料 → **门禁 PASS** → 导出 PDF → 按模式投 → tracker 记一笔。
 
 ### 8B. 「然后呢」——下一步引导（**固定输出，不要省略**）
 
@@ -324,12 +356,14 @@ python tools/tracker.py add \
     - 原因会进 skip_reason；汇总：python tools/tracker.py skip-stats
     - 之后想改状态或补笔记：/outcome <公司>
 
-  • 想改简历（v2、v3）
-    - 改完 md 后重新跑 match_resume.py report 生成新报告
-    - 拒信/无回复后更建议跑 diff（/outcome 也会提醒）：
+  • 想改简历（v2、v3）/ 过 AI 筛
+    - 按 gate 的「改这 3 条」改 md → 重跑 quality_gate
+    - 对齐 JD 用词：python tools/match_resume.py align --resume … --jd …
+    - 飞轮对比：
         python tools/match_resume.py diff \
           --before documents/zh/match_report_<公司>_v1.json \
           --after documents/zh/match_report_<公司>.json
+    - 匹配分 vs 进面：python tools/tracker.py match-outcome
 
   • 继续投下一个
     - 直接 /apply-zh <新岗位链接或JD>，流程同上

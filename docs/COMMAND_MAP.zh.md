@@ -1,4 +1,4 @@
-# 命令地图与日常节奏（1.1）
+# 命令地图与日常节奏（1.2）
 
 > 灵感来自 [career-ops](https://github.com/santifer/career-ops) 的「技能模式清单」：  
 > 把能力收成一张表，**每天只跑固定节奏**，而不是记几十个命令。
@@ -9,9 +9,9 @@
 
 ```text
 早  ──► day-plan / today          今天碰谁
-中  ──► /apply-zh 或 flow shortlist  产出材料 / 补短名单
-投  ──► App 手动点发送（semi 可复制）
-晚  ──► weekly-report / funnel / outcome  复盘与记状态
+中  ──► /apply-zh → quality_gate  产出材料 + 投前门禁
+投  ──► App 手动点发送（semi 可复制；md 粘贴 / pdf 上传）
+晚  ──► weekly-report / funnel / match-outcome / outcome
 ```
 
 ---
@@ -24,10 +24,11 @@
 | **demo** | 先看产出 | `make demo` · `make check` |
 | **discover** | 找岗入库 | Boss：见下「平台」· `normalize-job-export` · `import-jobs` · `split_jds` |
 | **shortlist** | 今天投谁 | `flow shortlist` · `rank` · `day-plan` |
-| **apply** | 定制一份材料 | `/apply-zh` · `match report` · `check_profile_resume` |
+| **apply** | 定制一份材料 | `/apply-zh` · **`quality_gate`** · `match report` / `align` |
+| **gate** | 投前过筛 | `quality_gate` · `flow gate` · [ats-gate](./ats-gate.zh.md) |
 | **send** | 发出去 | App 手动 · `apply_assist semi`（默认不代点） |
-| **track** | 记进度 | `tracker add/update` · `/outcome` · `dashboard` · **`serve` 一键改状态** |
-| **review** | 周复盘 | `weekly-report` · `funnel` · `skip-stats` |
+| **track** | 记进度 | `tracker add/update`（含 match_score）· `/outcome` · `dashboard` · **`serve`** |
+| **review** | 周复盘 | `weekly-report` · `funnel` · `skip-stats` · **`match-outcome`** |
 | **interview** | 准备面试 | `/interview` · `07-interview-prep` |
 | **negotiate** | 谈薪 | catalog `salary-negotiate`（方法论） |
 
@@ -59,15 +60,19 @@ python tools/normalize_job_export.py -i raw.json -o jobs.json
 python tools/split_jds.py -i pasted.txt -o documents/zh/inbox
 python tools/flow.py shortlist --jobs jobs.json --track internet --limit 5
 
-# 匹配与诚信
+# 匹配 / 门禁 / ATS
 python tools/match_resume.py report --resume … --jd … --profile CLAUDE.zh.md
+python tools/match_resume.py align --resume … --jd …    # 只要「改这 3 条」
+python tools/quality_gate.py --resume … --jd … --pdf …  # 投前强制
+python tools/flow.py gate --resume … --jd … --export-pdf
 python tools/check_profile_resume.py --profile CLAUDE.zh.md --resume documents/zh/resume_….md
-python tools/export_resume_pdf.py -i … --verify-text   # 有 pdftotext 时检查 ATS 文本层
+python tools/export_resume_pdf.py -i … --ats-checklist  # 文本层 + 联系方式明文
 
 # 节奏
 python tools/tracker.py day-plan --expected-salary '25-40K'
 python tools/tracker.py weekly-report
 python tools/tracker.py funnel
+python tools/tracker.py match-outcome      # 匹配分 × 结果
 python tools/tracker.py dashboard          # 离线：改状态=复制命令
 python tools/tracker.py serve              # 本机网页：改状态=直接写 CSV
 python tools/export_resume_pdf.py -i r.md --template compact

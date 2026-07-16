@@ -92,6 +92,17 @@
            background: rgba(128,128,128,.12); }
   .chip b { margin-left: 0.2rem; }
   .chip.muted { color: var(--muted); }
+  .td-action { white-space: nowrap; min-width: 7.5rem; }
+  select.status-edit { max-width: 9rem; padding: 0.25rem 0.35rem; border-radius: 6px;
+                        border: 1px solid var(--border); background: var(--bg); color: inherit;
+                        font-size: 0.78rem; }
+  .toast { position: fixed; bottom: 1.2rem; right: 1.2rem; z-index: 50;
+            padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.85rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,.18); max-width: 22rem; }
+  .toast.ok { background: #065f46; color: #ecfdf5; }
+  .toast.err { background: #991b1b; color: #fef2f2; }
+  .live-banner { background: #0f766e; color: #ecfdf5; padding: 0.5rem 1rem; border-radius: 8px;
+                  font-size: 0.85rem; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
@@ -99,7 +110,9 @@
   <p class="meta">Source of truth: <code>job_search_tracker.csv</code>
      · generated 2026-07-17 by <code>tools/tracker.py dashboard</code>
      · do not commit (personal data)
-     · 今日清单: <code>tracker.py day-plan</code> · 批打分: <code>tracker.py rank</code></p>
+     · 今日: <code>day-plan</code> · 批打分: <code>rank</code>
+     · file 模式：改状态下拉会复制 update 命令</p>
+  
   <div class="stats">
     <div class="stat"><b>9</b><span>total</span></div>
     <div class="stat"><b>5</b><span>open</span></div>
@@ -166,6 +179,64 @@
   })();
   </script>
 
-  <h2>进行中 / Open (5)</h2><table class="jobs-table"><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th><th>salary</th><th>city</th><th>skip_reason</th></tr></thead><tbody><tr class="data-row" data-status="applied" data-city="杭州"><td>2026-07-17</td><td>星云科技</td><td>高级后端</td><td>Boss直聘</td><td>applied</td><td>demo-strong</td><td>demo: 已生成材料，待手动投递</td><td>examples/demo/resume_星云科技.md</td><td>examples/demo/da-zhaohu_星云科技_后端.md</td><td>examples/demo/jd_星云科技_后端.md</td><td>25-40K</td><td>杭州</td><td></td></tr><tr class="data-row row-iv" data-status="interview" data-city="上海"><td>2026-07-17</td><td>青梧数据</td><td>后端开发</td><td>智联</td><td>interview</td><td>demo</td><td>demo: 二面中</td><td></td><td></td><td></td><td>30-45K</td><td>上海</td><td></td></tr><tr class="data-row" data-status="to_apply" data-city="杭州"><td>2026-07-17</td><td>云梯科技</td><td>Java 后端工程师</td><td>Boss直聘</td><td>to_apply</td><td></td><td>security_id=demo_sec_yunti</td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md</td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md</td><td>20-35K</td><td>杭州</td><td></td></tr><tr class="data-row" data-status="to_apply" data-city="上海"><td>2026-07-17</td><td>字节示例</td><td>后端开发</td><td>Boss直聘</td><td>to_apply</td><td></td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_弱匹配.md</td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md</td><td>30-50K</td><td>上海</td><td></td></tr><tr class="data-row" data-status="to_apply" data-city="北京"><td>2026-07-17</td><td>本地生活示范</td><td>服务端开发</td><td>智联</td><td>to_apply</td><td></td><td></td><td></td><td></td><td></td><td>25-40K</td><td>北京</td><td></td></tr></tbody></table><details class="closed-fold"><summary><h2 style="display:inline">已结束 / Closed (4)</h2> <span class="fold-hint">（点击展开）</span></summary><table class="jobs-table"><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th><th>salary</th><th>city</th><th>skip_reason</th></tr></thead><tbody><tr class="data-row row-closed" data-status="rejected" data-city="北京"><td>2026-07-17</td><td>北岸出行</td><td>服务端</td><td>猎聘</td><td>rejected</td><td></td><td>demo: 已结束 → 可 /outcome 复盘 + match diff</td><td></td><td></td><td></td><td></td><td>北京</td><td></td></tr><tr class="data-row row-closed" data-status="skipped" data-city="北京"><td>2026-07-17</td><td>远航金融</td><td>后端</td><td>Boss直聘</td><td>skipped</td><td></td><td>demo: 薪资低于预期</td><td></td><td></td><td></td><td>15-20K</td><td>北京</td><td>salary_low</td></tr><tr class="data-row row-closed" data-status="skipped" data-city="东莞"><td>2026-07-17</td><td>南山制造</td><td>后端</td><td>智联</td><td>skipped</td><td></td><td>demo: 地点不合适</td><td></td><td></td><td></td><td></td><td>东莞</td><td>location</td></tr><tr class="data-row row-closed" data-status="skipped" data-city=""><td>2026-07-17</td><td>极简创业</td><td>全栈</td><td>Boss直聘</td><td>skipped</td><td></td><td>demo: 匹配度低，材料生成后选择不投</td><td></td><td></td><td></td><td></td><td></td><td>low_match</td></tr></tbody></table></details>
+  <h2>进行中 / Open (5)</h2><table class="jobs-table"><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th><th>salary</th><th>city</th><th>skip_reason</th><th>改状态</th></tr></thead><tbody><tr class="data-row" data-status="applied" data-city="杭州"><td>2026-07-17</td><td>星云科技</td><td>高级后端</td><td>Boss直聘</td><td>applied</td><td>demo-strong</td><td>demo: 已生成材料，待手动投递</td><td>examples/demo/resume_星云科技.md</td><td>examples/demo/da-zhaohu_星云科技_后端.md</td><td>examples/demo/jd_星云科技_后端.md</td><td>25-40K</td><td>杭州</td><td></td><td class="td-action"><select class="status-edit" data-company="星云科技" data-role="高级后端" data-channel="Boss直聘" title="改状态"><option value="to_apply">to_apply</option><option value="applied" selected>applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row row-iv" data-status="interview" data-city="上海"><td>2026-07-17</td><td>青梧数据</td><td>后端开发</td><td>智联</td><td>interview</td><td>demo</td><td>demo: 二面中</td><td></td><td></td><td></td><td>30-45K</td><td>上海</td><td></td><td class="td-action"><select class="status-edit" data-company="青梧数据" data-role="后端开发" data-channel="智联" title="改状态"><option value="to_apply">to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview" selected>interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row" data-status="to_apply" data-city="杭州"><td>2026-07-17</td><td>云梯科技</td><td>Java 后端工程师</td><td>Boss直聘</td><td>to_apply</td><td></td><td>security_id=demo_sec_yunti</td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_星云科技.md</td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md</td><td>20-35K</td><td>杭州</td><td></td><td class="td-action"><select class="status-edit" data-company="云梯科技" data-role="Java 后端工程师" data-channel="Boss直聘" title="改状态"><option value="to_apply" selected>to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row" data-status="to_apply" data-city="上海"><td>2026-07-17</td><td>字节示例</td><td>后端开发</td><td>Boss直聘</td><td>to_apply</td><td></td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/resume_弱匹配.md</td><td></td><td>/Users/terencesai/Desktop/vibecoding/github/skill/ai-job-search/examples/demo/jd_星云科技_后端.md</td><td>30-50K</td><td>上海</td><td></td><td class="td-action"><select class="status-edit" data-company="字节示例" data-role="后端开发" data-channel="Boss直聘" title="改状态"><option value="to_apply" selected>to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row" data-status="to_apply" data-city="北京"><td>2026-07-17</td><td>本地生活示范</td><td>服务端开发</td><td>智联</td><td>to_apply</td><td></td><td></td><td></td><td></td><td></td><td>25-40K</td><td>北京</td><td></td><td class="td-action"><select class="status-edit" data-company="本地生活示范" data-role="服务端开发" data-channel="智联" title="改状态"><option value="to_apply" selected>to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr></tbody></table><details class="closed-fold"><summary><h2 style="display:inline">已结束 / Closed (4)</h2> <span class="fold-hint">（点击展开）</span></summary><table class="jobs-table"><thead><tr><th>date</th><th>company</th><th>role</th><th>channel</th><th>status</th><th>fit_rating</th><th>notes</th><th>cv_file</th><th>cover_letter_file</th><th>source</th><th>salary</th><th>city</th><th>skip_reason</th><th>改状态</th></tr></thead><tbody><tr class="data-row row-closed" data-status="rejected" data-city="北京"><td>2026-07-17</td><td>北岸出行</td><td>服务端</td><td>猎聘</td><td>rejected</td><td></td><td>demo: 已结束 → 可 /outcome 复盘 + match diff</td><td></td><td></td><td></td><td></td><td>北京</td><td></td><td class="td-action"><select class="status-edit" data-company="北岸出行" data-role="服务端" data-channel="猎聘" title="改状态"><option value="to_apply">to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected" selected>rejected</option><option value="no_response">no_response</option><option value="skipped">skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row row-closed" data-status="skipped" data-city="北京"><td>2026-07-17</td><td>远航金融</td><td>后端</td><td>Boss直聘</td><td>skipped</td><td></td><td>demo: 薪资低于预期</td><td></td><td></td><td></td><td>15-20K</td><td>北京</td><td>salary_low</td><td class="td-action"><select class="status-edit" data-company="远航金融" data-role="后端" data-channel="Boss直聘" title="改状态"><option value="to_apply">to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped" selected>skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row row-closed" data-status="skipped" data-city="东莞"><td>2026-07-17</td><td>南山制造</td><td>后端</td><td>智联</td><td>skipped</td><td></td><td>demo: 地点不合适</td><td></td><td></td><td></td><td></td><td>东莞</td><td>location</td><td class="td-action"><select class="status-edit" data-company="南山制造" data-role="后端" data-channel="智联" title="改状态"><option value="to_apply">to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped" selected>skipped</option><option value="withdrawn">withdrawn</option></select></td></tr><tr class="data-row row-closed" data-status="skipped" data-city=""><td>2026-07-17</td><td>极简创业</td><td>全栈</td><td>Boss直聘</td><td>skipped</td><td></td><td>demo: 匹配度低，材料生成后选择不投</td><td></td><td></td><td></td><td></td><td></td><td>low_match</td><td class="td-action"><select class="status-edit" data-company="极简创业" data-role="全栈" data-channel="Boss直聘" title="改状态"><option value="to_apply">to_apply</option><option value="applied">applied</option><option value="screening">screening</option><option value="interview">interview</option><option value="interview_1">interview_1</option><option value="interview_2">interview_2</option><option value="offer">offer</option><option value="hired">hired</option><option value="rejected">rejected</option><option value="no_response">no_response</option><option value="skipped" selected>skipped</option><option value="withdrawn">withdrawn</option></select></td></tr></tbody></table></details>
+  
+  <div id="toast" class="toast" hidden></div>
+  <script>
+  (function() {
+    const LIVE = false;
+    const toast = document.getElementById('toast');
+    function showToast(msg, ok) {
+      if (!toast) return;
+      toast.hidden = false;
+      toast.textContent = msg;
+      toast.className = 'toast ' + (ok ? 'ok' : 'err');
+      setTimeout(function() { toast.hidden = true; }, 2800);
+    }
+    function buildCmd(company, role, channel, status) {
+      let c = 'python tools/tracker.py update --company ' + JSON.stringify(company)
+        + ' --role ' + JSON.stringify(role)
+        + ' --status ' + status;
+      if (channel) c += ' --channel ' + JSON.stringify(channel);
+      if (status === 'skipped') c += ' --skip-reason other';
+      return c;
+    }
+    document.querySelectorAll('select.status-edit').forEach(function(sel) {
+      sel.addEventListener('change', function() {
+        const company = sel.getAttribute('data-company') || '';
+        const role = sel.getAttribute('data-role') || '';
+        const channel = sel.getAttribute('data-channel') || '';
+        const status = sel.value;
+        if (LIVE) {
+          fetch('/api/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({company: company, role: role, channel: channel, status: status})
+          }).then(function(r) { return r.json().then(function(j) { return {ok: r.ok, j: j}; }); })
+            .then(function(x) {
+              if (x.ok) {
+                showToast('已更新: ' + company + ' → ' + status, true);
+                setTimeout(function() { location.reload(); }, 500);
+              } else {
+                showToast((x.j && x.j.error) || '更新失败', false);
+              }
+            }).catch(function(e) { showToast(String(e), false); });
+        } else {
+          const cmd = buildCmd(company, role, channel, status);
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(cmd).then(function() {
+              showToast('已复制 update 命令，到终端粘贴执行', true);
+            }).catch(function() {
+              prompt('复制此命令到终端执行:', cmd);
+            });
+          } else {
+            prompt('复制此命令到终端执行:', cmd);
+          }
+        }
+      });
+    });
+  })();
+  </script>
+
 </body>
 </html>

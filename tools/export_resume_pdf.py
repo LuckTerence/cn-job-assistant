@@ -506,6 +506,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="导出后若本机有 pdftotext，检查文本层（ATS 可读性）",
     )
     p.add_argument(
+        "--ats-checklist",
+        action="store_true",
+        help="导出后打印 ATS 检查清单（含联系方式明文等；需 pdftotext）",
+    )
+    p.add_argument(
         "--template",
         default="classic",
         choices=tuple(TYPST_TEMPLATES.keys()),
@@ -537,6 +542,82 @@ def verify_pdf_text_layer(pdf_path: Path) -> tuple[bool, str]:
     if len(re.sub(r"\s+", "", text)) < 40:
         return False, "extracted text too short — PDF may be image-only"
     return True, f"ok ({len(text)} chars extracted)"
+
+
+def extract_pdf_text(pdf_path: Path) -> tuple[str, str]:
+    """Return (text, error_or_empty). Empty text + message if unavailable."""
+    bin_ = shutil.which("pdftotext")
+    if not bin_:
+        return "", "skip: pdftotext not installed (brew install poppler)"
+    try:
+        proc = subprocess.run(
+            [bin_, "-layout", str(pdf_path), "-"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return "", f"pdftotext failed: {e}"
+    if proc.returncode != 0:
+        return "", (proc.stderr or "pdftotext error")[:200]
+    return proc.stdout or "", ""
+
+
+def ats_checklist_from_text(text: str, resume_md: str = "") -> list[dict]:
+    """Productized ATS checklist items (shared with quality_gate)."""
+    email_re = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+    phone_re = re.compile(r"1[3-9]\d{9}")
+    checks: list[dict] = []
+    compact = re.sub(r"\s+", "", text or "")
+    checks.append(
+        {
+            "id": "text_length",
+            "ok": len(compact) >= 40,
+            "detail": f"{len(compact)} non-space chars",
+            "hint": "文本过短可能是图片 PDF",
+        }
+    )
+    has_cid = "cid:" in (text or "").lower() or "\ufffd" in (text or "")
+    checks.append(
+        {
+            "id": "no_cid_garbage",
+            "ok": not has_cid,
+            "detail": "cid/replacement found" if has_cid else "clean",
+            "hint": "换 Typst / 系统中文字体重导",
+        }
+    )
+    emails = set(email_re.findall(text or ""))
+    phones = set(phone_re.findall(text or ""))
+    md_emails = set(email_re.findall(resume_md or ""))
+    md_phones = set(phone_re.findall(resume_md or ""))
+    if md_emails:
+        checks.append(
+            {
+                "id": "email_literal",
+                "ok": bool(emails),
+                "detail": f"found={sorted(emails)[:2]}",
+                "hint": "邮箱须明文，不要只靠图标",
+            }
+        )
+    if md_phones:
+        checks.append(
+            {
+                "id": "phone_literal",
+                "ok": bool(phones),
+                "detail": f"found={sorted(phones)[:2]}",
+                "hint": "手机号须明文",
+            }
+        )
+    checks.append(
+        {
+            "id": "single_column_hint",
+            "ok": True,
+            "detail": "prefer classic/compact single-column templates",
+            "hint": "多栏/图表简历易打乱 ATS 阅读顺序",
+        }
+    )
+    return checks
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -587,12 +668,28 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  template={getattr(args, 'template', 'classic')}")
         if used == "chrome":
             print("提示: 安装 typst 后版式更稳更好看 — brew install typst")
-        if getattr(args, "verify_text", False):
+        want_ats = bool(
+            getattr(args, "verify_text", False) or getattr(args, "ats_checklist", False)
+        )
+        if want_ats:
             ok, msg = verify_pdf_text_layer(Path(pdf))
             print(f"ATS 文本层: {'✅' if ok else '❌'} {msg}")
             if not ok and not msg.startswith("skip:"):
                 print("投递前请人工打开 PDF 核对；或换 typst/后端重导。", file=sys.stderr)
-        print("投递用此 PDF；内容请人工核对真实后再投。")
+            if getattr(args, "ats_checklist", False):
+                text, err = extract_pdf_text(Path(pdf))
+                md_text = md_path.read_text(encoding="utf-8", errors="replace")
+                if err and not text:
+                    print(f"ATS 清单: {err}")
+                else:
+                    print("ATS 检查清单:")
+                    for c in ats_checklist_from_text(text, md_text):
+                        mark = "✅" if c.get("ok") else "❌"
+                        print(f"  {mark} {c.get('id')}: {c.get('detail')}")
+                        if not c.get("ok") and c.get("hint"):
+                            print(f"      → {c['hint']}")
+        print("投递：上传用 PDF；平台要粘贴时用同名 .md 源文件。")
+        print("投前一键门禁: python tools/quality_gate.py --resume <md> --jd <jd> --pdf <pdf>")
         print("诚信检查: python tools/check_profile_resume.py --profile CLAUDE.zh.md --resume <md>")
         return 0
     except Exception as exc:

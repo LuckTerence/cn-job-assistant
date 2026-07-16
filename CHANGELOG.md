@@ -3,6 +3,29 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.2.0] — 2026-07-17
+
+### 投前质量门禁 + AI/ATS 过筛 + 匹配归因
+
+| 能力 | 说明 |
+|------|------|
+| **`quality_gate.py`** | 一键：匹配报告 + 画像诚信 + ATS 文本层；SOFT/HARD 退出码 |
+| **`flow gate`** | 薄封装同上 |
+| **改这 3 条** | `match report` / `align` 输出可执行 bullet 改写清单（禁止虚构） |
+| **tracker `match_*`** | 列 `match_score` / `match_coverage` / `match_verdict`；`rank --write-fit` 回写 |
+| **`match-outcome`** | 匹配分 × 进面/拒/不投 归因（质量飞轮） |
+| **ATS 清单** | `export_resume_pdf --ats-checklist`；双格式 md=粘贴 / pdf=上传 |
+| **`/apply-zh`** | Step 4 强制门禁；tracker 预填匹配分 |
+
+```bash
+python tools/quality_gate.py --resume r.md --jd j.md --pdf r.pdf --out gate.json
+python tools/match_resume.py align --resume r.md --jd j.md
+python tools/tracker.py match-outcome
+# 文档：docs/ats-gate.zh.md
+```
+
+**兼容**：旧 CSV 缺 `match_*` 列时读入自动补空，写出时带齐表头。
+
 ## [1.1.1] — 2026-07-17
 
 ### 看板一键改状态 + Typst 第二套模板

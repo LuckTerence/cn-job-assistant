@@ -1,6 +1,6 @@
 ---
 name: resume-match
-version: 2.2.0
+version: 2.3.0
 description: >
   本地轻量简历↔岗位描述 匹配与生成质量报告。使用 tools/match_resume.py（stdlib：TF–IDF 余弦
   + 关键词命中/缺失 + 同义词表 + 期望薪资 vs JD 区间，无 embedding 下载）。触发词：匹配度、
@@ -61,6 +61,13 @@ python tools/match_resume.py diff \
   --before documents/zh/match_report_v1.json \
   --after documents/zh/match_report_v2.json
 
+# 只要「改这 3 条」（JD 用词对齐，禁止虚构）
+python tools/match_resume.py align --resume … --jd …
+
+# 投前一键门禁（匹配 + 诚信 + ATS）
+python tools/quality_gate.py --resume … --jd … --pdf … --profile CLAUDE.zh.md
+# 或：python tools/flow.py gate --resume … --jd …
+
 # JSON（agent 可读）
 python tools/match_resume.py score --resume … --jd … --json
 # 关闭同义词（A/B）：加 --no-synonyms
@@ -90,13 +97,16 @@ python tools/match_resume.py batch --manifest pairs.json --track internet --out 
 | `still_missing`（report） | 合并简历+话术后仍缺的词 |
 | `salary`（report） | 期望 vs JD：`signal` ✅/⚠️/❌、`verdict`、`summary` |
 | `suggestions` | 可操作建议（**禁止**据此虚构经历） |
+| `action_checklist` | 最多 3 条「改这 3 条」（term + 写法 + fiction_forbidden） |
 
 ## 工作流（agent）
 
 1. 用户提供 岗位描述 与简历（或 `/apply-zh` 刚写出的 `documents/zh/resume_*.md`）。
-2. 跑 `score` 或 `report`，把 hit/miss 展示给用户。
+2. 跑 `report` 或 `align`，展示 **【改这 3 条】** 与 hit/miss。
 3. 在**真实具备**的前提下，建议把 miss 词写入经历要点；不具备的明确标为缺口。
-4. 人工是否投递仍看 `04-job-evaluation.md`（动机、通勤、文化、硬性否决项等 TF–IDF 评不了）。
+4. **投前必须** `quality_gate`（SOFT 默认阻断，HARD 诚信阻断）。
+5. 人工是否投递仍看 `04-job-evaluation.md`（动机、通勤、文化、硬性否决项等 TF–IDF 评不了）。
+6. 过筛说明见 `docs/ats-gate.zh.md`。
 
 ## 合规
 

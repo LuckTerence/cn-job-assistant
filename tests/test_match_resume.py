@@ -54,9 +54,26 @@ class MatchResumeTests(unittest.TestCase):
         self.assertTrue(len(report["suggestions"]) >= 1)
         self.assertIn("brief_zh", report)
         self.assertEqual(len(report["brief_zh"]["edit_top3"]), 3)
+        self.assertIn("action_checklist", report)
+        self.assertEqual(len(report["action_checklist"]), 3)
+        self.assertTrue(all(item.get("fiction_forbidden") for item in report["action_checklist"]))
         brief = m.format_zh_brief(report["brief_zh"])
         self.assertIn("匹配摘要", brief)
         self.assertIn("别硬写", brief)
+        self.assertIn("改这 3 条", brief)
+
+    def test_cli_align(self) -> None:
+        rc = m.main(
+            [
+                "align",
+                "--json",
+                "--resume",
+                str(FIX / "resume_backend_good.md"),
+                "--jd",
+                str(FIX / "jd_backend_sample.md"),
+            ]
+        )
+        self.assertEqual(rc, 0)
 
     def test_diff_reports_flywheel(self) -> None:
         weak = m.quality_report(self.weak, self.jd)

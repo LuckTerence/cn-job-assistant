@@ -956,6 +956,7 @@ def quality_report(
         jd_text=jd_text,
         salary=salary,
     )
+    action_checklist = list(brief.get("action_checklist") or [])
 
     return {
         "resume": base.to_dict(),
@@ -964,6 +965,7 @@ def quality_report(
         "still_missing": still_miss,
         "cover_only_hits": cover_only,
         "suggestions": suggestions,
+        "action_checklist": action_checklist,
         "salary": salary,
         "brief_zh": brief,
         "summary": {
@@ -1037,6 +1039,88 @@ def _action_by_band(score: float) -> str:
     return "匹配度较低，投了权当练手；建议优先找和你画像更接近的岗位。"
 
 
+def build_action_checklist(
+    miss_core: list[str],
+    miss_nice: list[str],
+    *,
+    still_miss: list[str] | None = None,
+    cover_only: list[str] | None = None,
+) -> list[dict]:
+    """Exactly up to 3 concrete rewrite actions (truth-gated wording).
+
+    Product surface for ATS/AI screen: tell the user *which term* to weave into
+    a real bullet — never invent experience.
+    """
+    items: list[dict] = []
+    seen: set[str] = set()
+
+    def add(term: str, kind: str, action: str) -> None:
+        t = (term or "").strip()
+        if not t or t.lower() in seen:
+            return
+        if len(items) >= 3:
+            return
+        seen.add(t.lower())
+        items.append(
+            {
+                "priority": len(items) + 1,
+                "term": t,
+                "kind": kind,
+                "action": action,
+                "fiction_forbidden": True,
+            }
+        )
+
+    for t in miss_core:
+        add(
+            t,
+            "core",
+            f"若你确实用过「{t}」，在**某一段工作/项目经历**里补一句："
+            f"动作 + {t} + 可验证结果（耗时/QPS/规模/%）。不会就标真缺口，勿硬写。",
+        )
+    for t in miss_nice:
+        add(
+            t,
+            "nice",
+            f"锦上添花：若属实，可在技能栏或经历末条点到「{t}」；不属实跳过。",
+        )
+    for t in still_miss or []:
+        add(
+            t,
+            "gap",
+            f"JD 仍缺「{t}」：会则写进简历正文（不要只放打招呼），不会则保持缺口可见。",
+        )
+    for t in cover_only or []:
+        add(
+            t,
+            "cover_only",
+            f"「{t}」目前只在打招呼里——ATS 更看简历正文，属实则挪进经历 bullet。",
+        )
+
+    # Always pad to actionable hygiene tips if gaps are few
+    hygiene = [
+        (
+            "公司与岗位名",
+            "hygiene",
+            "开头总结和打招呼里写上**目标公司 + 岗位名**，避免万能模板被模型/HR 一眼刷掉。",
+        ),
+        (
+            "量化结果",
+            "hygiene",
+            "每段经历至少 1 条带数字（耗时、量级、占比、人数）；空话过不了二筛。",
+        ),
+        (
+            "JD 原词",
+            "hygiene",
+            "同义词已对齐时，若空间允许，把 JD **原词**也写进一句（机筛更稳）。",
+        ),
+    ]
+    for term, kind, action in hygiene:
+        add(term, kind, action)
+
+    return items[:3]
+
+
 def build_zh_brief(
     *,
     combined_result: MatchResult,
@@ -1053,8 +1137,21 @@ def build_zh_brief(
     score = combined_result.score
     tone = _tone_open(score)
     action = _action_by_band(score)
+    checklist = build_action_checklist(
+        miss_core,
+        miss_nice,
+        still_miss=top_miss,
+        cover_only=cover_only,
+    )
 
     edit_tips: list[str] = []
+    # Prefer concrete checklist lines as edit_top3
+    for item in checklist:
+        line = f"[{item['term']}] {item['action']}"
+        if line not in edit_tips:
+            edit_tips.append(line)
+        if len(edit_tips) >= 3:
+            break
     for tip in suggestions:
         if tip not in edit_tips:
             edit_tips.append(tip)
@@ -1088,6 +1185,7 @@ def build_zh_brief(
         "already_hit": top_hit,
         "cover_only": cover_only[:5],
         "edit_top3": edit_tips[:3],
+        "action_checklist": checklist[:3],
         "action_by_band": action,
         "salary": salary,
         "compliance": "不会的技能别硬写上去刷分。",
@@ -1137,9 +1235,19 @@ def format_zh_brief(brief: dict) -> str:
             "  " + "、".join(brief["cover_only"]),
             "",
         ]
-    lines.append("如果属实，可以改的方向：")
-    for i, tip in enumerate(brief.get("edit_top3") or [], 1):
-        lines.append(f"  {i}. {tip}")
+    lines.append("【改这 3 条】（只写真实经历）")
+    checklist = brief.get("action_checklist") or []
+    if checklist:
+        for i, item in enumerate(checklist[:3], 1):
+            if isinstance(item, dict):
+                lines.append(
+                    f"  {i}. [{item.get('term', '')}] {item.get('action', '')}"
+                )
+            else:
+                lines.append(f"  {i}. {item}")
+    else:
+        for i, tip in enumerate(brief.get("edit_top3") or [], 1):
+            lines.append(f"  {i}. {tip}")
     lines += [
         "",
         "【下一步建议】",
@@ -1389,6 +1497,54 @@ def cmd_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_align(args: argparse.Namespace) -> int:
+    """Print only the top-3 rewrite checklist for JD keyword alignment."""
+    resume = read_text(args.resume)
+    jd = read_text(args.jd)
+    cover = read_text(args.cover) if args.cover else None
+    syn = _synonym_map_from_args(args)
+    report = quality_report(
+        resume,
+        jd,
+        cover,
+        top_k=args.top_k,
+        synonym_map=syn,
+        salary_compare=False,
+    )
+    checklist = report.get("action_checklist") or []
+    payload = {
+        "score": report["summary"]["combined_score"],
+        "coverage": report["summary"]["keyword_coverage_combined"],
+        "verdict": report["summary"]["verdict"],
+        "still_missing": report.get("still_missing") or [],
+        "action_checklist": checklist[:3],
+        "compliance": "只写真实具备的；缺的保持可见，禁止灌词刷分。",
+    }
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        print("【JD 用词对齐 · 改这 3 条】")
+        print(
+            f"综合 {payload['score']}/100 · 覆盖 {payload['coverage']}% · "
+            f"{VERDICT_ZH.get(payload['verdict'], payload['verdict'])}"
+        )
+        print()
+        for i, item in enumerate(checklist[:3], 1):
+            if isinstance(item, dict):
+                print(f"  {i}. [{item.get('term', '')}] ({item.get('kind', '')})")
+                print(f"     {item.get('action', '')}")
+            else:
+                print(f"  {i}. {item}")
+        print()
+        print(payload["compliance"])
+    if args.out:
+        Path(args.out).write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return 0
+
+
 def cmd_batch(args: argparse.Namespace) -> int:
     """Score many resume/jd pairs from a JSON manifest (for rank / CI)."""
     path = Path(args.manifest)
@@ -1588,6 +1744,17 @@ def build_parser() -> argparse.ArgumentParser:
     df.add_argument("--json", action="store_true")
     df.add_argument("--out", default="")
     df.set_defaults(func=cmd_diff)
+
+    al = sub.add_parser(
+        "align",
+        help="top-3 JD keyword rewrite checklist (truth-gated; no auto-rewrite)",
+    )
+    add_common(al)
+    al.add_argument("--resume", required=True)
+    al.add_argument("--jd", required=True)
+    al.add_argument("--cover", default="")
+    al.add_argument("--out", default="")
+    al.set_defaults(func=cmd_align)
 
     bat = sub.add_parser(
         "batch",
