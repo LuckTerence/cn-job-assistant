@@ -1,13 +1,14 @@
 # CN Job Assistant — convenience targets
-.PHONY: demo test lint smoke check quick release-ready package help
+.PHONY: demo test lint smoke check quick release-ready release-gh package help
 
 help:
 	@echo "make demo          - offline product demo"
 	@echo "make test          - unit tests"
 	@echo "make lint          - skill / zh / surface linters"
-	@echo "make smoke         - 1.0 product-path offline smoke (no network)"
+	@echo "make smoke         - product-path offline smoke (no network)"
 	@echo "make check         - test + smoke (release gate)"
 	@echo "make release-ready - version/docs packaging assert"
+	@echo "make release-gh    - gh release for skill.json version (needs gh auth login)"
 	@echo "make package       - Red Skill zip (scripts/package_for_redskill.sh)"
 	@echo "make quick         - print 15-min path pointer"
 
@@ -30,6 +31,9 @@ check: release-ready test smoke
 
 release-ready:
 	python3 tools/check_release_ready.py
+
+release-gh:
+	bash scripts/publish_github_release.sh
 
 package:
 	bash scripts/package_for_redskill.sh

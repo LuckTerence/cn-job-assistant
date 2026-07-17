@@ -3,6 +3,21 @@
 本仓库遵循 [语义化版本](https://semver.org/lang/zh-CN/) 的宽松约定。  
 **1.0.0** 起：默认国内闭环能力视为稳定；破坏性变更会升主版本或在条目标明。
 
+## [1.2.2] — 2026-07-17
+
+### P2 收尾：投递提示写分 + Release 脚本 + flow gate 透传
+
+- **`apply_assist`**：semi/auto/manual 提示带上 `--match-score` 与 `quality_gate` / `match-outcome`
+- **`make release-gh`** / `publish_github_release.sh`：按 `skill.json` 版本选 notes（优先 `docs/github-release-vX.Y.Z.md`）
+- **`flow gate`**：透传 `--min-score` / `--min-coverage` / `--no-salary` / `--zh-only`
+- **weekly-report**：下周建议含 `match-outcome`
+- **ats-gate 文档**：诚信 high/medium 分级说明
+
+```bash
+make release-gh   # 需先: gh auth login
+python tools/flow.py gate --resume r.md --jd j.md --min-score 50 --zh-only
+```
+
 ## [1.2.1] — 2026-07-17
 
 ### 门禁误杀修复 + 安全/性能/1.2 接线补全

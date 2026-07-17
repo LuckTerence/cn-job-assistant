@@ -27,10 +27,18 @@ python tools/flow.py gate --resume r.md --jd j.md --pdf r.pdf
 | 状态 | 退出码 | 含义 |
 |------|--------|------|
 | PASS | 0 | 默认可投 |
-| SOFT_FAIL | 1 | 匹配弱 / 覆盖低 / ATS 警告 → 先「改这 3 条」；确认后 `--force` |
-| HARD_FAIL | 2 | 诚信高严重度 → 先修；仅知情后 `--force-hard` |
+| SOFT_FAIL | 1 | 匹配弱 / 覆盖低 / ATS 警告 / 画像缺量化数字 → 先「改这 3 条」；确认后 `--force` |
+| HARD_FAIL | 2 | 诚信**高**严重度（联系方式不一致等）→ 先修；仅知情后 `--force-hard` |
 
 门槛默认：`score ≥ 40`、`coverage ≥ 25%`；可用 `--min-score` / `--min-coverage` 调整。
+
+**诚信分级（1.2.1）**
+
+| 类型 | 严重度 | 门禁 |
+|------|--------|------|
+| 邮箱/手机与画像不一致 | high | HARD_FAIL |
+| 简历量化数字画像里没有 | medium | 不硬拦（请人工确认，禁止编造） |
+| 「精通/熟悉」画像无对应词 | medium | 不硬拦 |
 
 ---
 

@@ -183,6 +183,14 @@ def cmd_gate(args: argparse.Namespace) -> int:
         cmd.append("--force")
     if args.force_hard:
         cmd.append("--force-hard")
+    if getattr(args, "min_score", None) is not None:
+        cmd.extend(["--min-score", str(args.min_score)])
+    if getattr(args, "min_coverage", None) is not None:
+        cmd.extend(["--min-coverage", str(args.min_coverage)])
+    if getattr(args, "no_salary", False):
+        cmd.append("--no-salary")
+    if getattr(args, "zh_only", False):
+        cmd.append("--zh-only")
     if args.out:
         cmd.extend(["--out", args.out])
     if args.brief_out:
@@ -254,6 +262,10 @@ def build_parser() -> argparse.ArgumentParser:
     gt.add_argument("--expected", default="", help="expected salary e.g. 25-40K")
     gt.add_argument("--force", action="store_true")
     gt.add_argument("--force-hard", action="store_true")
+    gt.add_argument("--min-score", type=float, default=None)
+    gt.add_argument("--min-coverage", type=float, default=None)
+    gt.add_argument("--no-salary", action="store_true")
+    gt.add_argument("--zh-only", action="store_true")
     gt.add_argument("--out", default="")
     gt.add_argument("--brief-out", default="")
     gt.add_argument("--json", action="store_true")

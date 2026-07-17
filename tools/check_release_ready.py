@@ -23,13 +23,20 @@ def main() -> int:
     if f"## [{ver}]" not in changelog:
         errors.append(f"CHANGELOG.md missing section ## [{ver}]")
 
+    # Prefer versioned GitHub release notes when present (optional for 1.0.x only docs)
+    notes = ROOT / f"docs/github-release-v{ver}.md"
+    if ver.startswith("1.2") and not notes.is_file():
+        errors.append(f"missing release notes: docs/github-release-v{ver}.md")
+
     required = [
         "docs/QUICKSTART.zh.md",
         "docs/AGENT_PROMPT.zh.md",
         "docs/COMMAND_MAP.zh.md",
         "docs/RELEASE-1.0.zh.md",
         "docs/github-release-v1.0.0.md",
+        "docs/ats-gate.zh.md",
         "docs/dist-notes-1.0.zh.md",
+        "scripts/publish_github_release.sh",
         "scripts/smoke_cn.sh",
         "scripts/demo.sh",
         "tools/flow.py",

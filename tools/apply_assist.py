@@ -485,15 +485,22 @@ def cmd_semi(args: argparse.Namespace) -> int:
     print("  1. 在打开的页面里确认是目标岗位")
     print("  2. 粘贴话术 / 上传简历（Cmd/Ctrl+V）")
     print("  3. 自己点「发送」或「立即沟通」——本工具绝不会代点")
-    print("  4. 回来记一笔:")
+    print("  4. 回来记一笔（若刚过 quality_gate，把分写上便于 match-outcome）:")
     if company:
         print(
             f"     python tools/tracker.py add --company {company} "
             f"--role '{args.role or ''}' --channel '{args.channel or 'Boss直聘'}' "
-            f"--status applied"
+            f"--status applied "
+            f"[--match-score N --match-coverage N --match-verdict …]"
         )
     else:
-        print("     python tools/tracker.py add --company … --role … --status applied")
+        print(
+            "     python tools/tracker.py add --company … --role … --status applied "
+            "[--match-score N --match-coverage N --match-verdict …]"
+        )
+    print(
+        "     # 投前: python tools/quality_gate.py --resume … --jd … --pdf …"
+    )
     return 0
 
 
@@ -617,8 +624,10 @@ def cmd_auto_greet(args: argparse.Namespace) -> int:
         print(
             "建议: python tools/tracker.py add "
             f"--company {args.company} --role '{args.role or ''}' "
-            f"--channel Boss直聘 --status applied"
+            f"--channel Boss直聘 --status applied "
+            "[--match-score N --match-coverage N --match-verdict …]"
         )
+    print("复盘: python tools/tracker.py match-outcome")
     return 0
 
 
@@ -630,7 +639,11 @@ def cmd_dispatch_by_mode(args: argparse.Namespace) -> int:
     print()
     if mode == "manual":
         print("请把生成的话术/简历，自己粘贴到招聘 App 后点发送。")
-        print("记进度: python tools/tracker.py suggest-add --company … --role …")
+        print("投前: python tools/quality_gate.py --resume … --jd … --pdf …")
+        print(
+            "记进度: python tools/tracker.py suggest-add --company … --role … "
+            "[--match-score N --match-coverage N --match-verdict …]"
+        )
         return 0
     if mode == "semi":
         if not args.url and not args.text_file and not args.text:

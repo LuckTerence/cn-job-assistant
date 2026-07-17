@@ -2076,8 +2076,9 @@ def cmd_weekly_report(args: argparse.Namespace) -> int:
     print()
     print("建议下周：")
     print("  1. python tools/tracker.py day-plan --limit 5")
-    print("  2. 对 day-plan 前 1～2 名跑 /apply-zh（不要群发）")
+    print("  2. 对 day-plan 前 1～2 名跑 /apply-zh（不要群发）+ quality_gate")
     print("  3. 状态变化立刻 /outcome 或 tracker update")
+    print("  4. python tools/tracker.py match-outcome  # 匹配分 × 进面/拒 粗看")
     print()
     print("（战报为本地快照叙事，不是官方转化率。）")
     return 0
